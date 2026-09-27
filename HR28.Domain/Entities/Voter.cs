@@ -23,4 +23,6 @@ public class Voter
     public string Remarks { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; }
+    public string SupportStatus { get; set; }
+    = "Undecided";
 }

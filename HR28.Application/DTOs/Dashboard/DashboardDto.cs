@@ -11,4 +11,11 @@ public class DashboardDto
     public int TotalConstituencies { get; set; }
 
     public int TotalIslands { get; set; }
+    public int Supporters { get; set; }
+
+    public int Opponents { get; set; }
+
+    public int Undecided { get; set; }
+
+    public int Neutral { get; set; }
 }

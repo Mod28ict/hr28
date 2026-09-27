@@ -1,9 +1,11 @@
 ﻿using HR28.Application.DTOs.Voters;
 using HR28.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HR28.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class VotersController : ControllerBase
@@ -45,6 +47,7 @@ public class VotersController : ControllerBase
 
         return Ok(result);
     }
+    //[Authorize]
     [HttpGet("search")]
     public async Task<IActionResult> SearchVoters(
     string searchTerm)
@@ -53,5 +56,16 @@ public class VotersController : ControllerBase
             await _voterService.SearchVotersAsync(searchTerm);
 
         return Ok(result);
+    }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateVoter(
+    Guid id,
+    UpdateVoterDto request)
+    {
+        await _voterService.UpdateVoterAsync(
+            id,
+            request);
+
+        return Ok("Voter updated successfully.");
     }
 }

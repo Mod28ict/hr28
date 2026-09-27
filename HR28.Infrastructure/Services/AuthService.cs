@@ -10,10 +10,14 @@ namespace HR28.Infrastructure.Services;
 public class AuthService : IAuthService
 {
     private readonly HR28DbContext _dbContext;
+    private readonly ITokenService _tokenService;
 
-    public AuthService(HR28DbContext dbContext)
+    public AuthService(
+        HR28DbContext dbContext,
+        ITokenService tokenService)
     {
         _dbContext = dbContext;
+        _tokenService = tokenService;
     }
 
     public async Task<bool> GenerateOtpAsync(
@@ -114,11 +118,16 @@ public class AuthService : IAuthService
 
         await _dbContext.SaveChangesAsync();
 
+        var token = await _tokenService.GenerateTokenAsync(user);
+
+        user.LastLoginAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync();
+
         return new LoginResponseDto
         {
             Success = true,
             Message = "OTP verified successfully.",
-            Token = "TEMP-TOKEN"
+            Token = token
         };
     }
 }

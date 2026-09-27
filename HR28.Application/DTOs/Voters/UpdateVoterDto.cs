@@ -1,6 +1,6 @@
 ﻿namespace HR28.Application.DTOs.Voters;
 
-public class CreateVoterDto
+public class UpdateVoterDto
 {
     public string NationalId { get; set; } = string.Empty;
 
@@ -14,8 +14,7 @@ public class CreateVoterDto
 
     public Guid? IslandId { get; set; }
 
-    public string Remarks { get; set; } = string.Empty;
-    public string SupportStatus { get; set; }
-    = "Undecided";
+    public string SupportStatus { get; set; } = "Undecided";
 
+    public string Remarks { get; set; } = string.Empty;
 }

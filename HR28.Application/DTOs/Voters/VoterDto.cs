@@ -17,4 +17,6 @@ public class VoterDto
     public Guid? IslandId { get; set; }
 
     public string Remarks { get; set; } = string.Empty;
+    public string SupportStatus { get; set; }
+    = string.Empty;
 }

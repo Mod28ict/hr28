@@ -13,4 +13,8 @@ public interface IVoterService
         Guid id);
     Task<List<VoterDto>> SearchVotersAsync(
     string searchTerm);
+    Task UpdateVoterAsync(
+    Guid id,
+    UpdateVoterDto request);
+
 }

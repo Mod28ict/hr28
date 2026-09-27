@@ -28,7 +28,8 @@ public class VoterService : IVoterService
             ConstituencyId = request.ConstituencyId,
             IslandId = request.IslandId,
             Remarks = request.Remarks,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            SupportStatus = request.SupportStatus 
         };
 
         _dbContext.Voters.Add(voter);
@@ -60,7 +61,8 @@ public class VoterService : IVoterService
                 MobileNumber = v.MobileNumber,
                 ConstituencyId = v.ConstituencyId,
                 IslandId = v.IslandId,
-                Remarks = v.Remarks
+                Remarks = v.Remarks,
+                SupportStatus = v.SupportStatus
             })
             .ToListAsync();
     }
@@ -78,7 +80,8 @@ public class VoterService : IVoterService
                 MobileNumber = v.MobileNumber,
                 ConstituencyId = v.ConstituencyId,
                 IslandId = v.IslandId,
-                Remarks = v.Remarks
+                Remarks = v.Remarks,
+                SupportStatus = v.SupportStatus
             })
             .FirstOrDefaultAsync();
     }
@@ -102,6 +105,27 @@ public class VoterService : IVoterService
                 Remarks = v.Remarks
             })
             .ToListAsync();
+    }
+    public async Task UpdateVoterAsync(
+    Guid id,
+    UpdateVoterDto request)
+    {
+        var voter = await _dbContext.Voters
+            .FirstOrDefaultAsync(v => v.Id == id);
+
+        if (voter == null)
+            throw new Exception("Voter not found.");
+
+        voter.NationalId = request.NationalId;
+        voter.FullName = request.FullName;
+        voter.Address = request.Address;
+        voter.MobileNumber = request.MobileNumber;
+        voter.ConstituencyId = request.ConstituencyId;
+        voter.IslandId = request.IslandId;
+        voter.SupportStatus = request.SupportStatus;
+        voter.Remarks = request.Remarks;
+
+        await _dbContext.SaveChangesAsync();
     }
 
 

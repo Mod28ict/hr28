@@ -22,7 +22,12 @@ public class DashboardService : IDashboardService
             TotalVoters = await _dbContext.Voters.CountAsync(),
             TotalRoles = await _dbContext.Roles.CountAsync(),
             TotalConstituencies = await _dbContext.Constituencies.CountAsync(),
-            TotalIslands = await _dbContext.Islands.CountAsync()
+            TotalIslands = await _dbContext.Islands.CountAsync(),
+            Supporters = await _dbContext.Voters.CountAsync(v => v.SupportStatus == "Supporter"),
+            Opponents = await _dbContext.Voters.CountAsync(v => v.SupportStatus == "Opponent"),
+            Undecided = await _dbContext.Voters.CountAsync(v => v.SupportStatus == "Undecided"),
+            Neutral = await _dbContext.Voters.CountAsync(v => v.SupportStatus == "Neutral")
+
         };
     }
 }
