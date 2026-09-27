@@ -36,7 +36,8 @@ public class User
 
     public ICollection<UserRole> UserRoles { get; set; }
         = new List<UserRole>();
-
     public ICollection<UserScope> UserScopes { get; set; }
-        = new List<UserScope>();
+    = new List<UserScope>();
+
+
 }

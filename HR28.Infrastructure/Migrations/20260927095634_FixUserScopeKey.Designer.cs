@@ -4,6 +4,7 @@ using HR28.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HR28.Infrastructure.Migrations
 {
     [DbContext(typeof(HR28DbContext))]
-    partial class HR28DbContextModelSnapshot : ModelSnapshot
+    [Migration("20260927095634_FixUserScopeKey")]
+    partial class FixUserScopeKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -230,7 +233,7 @@ namespace HR28.Infrastructure.Migrations
 
             modelBuilder.Entity("HR28.Domain.Entities.UserScope", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("UserId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -240,16 +243,19 @@ namespace HR28.Infrastructure.Migrations
                     b.Property<Guid?>("IslandId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<int>("ScopeLevel")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId1")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId");
 
                     b.HasIndex("ConstituencyId");
 
                     b.HasIndex("IslandId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId1");
 
                     b.ToTable("UserScopes");
                 });
@@ -388,8 +394,8 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasOne("HR28.Domain.Entities.User", "User")
                         .WithMany("UserScopes")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasForeignKey("UserId1")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Constituency");

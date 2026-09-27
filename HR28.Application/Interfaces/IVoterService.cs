@@ -7,7 +7,7 @@ public interface IVoterService
     Task<VoterDto> CreateVoterAsync(
         CreateVoterDto request);
 
-    Task<List<VoterDto>> GetVotersAsync();
+    Task<List<VoterDto>> GetVotersAsync(Guid userId);
 
     Task<VoterDto?> GetVoterByIdAsync(
         Guid id);
@@ -16,5 +16,6 @@ public interface IVoterService
     Task UpdateVoterAsync(
     Guid id,
     UpdateVoterDto request);
+    Task DeleteVoterAsync(Guid id);
 
 }

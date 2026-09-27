@@ -3,6 +3,8 @@ using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using HR28.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace HR28.Infrastructure.Services;
 
@@ -49,9 +51,33 @@ public class VoterService : IVoterService
         };
     }
 
-    public async Task<List<VoterDto>> GetVotersAsync()
+    public async Task<List<VoterDto>> GetVotersAsync(Guid userId)
     {
-        return await _dbContext.Voters
+        var userScopes = await _dbContext.UserScopes
+            .Where(x => x.UserId == userId)
+            .ToListAsync();
+
+        var query = _dbContext.Voters.AsQueryable();
+
+        if (userScopes.Any())
+        {
+            var constituencyIds = userScopes
+                .Where(x => x.ConstituencyId.HasValue)
+                .Select(x => x.ConstituencyId!.Value)
+                .ToList();
+
+            var islandIds = userScopes
+                .Where(x => x.IslandId.HasValue)
+                .Select(x => x.IslandId!.Value)
+                .ToList();
+
+            query = query.Where(v =>
+                constituencyIds.Contains(v.ConstituencyId) ||
+                (v.IslandId.HasValue &&
+                 islandIds.Contains(v.IslandId.Value)));
+        }
+
+        return await query
             .Select(v => new VoterDto
             {
                 Id = v.Id,
@@ -124,6 +150,18 @@ public class VoterService : IVoterService
         voter.IslandId = request.IslandId;
         voter.SupportStatus = request.SupportStatus;
         voter.Remarks = request.Remarks;
+
+        await _dbContext.SaveChangesAsync();
+    }
+    public async Task DeleteVoterAsync(Guid id)
+    {
+        var voter = await _dbContext.Voters
+            .FirstOrDefaultAsync(v => v.Id == id);
+
+        if (voter == null)
+            throw new Exception("Voter not found.");
+
+        _dbContext.Voters.Remove(voter);
 
         await _dbContext.SaveChangesAsync();
     }

@@ -2,6 +2,7 @@
 using HR28.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace HR28.API.Controllers;
 
@@ -30,11 +31,23 @@ public class VotersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetVoters()
     {
+        var userIdClaim =
+            User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null)
+        {
+            return Unauthorized();
+        }
+
+        var userId =
+            Guid.Parse(userIdClaim.Value);
+
         var result =
-            await _voterService.GetVotersAsync();
+            await _voterService.GetVotersAsync(userId);
 
         return Ok(result);
     }
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetVoter(Guid id)
@@ -68,4 +81,13 @@ public class VotersController : ControllerBase
 
         return Ok("Voter updated successfully.");
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteVoter(Guid id)
+    {
+        await _voterService.DeleteVoterAsync(id);
+
+        return Ok("Voter deleted successfully.");
+    }
+
 }

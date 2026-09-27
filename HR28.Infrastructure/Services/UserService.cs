@@ -124,20 +124,28 @@ public class UserService : IUserService
         await _dbContext.SaveChangesAsync();
     }
     public async Task AssignScopeAsync(
-    Guid userId,
-    Guid? constituencyId,
-    Guid? islandId)
+        Guid userId,
+        Guid? constituencyId,
+        Guid? islandId)
     {
-        _dbContext.UserScopes.Add(new UserScope
-        {
-            UserId = userId,
-            ScopeLevel = constituencyId.HasValue
-                ? ScopeLevel.Constituency
-                : ScopeLevel.Island,
+        var existingScope = await _dbContext.UserScopes
+            .FirstOrDefaultAsync(x => x.UserId == userId);
 
-            ConstituencyId = constituencyId,
-            IslandId = islandId
-        });
+        if (existingScope != null)
+        {
+            existingScope.ConstituencyId = constituencyId;
+            existingScope.IslandId = islandId;
+        }
+        else
+        {
+            _dbContext.UserScopes.Add(new UserScope
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                ConstituencyId = constituencyId,
+                IslandId = islandId
+            });
+        }
 
         await _dbContext.SaveChangesAsync();
     }

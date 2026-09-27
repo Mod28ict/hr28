@@ -17,17 +17,19 @@ public class HR28DbContext : DbContext
             .HasKey(ur => new { ur.UserId, ur.RoleId });
 
         modelBuilder.Entity<UserScope>()
-            .HasKey(us => new
-            {
-                us.UserId,
-                us.ConstituencyId,
-                us.IslandId
-            });
+            .HasKey(us => us.Id);
+
         modelBuilder.Entity<UserScope>()
-    .HasOne(us => us.Constituency)
-    .WithMany(c => c.UserScopes)
-    .HasForeignKey(us => us.ConstituencyId)
-    .OnDelete(DeleteBehavior.NoAction);
+            .HasOne(us => us.User)
+            .WithMany(u => u.UserScopes)
+            .HasForeignKey(us => us.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<UserScope>()
+            .HasOne(us => us.Constituency)
+            .WithMany(c => c.UserScopes)
+            .HasForeignKey(us => us.ConstituencyId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<UserScope>()
             .HasOne(us => us.Island)

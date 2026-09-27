@@ -44,16 +44,17 @@ public class UsersController : ControllerBase
 
         return Ok(result);
     }
-
-    [HttpPost("{userId}/roles")]
-    public async Task<IActionResult> AssignRole(
-    Guid userId,
-    AssignRoleDto request)
+   
+    [HttpPost("{userId}/scope")]
+    public async Task<IActionResult> AssignScope(
+        Guid userId,
+        [FromBody] AssignScopeDto request)
     {
-        await _userService.AssignRoleAsync(
+        await _userService.AssignScopeAsync(
             userId,
-            request.RoleId);
+            request.ConstituencyId,
+            request.IslandId);
 
-        return Ok("Role assigned successfully.");
+        return Ok("Scope assigned successfully.");
     }
 }
