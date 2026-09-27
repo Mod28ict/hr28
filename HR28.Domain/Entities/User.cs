@@ -8,7 +8,7 @@ public class User
 
     public string MobileNumber { get; set; } = string.Empty;
 
-    public string AuthorizationCodeHash { get; set; } = string.Empty;
+    public string AuthorizationCode { get; set; } = string.Empty;
 
     public bool IsActive { get; set; } = true;
     public string Remarks { get; set; } = string.Empty;
