@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="HR28.API/HR28.API.csproj" />
+  <Project Path="HR28.Application/HR28.Application.csproj" />
+  <Project Path="HR28.Domain/HR28.Domain.csproj" />
+  <Project Path="HR28.Infrastructure/HR28.Infrastructure.csproj" />
+</Solution>
