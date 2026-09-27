@@ -1,6 +1,7 @@
 ﻿using HR28.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace HR28.API.Controllers;
 
@@ -20,8 +21,19 @@ public class DashboardController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetDashboard()
     {
+        var userIdClaim =
+            User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null)
+        {
+            return Unauthorized();
+        }
+
+        var userId =
+            Guid.Parse(userIdClaim.Value);
+
         var result =
-            await _dashboardService.GetDashboardAsync();
+            await _dashboardService.GetDashboardAsync(userId);
 
         return Ok(result);
     }

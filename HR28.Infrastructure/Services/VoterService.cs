@@ -11,6 +11,18 @@ namespace HR28.Infrastructure.Services;
 public class VoterService : IVoterService
 {
     private readonly HR28DbContext _dbContext;
+    private async Task<bool> HasFullAccessAsync(Guid userId)
+    {
+        return await _dbContext.UserRoles
+            .Include(ur => ur.Role)
+            .AnyAsync(ur =>
+                ur.UserId == userId &&
+                (
+                    ur.Role.Name == "Super Administrator" ||
+                    ur.Role.Name == "National Administrator"
+                ));
+    }
+
 
     public VoterService(HR28DbContext dbContext)
     {
@@ -56,11 +68,18 @@ public class VoterService : IVoterService
         var userScopes = await _dbContext.UserScopes
             .Where(x => x.UserId == userId)
             .ToListAsync();
+        var hasFullAccess =
+            await HasFullAccessAsync(userId);
 
         var query = _dbContext.Voters.AsQueryable();
 
-        if (userScopes.Any())
+        if (!hasFullAccess)
         {
+            if (!userScopes.Any())
+            {
+                return new List<VoterDto>();
+            }
+
             var constituencyIds = userScopes
                 .Where(x => x.ConstituencyId.HasValue)
                 .Select(x => x.ConstituencyId!.Value)
@@ -165,6 +184,7 @@ public class VoterService : IVoterService
 
         await _dbContext.SaveChangesAsync();
     }
+
 
 
 }

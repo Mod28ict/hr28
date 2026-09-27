@@ -4,5 +4,5 @@ namespace HR28.Application.Interfaces;
 
 public interface IDashboardService
 {
-    Task<DashboardDto> GetDashboardAsync();
+    Task<DashboardDto> GetDashboardAsync(Guid userId);
 }
