@@ -53,4 +53,5 @@ public class HR28DbContext : DbContext
     public DbSet<AuthorizationCodeHistory> AuthorizationCodeHistories => Set<AuthorizationCodeHistory>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<Voter> Voters => Set<Voter>();
 }

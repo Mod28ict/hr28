@@ -117,7 +117,8 @@ public class AuthService : IAuthService
         return new LoginResponseDto
         {
             Success = true,
-            Message = "OTP verified successfully."
+            Message = "OTP verified successfully.",
+            Token = "TEMP-TOKEN"
         };
     }
 }

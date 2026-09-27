@@ -4,6 +4,7 @@ using HR28.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HR28.Infrastructure.Migrations
 {
     [DbContext(typeof(HR28DbContext))]
-    partial class HR28DbContextModelSnapshot : ModelSnapshot
+    [Migration("20260927052208_ExpandUserProfile")]
+    partial class ExpandUserProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -251,50 +254,6 @@ namespace HR28.Infrastructure.Migrations
                     b.ToTable("UserScopes");
                 });
 
-            modelBuilder.Entity("HR28.Domain.Entities.Voter", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ConstituencyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("IslandId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("MobileNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NationalId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Remarks")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConstituencyId");
-
-                    b.HasIndex("IslandId");
-
-                    b.ToTable("Voters");
-                });
-
             modelBuilder.Entity("Island", b =>
                 {
                     b.Property<Guid>("Id")
@@ -392,23 +351,6 @@ namespace HR28.Infrastructure.Migrations
                     b.Navigation("Island");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("HR28.Domain.Entities.Voter", b =>
-                {
-                    b.HasOne("Constituency", "Constituency")
-                        .WithMany()
-                        .HasForeignKey("ConstituencyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Island", "Island")
-                        .WithMany()
-                        .HasForeignKey("IslandId");
-
-                    b.Navigation("Constituency");
-
-                    b.Navigation("Island");
                 });
 
             modelBuilder.Entity("Island", b =>

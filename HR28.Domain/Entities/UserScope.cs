@@ -10,6 +10,7 @@ public class UserScope
 
     public ScopeLevel ScopeLevel { get; set; }
 
+
     public Guid? ConstituencyId { get; set; }
 
     public Constituency? Constituency { get; set; }

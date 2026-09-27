@@ -1,0 +1,26 @@
+﻿namespace HR28.Domain.Entities;
+
+public class Voter
+{
+    public Guid Id { get; set; }
+
+    public string NationalId { get; set; } = string.Empty;
+
+    public string FullName { get; set; } = string.Empty;
+
+    public string Address { get; set; } = string.Empty;
+
+    public string MobileNumber { get; set; } = string.Empty;
+
+    public Guid ConstituencyId { get; set; }
+
+    public Constituency Constituency { get; set; } = null!;
+
+    public Guid? IslandId { get; set; }
+
+    public Island? Island { get; set; }
+
+    public string Remarks { get; set; } = string.Empty;
+
+    public DateTime CreatedAt { get; set; }
+}
