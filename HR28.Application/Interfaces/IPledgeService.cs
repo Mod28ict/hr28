@@ -10,7 +10,8 @@ public interface IPledgeService
 
     Task<List<PledgeDto>>
         GetByVoterIdAsync(Guid voterId);
+
     Task<PledgeDto> UpdateStatusAsync(
-    Guid pledgeId,
-    UpdatePledgeStatusDto request);
+        Guid pledgeId,
+        UpdatePledgeStatusDto request);
 }

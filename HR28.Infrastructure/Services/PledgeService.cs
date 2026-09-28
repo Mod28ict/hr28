@@ -77,8 +77,8 @@ public class PledgeService : IPledgeService
             .ToListAsync();
     }
     public async Task<PledgeDto> UpdateStatusAsync(
-    Guid pledgeId,
-    UpdatePledgeStatusDto request)
+        Guid pledgeId,
+        UpdatePledgeStatusDto request)
     {
         var pledge = await _dbContext.Pledges
             .FirstOrDefaultAsync(x => x.Id == pledgeId);
@@ -94,6 +94,11 @@ public class PledgeService : IPledgeService
         if (request.Status == "Completed")
         {
             pledge.FulfilledDate = DateTime.UtcNow;
+        }
+
+        if (request.Status != "Completed")
+        {
+            pledge.FulfilledDate = null;
         }
 
         await _dbContext.SaveChangesAsync();
