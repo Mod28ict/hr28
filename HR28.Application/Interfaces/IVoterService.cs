@@ -17,5 +17,9 @@ public interface IVoterService
     Guid id,
     UpdateVoterDto request);
     Task DeleteVoterAsync(Guid id);
+    Task<VoterProfileDto> GetProfileAsync(
+        Guid voterId);
+    Task<List<VoterDto>> GetRecentAsync(
+    int count = 10);
 
 }

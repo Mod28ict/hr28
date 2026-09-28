@@ -3,7 +3,7 @@
 public class Constituency
 {
     public Guid Id { get; set; }
-
+    public string? Code { get; set; }
     public string Name { get; set; } = string.Empty;
 
     public ICollection<Island> Islands { get; set; }
@@ -11,4 +11,13 @@ public class Constituency
 
     public ICollection<UserScope> UserScopes { get; set; }
         = new List<UserScope>();
+
+    public ICollection<ConstituencyIsland>
+        ConstituencyIslands
+    {
+        get;
+        set;
+    } = new List<ConstituencyIsland>();
+
+
 }

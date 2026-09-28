@@ -4,12 +4,24 @@ public class Island
 {
     public Guid Id { get; set; }
 
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; set; }
+        = string.Empty;
 
     public Guid ConstituencyId { get; set; }
 
-    public Constituency Constituency { get; set; } = null!;
+    public Constituency Constituency { get; set; }
+        = null!;
 
-    public ICollection<UserScope> UserScopes { get; set; }
-        = new List<UserScope>();
+    public ICollection<UserScope> UserScopes
+    {
+        get;
+        set;
+    } = new List<UserScope>();
+
+    public ICollection<ConstituencyIsland>
+        ConstituencyIslands
+    {
+        get;
+        set;
+    } = new List<ConstituencyIsland>();
 }

@@ -23,6 +23,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IInfluencerService, InfluencerService>();
 builder.Services.AddScoped<IEncounterService, EncounterService>();
 builder.Services.AddScoped<IPledgeService, PledgeService>();
+builder.Services.AddScoped<IVoterImportService, VoterImportService>();
 builder.Services
     .AddAuthentication(
         JwtBearerDefaults.AuthenticationScheme)

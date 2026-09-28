@@ -33,4 +33,20 @@ public class Voter
 
     public ICollection<VoterInfluencer> Influencers { get; set; }
         = new List<VoterInfluencer>();
+    public string Gender { get; set; }
+    = string.Empty;
+
+    public string? Ward { get; set; }
+
+    public string RegisteredIsland { get; set; }
+        = string.Empty;
+
+    public string AtollCode { get; set; }
+        = string.Empty;
+
+    public string ConstituencyCode { get; set; }
+        = string.Empty;
+
+    public string ConstituencyName { get; set; }
+        = string.Empty;
 }

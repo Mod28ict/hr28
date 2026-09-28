@@ -1,10 +1,13 @@
-﻿using HR28.Application.DTOs.Voters;
+﻿using HR28.Application.DTOs.Encounters;
+using HR28.Application.DTOs.Influencers;
+using HR28.Application.DTOs.Pledges;
+using HR28.Application.DTOs.Voters;
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using HR28.Infrastructure.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 
 namespace HR28.Infrastructure.Services;
 
@@ -185,6 +188,94 @@ public class VoterService : IVoterService
         await _dbContext.SaveChangesAsync();
     }
 
+    public async Task<VoterProfileDto> GetProfileAsync(
+    Guid voterId)
+    {
+        var voter = await GetVoterByIdAsync(voterId);
+
+        if (voter == null)
+        {
+            throw new Exception("Voter not found.");
+        }
+
+        var influencers = await _dbContext.VoterInfluencers
+            .Where(x => x.VoterId == voterId)
+            .Join(
+                _dbContext.Influencers,
+                vi => vi.InfluencerId,
+                i => i.Id,
+                (vi, i) => new VoterInfluencerDto
+                {
+                    InfluencerId = i.Id,
+                    FullName = i.FullName,
+                    NationalId = i.NationalId,
+                    ContactNumber = i.ContactNumber,
+                    RelationshipType = vi.RelationshipType
+                })
+            .ToListAsync();
+
+        var encounters = await _dbContext.Encounters
+            .Where(x => x.VoterId == voterId)
+            .OrderByDescending(x => x.EncounterDate)
+            .Select(x => new EncounterDto
+            {
+                Id = x.Id,
+                VoterId = x.VoterId,
+                EncounterDate = x.EncounterDate,
+                EncounterType = x.EncounterType,
+                Outcome = x.Outcome,
+                Notes = x.Notes,
+                RecordedByUserId = x.RecordedByUserId
+            })
+            .ToListAsync();
+
+        var pledges = await _dbContext.Pledges
+            .Where(x => x.VoterId == voterId)
+            .OrderByDescending(x => x.PledgeDate)
+            .Select(x => new PledgeDto
+            {
+                Id = x.Id,
+                VoterId = x.VoterId,
+                CreatedByUserId = x.CreatedByUserId,
+                AssignedToUserId = x.AssignedToUserId,
+                PledgeDate = x.PledgeDate,
+                Title = x.Title,
+                Description = x.Description,
+                Status = x.Status,
+                DueDate = x.DueDate,
+                FulfilledDate = x.FulfilledDate,
+                ResolutionNotes = x.ResolutionNotes
+            })
+            .ToListAsync();
+
+        return new VoterProfileDto
+        {
+            Voter = voter,
+            Influencers = influencers,
+            Encounters = encounters,
+            Pledges = pledges
+        };
+    }
+    public async Task<List<VoterDto>> GetRecentAsync(
+        int count = 10)
+    {
+        return await _dbContext.Voters
+            .OrderByDescending(v => v.CreatedAt)
+            .Take(count)
+            .Select(v => new VoterDto
+            {
+                Id = v.Id,
+                NationalId = v.NationalId,
+                FullName = v.FullName,
+                Address = v.Address,
+                MobileNumber = v.MobileNumber,
+                ConstituencyId = v.ConstituencyId,
+                IslandId = v.IslandId,
+                Remarks = v.Remarks,
+                SupportStatus = v.SupportStatus
+            })
+            .ToListAsync();
+    }
 
 
 }

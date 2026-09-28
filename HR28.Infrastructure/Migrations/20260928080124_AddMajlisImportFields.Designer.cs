@@ -4,6 +4,7 @@ using HR28.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HR28.Infrastructure.Migrations
 {
     [DbContext(typeof(HR28DbContext))]
-    partial class HR28DbContextModelSnapshot : ModelSnapshot
+    [Migration("20260928080124_AddMajlisImportFields")]
+    partial class AddMajlisImportFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -99,21 +102,6 @@ namespace HR28.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("AuthorizationCodeHistories");
-                });
-
-            modelBuilder.Entity("HR28.Domain.Entities.ConstituencyIsland", b =>
-                {
-                    b.Property<Guid>("ConstituencyId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("IslandId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("ConstituencyId", "IslandId");
-
-                    b.HasIndex("IslandId");
-
-                    b.ToTable("ConstituencyIslands");
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.Encounter", b =>
@@ -557,25 +545,6 @@ namespace HR28.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("HR28.Domain.Entities.ConstituencyIsland", b =>
-                {
-                    b.HasOne("Constituency", "Constituency")
-                        .WithMany("ConstituencyIslands")
-                        .HasForeignKey("ConstituencyId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Island", "Island")
-                        .WithMany("ConstituencyIslands")
-                        .HasForeignKey("IslandId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Constituency");
-
-                    b.Navigation("Island");
-                });
-
             modelBuilder.Entity("HR28.Domain.Entities.Encounter", b =>
                 {
                     b.HasOne("HR28.Domain.Entities.User", "RecordedByUser")
@@ -743,8 +712,6 @@ namespace HR28.Infrastructure.Migrations
 
             modelBuilder.Entity("Constituency", b =>
                 {
-                    b.Navigation("ConstituencyIslands");
-
                     b.Navigation("Islands");
 
                     b.Navigation("UserScopes");
@@ -784,8 +751,6 @@ namespace HR28.Infrastructure.Migrations
 
             modelBuilder.Entity("Island", b =>
                 {
-                    b.Navigation("ConstituencyIslands");
-
                     b.Navigation("UserScopes");
                 });
 #pragma warning restore 612, 618

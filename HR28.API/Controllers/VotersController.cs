@@ -89,5 +89,23 @@ public class VotersController : ControllerBase
 
         return Ok("Voter deleted successfully.");
     }
+    [HttpGet("{id}/profile")]
+    public async Task<IActionResult> GetProfile(
+    Guid id)
+    {
+        var result = await _voterService
+            .GetProfileAsync(id);
+
+        return Ok(result);
+    }
+    [HttpGet("recent")]
+    public async Task<IActionResult> GetRecent(
+    int count = 10)
+    {
+        var result = await _voterService
+            .GetRecentAsync(count);
+
+        return Ok(result);
+    }
 
 }
