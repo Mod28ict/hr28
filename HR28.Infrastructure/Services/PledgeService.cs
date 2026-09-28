@@ -3,17 +3,38 @@ using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using HR28.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace HR28.Infrastructure.Services;
 
 public class PledgeService : IPledgeService
 {
     private readonly HR28DbContext _dbContext;
+    private readonly IAuditService _auditService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public PledgeService(
-        HR28DbContext dbContext)
+        HR28DbContext dbContext,
+        IAuditService auditService,
+        IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
+        _auditService = auditService;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    private Guid? GetCurrentUserId()
+    {
+        var userIdValue = _httpContextAccessor
+            .HttpContext?
+            .User?
+            .FindFirst(ClaimTypes.NameIdentifier)?
+            .Value;
+
+        return Guid.TryParse(userIdValue, out var userId)
+            ? userId
+            : null;
     }
 
     public async Task<PledgeDto> CreateAsync(
@@ -33,10 +54,15 @@ public class PledgeService : IPledgeService
             DueDate = request.DueDate,
             ResolutionNotes = string.Empty
         };
-
         _dbContext.Pledges.Add(pledge);
 
         await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(
+            userId,
+            "Create",
+            "Pledge",
+            pledge.Id.ToString());
 
         return new PledgeDto
         {
@@ -102,6 +128,11 @@ public class PledgeService : IPledgeService
         }
 
         await _dbContext.SaveChangesAsync();
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            $"Status Changed to {pledge.Status}",
+            "Pledge",
+            pledge.Id.ToString());
 
         return new PledgeDto
         {
