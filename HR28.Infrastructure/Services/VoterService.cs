@@ -14,6 +14,8 @@ namespace HR28.Infrastructure.Services;
 public class VoterService : IVoterService
 {
     private readonly HR28DbContext _dbContext;
+    private readonly IAuditService _auditService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private async Task<bool> HasFullAccessAsync(Guid userId)
     {
         return await _dbContext.UserRoles
@@ -27,9 +29,26 @@ public class VoterService : IVoterService
     }
 
 
-    public VoterService(HR28DbContext dbContext)
+    public VoterService(
+        HR28DbContext dbContext,
+        IAuditService auditService,
+        IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
+        _auditService = auditService;
+        _httpContextAccessor = httpContextAccessor;
+    }
+    private Guid? GetCurrentUserId()
+    {
+        var userIdValue = _httpContextAccessor
+            .HttpContext?
+            .User?
+            .FindFirst(ClaimTypes.NameIdentifier)?
+            .Value;
+
+        return Guid.TryParse(userIdValue, out var userId)
+            ? userId
+            : null;
     }
 
     public async Task<VoterDto> CreateVoterAsync(
@@ -49,9 +68,13 @@ public class VoterService : IVoterService
             SupportStatus = request.SupportStatus 
         };
 
-        _dbContext.Voters.Add(voter);
-
         await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            "Create",
+            "Voter",
+            voter.Id.ToString());
 
         return new VoterDto
         {
@@ -174,6 +197,12 @@ public class VoterService : IVoterService
         voter.Remarks = request.Remarks;
 
         await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            "Update",
+            "Voter",
+            voter.Id.ToString());
     }
     public async Task DeleteVoterAsync(Guid id)
     {
@@ -186,6 +215,12 @@ public class VoterService : IVoterService
         _dbContext.Voters.Remove(voter);
 
         await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            "Delete",
+            "Voter",
+            id.ToString());
     }
 
     public async Task<VoterProfileDto> GetProfileAsync(

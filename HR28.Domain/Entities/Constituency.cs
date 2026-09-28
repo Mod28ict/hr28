@@ -1,6 +1,7 @@
-﻿using HR28.Domain.Entities;
+﻿
+using HR28.Domain.Entities;
 
-public class Constituency
+public class Constituency 
 {
     public Guid Id { get; set; }
     public string? Code { get; set; }

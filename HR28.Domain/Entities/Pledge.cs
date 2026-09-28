@@ -1,4 +1,4 @@
-﻿using HR28.Domain.Entities;
+﻿namespace HR28.Domain.Entities;
 
 public class Pledge
 {

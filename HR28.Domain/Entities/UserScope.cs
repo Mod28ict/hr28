@@ -1,8 +1,9 @@
-﻿using HR28.Domain.Entities;
+﻿
+using HR28.Domain.Entities;
 
 namespace HR28.Domain.Entities;
 
-public class UserScope
+public class UserScope 
 {
     public Guid Id { get; set; }
 

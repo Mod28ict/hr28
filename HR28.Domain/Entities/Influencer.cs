@@ -1,6 +1,8 @@
-﻿namespace HR28.Domain.Entities;
+﻿
 
-public class Influencer
+namespace HR28.Domain.Entities;
+
+public class Influencer 
 {
     public Guid Id { get; set; }
 

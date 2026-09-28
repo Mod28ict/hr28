@@ -1,6 +1,8 @@
-﻿namespace HR28.Domain.Entities;
+﻿
 
-public class Encounter
+namespace HR28.Domain.Entities;
+
+public class Encounter 
 {
     public Guid Id { get; set; }
 

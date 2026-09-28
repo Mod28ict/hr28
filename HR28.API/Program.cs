@@ -24,6 +24,9 @@ builder.Services.AddScoped<IInfluencerService, InfluencerService>();
 builder.Services.AddScoped<IEncounterService, EncounterService>();
 builder.Services.AddScoped<IPledgeService, PledgeService>();
 builder.Services.AddScoped<IVoterImportService, VoterImportService>();
+builder.Services.AddScoped<IConstituencyService, ConstituencyService>();
+builder.Services.AddScoped<IIslandService, IslandService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services
     .AddAuthentication(
         JwtBearerDefaults.AuthenticationScheme)

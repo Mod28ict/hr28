@@ -1,6 +1,8 @@
-﻿namespace HR28.Domain.Entities;
+﻿
 
-public class Voter
+namespace HR28.Domain.Entities;
+
+public class Voter 
 {
     public Guid Id { get; set; }
 

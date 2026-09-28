@@ -1,27 +1,23 @@
-﻿using HR28.Domain.Entities;
+﻿
 
-public class Island
+namespace HR28.Domain.Entities;
+
+public class Island 
 {
     public Guid Id { get; set; }
 
-    public string Name { get; set; }
-        = string.Empty;
+    public string Name { get; set; } = string.Empty;
+
+    // Store HA, HDh, Sh, N, R, B, K, S, etc.
+    public string Atoll { get; set; } = string.Empty;
 
     public Guid ConstituencyId { get; set; }
 
-    public Constituency Constituency { get; set; }
-        = null!;
+    public Constituency Constituency { get; set; } = null!;
 
-    public ICollection<UserScope> UserScopes
-    {
-        get;
-        set;
-    } = new List<UserScope>();
+    public ICollection<UserScope> UserScopes { get; set; }
+        = new List<UserScope>();
 
-    public ICollection<ConstituencyIsland>
-        ConstituencyIslands
-    {
-        get;
-        set;
-    } = new List<ConstituencyIsland>();
+    public ICollection<ConstituencyIsland> ConstituencyIslands { get; set; }
+        = new List<ConstituencyIsland>();
 }

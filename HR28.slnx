@@ -3,4 +3,5 @@
   <Project Path="HR28.Application/HR28.Application.csproj" />
   <Project Path="HR28.Domain/HR28.Domain.csproj" />
   <Project Path="HR28.Infrastructure/HR28.Infrastructure.csproj" />
+  <Project Path="HR28.Web/HR28.Web.csproj" Id="d5d055f4-205c-4a17-a007-c70ea43a00bb" />
 </Solution>

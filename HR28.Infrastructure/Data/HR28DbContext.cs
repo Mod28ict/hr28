@@ -1,6 +1,6 @@
 ﻿using HR28.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-
+using HR28.Domain.Entities;
 namespace HR28.Infrastructure.Data;
 
 public class HR28DbContext : DbContext
@@ -233,4 +233,9 @@ public class HR28DbContext : DbContext
 
     public DbSet<VoterInfluencer> VoterInfluencers =>
         Set<VoterInfluencer>();
+
+    public Guid? CurrentUserId { get; set; }
+
+    
+
 }

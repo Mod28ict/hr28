@@ -37,7 +37,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Constituencies");
+                    b.ToTable("Constituencies", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.AuditLog", b =>
@@ -68,7 +68,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.AuthorizationCodeHistory", b =>
@@ -98,7 +98,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuthorizationCodeHistories");
+                    b.ToTable("AuthorizationCodeHistories", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.ConstituencyIsland", b =>
@@ -113,7 +113,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("IslandId");
 
-                    b.ToTable("ConstituencyIslands");
+                    b.ToTable("ConstituencyIslands", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.Encounter", b =>
@@ -149,7 +149,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("VoterId");
 
-                    b.ToTable("Encounters");
+                    b.ToTable("Encounters", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.Influencer", b =>
@@ -193,7 +193,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("IslandId");
 
-                    b.ToTable("Influencers");
+                    b.ToTable("Influencers", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.OtpRequest", b =>
@@ -225,7 +225,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("OtpRequests");
+                    b.ToTable("OtpRequests", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.Role", b =>
@@ -244,7 +244,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.User", b =>
@@ -308,7 +308,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.UserRole", b =>
@@ -323,7 +323,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("UserRoles", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.UserScope", b =>
@@ -349,7 +349,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserScopes");
+                    b.ToTable("UserScopes", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.Voter", b =>
@@ -429,7 +429,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("RegisteredIsland");
 
-                    b.ToTable("Voters");
+                    b.ToTable("Voters", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.VoterInfluencer", b =>
@@ -457,7 +457,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("VoterId");
 
-                    b.ToTable("VoterInfluencers");
+                    b.ToTable("VoterInfluencers", (string)null);
                 });
 
             modelBuilder.Entity("Island", b =>
@@ -465,6 +465,10 @@ namespace HR28.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Atoll")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("ConstituencyId")
                         .HasColumnType("uniqueidentifier");
@@ -477,7 +481,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("ConstituencyId");
 
-                    b.ToTable("Islands");
+                    b.ToTable("Islands", (string)null);
                 });
 
             modelBuilder.Entity("Pledge", b =>
@@ -532,7 +536,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("VoterId");
 
-                    b.ToTable("Pledges");
+                    b.ToTable("Pledges", (string)null);
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.AuditLog", b =>
