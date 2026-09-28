@@ -67,7 +67,7 @@ public class VoterService : IVoterService
             CreatedAt = DateTime.UtcNow,
             SupportStatus = request.SupportStatus 
         };
-
+        _dbContext.Voters.Add(voter);
         await _dbContext.SaveChangesAsync();
 
         await _auditService.LogAsync(
@@ -85,7 +85,8 @@ public class VoterService : IVoterService
             MobileNumber = voter.MobileNumber,
             ConstituencyId = voter.ConstituencyId,
             IslandId = voter.IslandId,
-            Remarks = voter.Remarks
+            Remarks = voter.Remarks,
+            SupportStatus = voter.SupportStatus
         };
     }
 
