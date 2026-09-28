@@ -1,0 +1,61 @@
+﻿using HR28.Application.DTOs.Influencers;
+using HR28.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace HR28.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class InfluencersController : ControllerBase
+{
+    private readonly IInfluencerService _influencerService;
+
+    public InfluencersController(
+        IInfluencerService influencerService)
+    {
+        _influencerService = influencerService;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(
+        [FromBody] CreateInfluencerDto request)
+    {
+        var result = await _influencerService
+            .CreateAsync(request);
+
+        return Ok(result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await _influencerService
+            .GetAllAsync();
+
+        return Ok(result);
+    }
+
+    [HttpPost("link")]
+    public async Task<IActionResult> LinkToVoter(
+        [FromBody] LinkInfluencerDto request)
+    {
+        await _influencerService
+            .LinkToVoterAsync(request);
+
+        return Ok(new
+        {
+            Message = "Influencer linked to voter successfully."
+        });
+    }
+    [HttpGet("voter/{voterId:guid}")]
+    public async Task<IActionResult> GetByVoter(
+        Guid voterId)
+    {
+        var result = await _influencerService
+            .GetByVoterIdAsync(voterId);
+
+        return Ok(result);
+    }
+}

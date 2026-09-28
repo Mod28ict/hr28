@@ -20,6 +20,9 @@ builder.Services.AddScoped<IVoterService, VoterService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IInfluencerService, InfluencerService>();
+builder.Services.AddScoped<IEncounterService, EncounterService>();
+builder.Services.AddScoped<IPledgeService, PledgeService>();
 builder.Services
     .AddAuthentication(
         JwtBearerDefaults.AuthenticationScheme)

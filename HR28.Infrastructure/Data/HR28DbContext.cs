@@ -36,6 +36,61 @@ public class HR28DbContext : DbContext
             .WithMany(i => i.UserScopes)
             .HasForeignKey(us => us.IslandId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Encounter>()
+            .HasOne(e => e.Voter)
+            .WithMany(v => v.Encounters)
+            .HasForeignKey(e => e.VoterId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Encounter>()
+            .HasOne(e => e.RecordedByUser)
+            .WithMany(u => u.RecordedEncounters)
+            .HasForeignKey(e => e.RecordedByUserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Pledge>()
+            .HasOne(p => p.Voter)
+            .WithMany(v => v.Pledges)
+            .HasForeignKey(p => p.VoterId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Pledge>()
+            .HasOne(p => p.CreatedByUser)
+            .WithMany(u => u.CreatedPledges)
+            .HasForeignKey(p => p.CreatedByUserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Pledge>()
+            .HasOne(p => p.AssignedToUser)
+            .WithMany(u => u.AssignedPledges)
+            .HasForeignKey(p => p.AssignedToUserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<VoterInfluencer>()
+            .HasOne(vi => vi.Voter)
+            .WithMany(v => v.Influencers)
+            .HasForeignKey(vi => vi.VoterId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<VoterInfluencer>()
+            .HasOne(vi => vi.Influencer)
+            .WithMany(i => i.Voters)
+            .HasForeignKey(vi => vi.InfluencerId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Influencer>()
+            .HasOne(i => i.Constituency)
+            .WithMany()
+            .HasForeignKey(i => i.ConstituencyId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Influencer>()
+            .HasOne(i => i.Island)
+            .WithMany()
+            .HasForeignKey(i => i.IslandId)
+            .OnDelete(DeleteBehavior.NoAction);
+
     }
 
     public DbSet<User> Users => Set<User>();
@@ -56,4 +111,11 @@ public class HR28DbContext : DbContext
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<Voter> Voters => Set<Voter>();
+    public DbSet<Encounter> Encounters => Set<Encounter>();
+
+    public DbSet<Pledge> Pledges => Set<Pledge>();
+
+    public DbSet<Influencer> Influencers => Set<Influencer>();
+
+    public DbSet<VoterInfluencer> VoterInfluencers => Set<VoterInfluencer>();
 }

@@ -25,4 +25,12 @@ public class Voter
     public DateTime CreatedAt { get; set; }
     public string SupportStatus { get; set; }
     = "Undecided";
+    public ICollection<Encounter> Encounters { get; set; }
+    = new List<Encounter>();
+
+    public ICollection<Pledge> Pledges { get; set; }
+        = new List<Pledge>();
+
+    public ICollection<VoterInfluencer> Influencers { get; set; }
+        = new List<VoterInfluencer>();
 }

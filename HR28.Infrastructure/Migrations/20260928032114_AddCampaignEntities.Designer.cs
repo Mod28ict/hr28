@@ -4,6 +4,7 @@ using HR28.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HR28.Infrastructure.Migrations
 {
     [DbContext(typeof(HR28DbContext))]
-    partial class HR28DbContextModelSnapshot : ModelSnapshot
+    [Migration("20260928032114_AddCampaignEntities")]
+    partial class AddCampaignEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -131,7 +134,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("VoterId");
 
-                    b.ToTable("Encounters");
+                    b.ToTable("Encounter");
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.Influencer", b =>
@@ -175,7 +178,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("IslandId");
 
-                    b.ToTable("Influencers");
+                    b.ToTable("Influencer");
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.OtpRequest", b =>
@@ -208,6 +211,38 @@ namespace HR28.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("OtpRequests");
+                });
+
+            modelBuilder.Entity("HR28.Domain.Entities.Pledge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("PledgeDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PledgeType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("RecordedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("VoterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.HasIndex("VoterId");
+
+                    b.ToTable("Pledge");
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.Role", b =>
@@ -407,7 +442,7 @@ namespace HR28.Infrastructure.Migrations
 
                     b.HasIndex("VoterId");
 
-                    b.ToTable("VoterInfluencers");
+                    b.ToTable("VoterInfluencer");
                 });
 
             modelBuilder.Entity("Island", b =>
@@ -428,61 +463,6 @@ namespace HR28.Infrastructure.Migrations
                     b.HasIndex("ConstituencyId");
 
                     b.ToTable("Islands");
-                });
-
-            modelBuilder.Entity("Pledge", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("AssignedToUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CreatedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FulfilledDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("PledgeDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Priority")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ResolutionNotes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("VoterId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssignedToUserId");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("VoterId");
-
-                    b.ToTable("Pledges");
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.AuditLog", b =>
@@ -553,6 +533,25 @@ namespace HR28.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HR28.Domain.Entities.Pledge", b =>
+                {
+                    b.HasOne("HR28.Domain.Entities.User", "RecordedByUser")
+                        .WithMany("RecordedPledges")
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("HR28.Domain.Entities.Voter", "Voter")
+                        .WithMany("Pledges")
+                        .HasForeignKey("VoterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RecordedByUser");
+
+                    b.Navigation("Voter");
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.UserRole", b =>
@@ -646,32 +645,6 @@ namespace HR28.Infrastructure.Migrations
                     b.Navigation("Constituency");
                 });
 
-            modelBuilder.Entity("Pledge", b =>
-                {
-                    b.HasOne("HR28.Domain.Entities.User", "AssignedToUser")
-                        .WithMany("AssignedPledges")
-                        .HasForeignKey("AssignedToUserId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("HR28.Domain.Entities.User", "CreatedByUser")
-                        .WithMany("CreatedPledges")
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("HR28.Domain.Entities.Voter", "Voter")
-                        .WithMany("Pledges")
-                        .HasForeignKey("VoterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AssignedToUser");
-
-                    b.Navigation("CreatedByUser");
-
-                    b.Navigation("Voter");
-                });
-
             modelBuilder.Entity("Constituency", b =>
                 {
                     b.Navigation("Islands");
@@ -691,11 +664,9 @@ namespace HR28.Infrastructure.Migrations
 
             modelBuilder.Entity("HR28.Domain.Entities.User", b =>
                 {
-                    b.Navigation("AssignedPledges");
-
-                    b.Navigation("CreatedPledges");
-
                     b.Navigation("RecordedEncounters");
+
+                    b.Navigation("RecordedPledges");
 
                     b.Navigation("UserRoles");
 

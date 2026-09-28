@@ -66,7 +66,12 @@ public class DashboardService : IDashboardService
             Supporters = await votersQuery.CountAsync(v => v.SupportStatus == "Supporter"),
             Opponents = await votersQuery.CountAsync(v => v.SupportStatus == "Opponent"),
             Undecided = await votersQuery.CountAsync(v => v.SupportStatus == "Undecided"),
-            Neutral = await votersQuery.CountAsync(v => v.SupportStatus == "Neutral")
+            Neutral = await votersQuery.CountAsync(v => v.SupportStatus == "Neutral"),
+            TotalInfluencers = await _dbContext.Influencers.CountAsync(),
+            TotalEncounters = await _dbContext.Encounters.CountAsync(),
+            TotalPledges = await _dbContext.Pledges.CountAsync(),
+            OpenPledges = await _dbContext.Pledges.CountAsync(x => x.Status == "Open"),
+            CompletedPledges = await _dbContext.Pledges.CountAsync(x => x.Status == "Completed")
 
 
         };

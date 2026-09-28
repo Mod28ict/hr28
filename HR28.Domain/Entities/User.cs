@@ -38,6 +38,13 @@ public class User
         = new List<UserRole>();
     public ICollection<UserScope> UserScopes { get; set; }
     = new List<UserScope>();
+    public ICollection<Encounter> RecordedEncounters { get; set; }
+    = new List<Encounter>();
 
+    public ICollection<Pledge> CreatedPledges { get; set; }
+    = new List<Pledge>();
+
+    public ICollection<Pledge> AssignedPledges { get; set; }
+        = new List<Pledge>();
 
 }

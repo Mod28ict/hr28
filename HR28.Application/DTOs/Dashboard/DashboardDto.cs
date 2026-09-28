@@ -18,4 +18,13 @@ public class DashboardDto
     public int Undecided { get; set; }
 
     public int Neutral { get; set; }
+    public int TotalInfluencers { get; set; }
+
+    public int TotalEncounters { get; set; }
+
+    public int TotalPledges { get; set; }
+
+    public int OpenPledges { get; set; }
+
+    public int CompletedPledges { get; set; }
 }
