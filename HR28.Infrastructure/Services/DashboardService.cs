@@ -76,4 +76,22 @@ public class DashboardService : IDashboardService
 
         };
     }
+    public async Task<List<RecentActivityDto>>
+        GetRecentActivitiesAsync(
+            Guid userId,
+            int count = 20)
+    {
+        return await _dbContext.AuditLogs
+            .OrderByDescending(x => x.CreatedAt)
+            .Take(count)
+            .Select(x => new RecentActivityDto
+            {
+                UserId = x.UserId,
+                Action = x.Action,
+                EntityName = x.EntityName,
+                EntityId = x.EntityId,
+                CreatedAt = x.CreatedAt
+            })
+            .ToListAsync();
+    }
 }

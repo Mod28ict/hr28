@@ -37,4 +37,24 @@ public class DashboardController : ControllerBase
 
         return Ok(result);
     }
+    [HttpGet("recent-activity")]
+    public async Task<IActionResult> GetRecentActivity(
+        [FromQuery] int count = 20)
+    {
+        var userIdClaim = User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null)
+        {
+            return Unauthorized();
+        }
+
+        var userId = Guid.Parse(userIdClaim.Value);
+
+        var result = await _dashboardService
+            .GetRecentActivitiesAsync(userId, count);
+
+        return Ok(result);
+    }
+
 }
