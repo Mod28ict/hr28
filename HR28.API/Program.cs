@@ -27,6 +27,7 @@ builder.Services.AddScoped<IVoterImportService, VoterImportService>();
 builder.Services.AddScoped<IConstituencyService, ConstituencyService>();
 builder.Services.AddScoped<IIslandService, IslandService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IReportingService, ReportService>();
 builder.Services
     .AddAuthentication(
         JwtBearerDefaults.AuthenticationScheme)
