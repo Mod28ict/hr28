@@ -1,0 +1,26 @@
+﻿@model HR28.Web.Models.Auth.GenerateOtpRequest
+
+<h2>HR28 Login</h2>
+
+<form method="post">
+
+    <div class="mb-3">
+        <label>Authorization Code</label>
+
+        <input asp-for="AuthorizationCode"
+               class="form-control" />
+    </div>
+
+    <button type="submit"
+            class="btn btn-primary">
+        Send OTP
+    </button>
+
+</form>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger mt-3">
+        @ViewBag.Error
+    </div>
+}

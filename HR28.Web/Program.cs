@@ -1,8 +1,18 @@
+using HR28.Web.Models;
+using HR28.Web.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 
+
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -15,6 +25,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseSession();
 
 app.UseAuthorization();
 

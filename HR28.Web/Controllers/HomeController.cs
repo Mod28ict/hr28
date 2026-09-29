@@ -8,7 +8,9 @@ namespace HR28.Web.Controllers
     {
         public IActionResult Index()
         {
-            return View();
+            return RedirectToAction(
+                "Login",
+                "Auth");
         }
 
         public IActionResult Privacy()
