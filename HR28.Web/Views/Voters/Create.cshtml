@@ -1,0 +1,155 @@
+﻿@model HR28.Web.Models.VoterCreateViewModel
+
+<div class="container mt-4">
+
+    <h2>Add Voter</h2>
+
+    <form asp-action="Create" method="post">
+
+        <div class="mb-3">
+            <label class="form-label">National ID</label>
+            <input asp-for="Voter.NationalId" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input asp-for="Voter.FullName" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Mobile Number</label>
+            <input asp-for="Voter.MobileNumber" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Address</label>
+            <textarea asp-for="Voter.Address" class="form-control"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Constituency</label>
+            <select asp-for="Voter.ConstituencyId"
+                    id="ConstituencyDropdown"
+                    class="form-select">
+
+                <option value="">
+                    Select Constituency
+                </option>
+
+                @foreach (var item in Model.Constituencies)
+                {
+                    <option value="@item.Id">
+                        @item.Name
+                    </option>
+                }
+
+        </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Island</label>
+            <select asp-for="Voter.IslandId"
+                    id="IslandDropdown"
+                    class="form-select">
+
+                <option value="">
+                    Select Island
+                </option>
+
+                @foreach (var item in Model.Islands)
+                {
+                    <option value="@item.Id">
+                        @item.Name
+                    </option>
+                }
+
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Support Status</label>
+            <select asp-for="Voter.SupportStatus" class="form-select">
+                <option value="Undecided">Undecided</option>
+                <option value="Supporter">Supporter</option>
+                <option value="Opponent">Opponent</option>
+                <option value="Neutral">Neutral</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Remarks</label>
+            <textarea asp-for="Voter.Remarks" class="form-control"></textarea>
+        </div>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Save Voter
+        </button>
+
+    </form>
+@section Scripts
+{
+    <script>
+
+        $(document).ready(function () {
+            $('#IslandDropdown')
+                .empty()
+                .prop('disabled', true);
+
+            $('#ConstituencyDropdown').select2({
+                placeholder: 'Search constituency',
+                width: '100%'
+            });
+
+            $('#IslandDropdown').select2({
+                placeholder: 'Search island',
+                width: '100%'
+            });
+            $('#IslandDropdown').prop('disabled', true);            
+
+            $('#ConstituencyDropdown').change(function () {
+
+                var constituencyId =
+                    $(this).val();
+
+                $('#IslandDropdown')
+                    .empty();
+
+                $.getJSON(
+                    '/Voters/GetIslands?constituencyId=' +
+                    constituencyId,
+
+                    function (data) {
+
+                        $('#IslandDropdown')
+                            .append(
+                                $('<option>')
+                                    .text('Select Island')
+                                    .val('')
+                            );
+
+                        $.each(
+                            data,
+                            function (i, item) {
+
+                                $('#IslandDropdown')
+                                    .append(
+                                        $('<option>')
+                                            .text(item.name)
+                                            .val(item.id)
+                                    );
+                            });
+                        $('#IslandDropdown').prop('disabled', false);
+
+                        $('#IslandDropdown')
+                            .trigger('change');
+
+                    });
+            });
+
+        });
+
+    </script>
+}
+
+</div>

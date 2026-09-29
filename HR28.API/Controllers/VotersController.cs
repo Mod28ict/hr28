@@ -1,5 +1,6 @@
 ﻿using HR28.Application.DTOs.Voters;
 using HR28.Application.Interfaces;
+using HR28.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -52,8 +53,21 @@ public class VotersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetVoter(Guid id)
     {
+        var userIdClaim =
+            User.FindFirst(
+                ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null ||
+            !Guid.TryParse(
+                userIdClaim.Value,
+                out var userId))
+        {
+            return Unauthorized();
+        }
         var result =
-            await _voterService.GetVoterByIdAsync(id);
+await _voterService.GetVoterByIdAsync(
+    userId,
+    id);
 
         if (result == null)
             return NotFound();
@@ -62,11 +76,24 @@ public class VotersController : ControllerBase
     }
     //[Authorize]
     [HttpGet("search")]
-    public async Task<IActionResult> SearchVoters(
-    string searchTerm)
+    public async Task<IActionResult> Search(
+        [FromQuery] string searchTerm)
     {
+        var userIdClaim = User.FindFirst(
+            ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null ||
+            !Guid.TryParse(
+                userIdClaim.Value,
+                out var userId))
+        {
+            return Unauthorized();
+        }
+
         var result =
-            await _voterService.SearchVotersAsync(searchTerm);
+            await _voterService.SearchVotersAsync(
+                userId,
+                searchTerm);
 
         return Ok(result);
     }
@@ -91,21 +118,55 @@ public class VotersController : ControllerBase
     }
     [HttpGet("{id}/profile")]
     public async Task<IActionResult> GetProfile(
-    Guid id)
+        Guid id)
     {
-        var result = await _voterService
-            .GetProfileAsync(id);
+        var userIdValue =
+            User.FindFirst(
+                ClaimTypes.NameIdentifier)?
+                .Value;
 
-        return Ok(result);
+        if (!Guid.TryParse(
+            userIdValue,
+            out var userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var profile =
+                await _voterService
+                    .GetProfileAsync(
+                        userId,
+                        id);
+
+            return Ok(profile);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
     }
     [HttpGet("recent")]
     public async Task<IActionResult> GetRecent(
-    int count = 10)
+        [FromQuery] int count = 10)
     {
-        var result = await _voterService
-            .GetRecentAsync(count);
+        var userIdClaim =
+            User.FindFirst(
+                ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null ||
+            !Guid.TryParse(
+                userIdClaim.Value,
+                out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result =
+            await _voterService
+                .GetRecentAsync(count);
 
         return Ok(result);
     }
-
 }

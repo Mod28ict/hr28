@@ -16,4 +16,7 @@ public class VoterProfileDto
 
     public List<PledgeDto> Pledges { get; set; }
         = new();
+    public string ConstituencyName { get; set; } = string.Empty;
+
+    public string IslandName { get; set; } = string.Empty;
 }

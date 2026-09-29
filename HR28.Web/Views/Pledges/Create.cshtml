@@ -1,0 +1,117 @@
+﻿@model HR28.Web.Models.CreatePledgeDto
+
+@{
+    ViewData["Title"] = "Add Pledge";
+}
+
+<div class="container mt-4">
+
+    <h2>Add Pledge</h2>
+
+    <p class="text-muted">
+        Record a candidate or campaign commitment made to this voter.
+    </p>
+
+    <form asp-action="Create"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="VoterId"
+               type="hidden" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger">
+        </div>
+
+        <div class="mb-3">
+
+            <label asp-for="Title"
+                   class="form-label">
+            </label>
+
+            <input asp-for="Title"
+                   class="form-control"
+                   placeholder="Example: House rent assistance" />
+
+            <span asp-validation-for="Title"
+                  class="text-danger">
+            </span>
+
+        </div>
+
+        <div class="mb-3">
+
+            <label asp-for="Description"
+                   class="form-label">
+            </label>
+
+            <textarea asp-for="Description"
+                      class="form-control"
+                      rows="5"
+                      maxlength="2000"
+                      placeholder="Describe the commitment clearly and factually.">
+            </textarea>
+
+            <span asp-validation-for="Description"
+                  class="text-danger">
+            </span>
+
+        </div>
+
+        <div class="mb-3">
+
+            <label asp-for="PledgeDate"
+                   class="form-label">
+            </label>
+
+            <input asp-for="PledgeDate"
+                   type="datetime-local"
+                   class="form-control" />
+
+            <span asp-validation-for="PledgeDate"
+                  class="text-danger">
+            </span>
+
+        </div>
+
+        <div class="mb-3">
+
+            <label asp-for="DueDate"
+                   class="form-label">
+            </label>
+
+            <input asp-for="DueDate"
+                   type="date"
+                   class="form-control" />
+
+            <span asp-validation-for="DueDate"
+                  class="text-danger">
+            </span>
+
+        </div>
+
+        <button type="submit"
+                class="btn btn-warning">
+
+            Save Pledge
+
+        </button>
+
+        <a asp-controller="Voters"
+           asp-action="Profile"
+           asp-route-id="@Model.VoterId"
+           class="btn btn-secondary">
+
+            Cancel
+
+        </a>
+
+    </form>
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

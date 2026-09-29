@@ -90,38 +90,11 @@ public class VoterService : IVoterService
         };
     }
 
-    public async Task<List<VoterDto>> GetVotersAsync(Guid userId)
+    public async Task<List<VoterDto>>GetVotersAsync(Guid userId)
     {
-        var userScopes = await _dbContext.UserScopes
-            .Where(x => x.UserId == userId)
-            .ToListAsync();
-        var hasFullAccess =
-            await HasFullAccessAsync(userId);
-
-        var query = _dbContext.Voters.AsQueryable();
-
-        if (!hasFullAccess)
-        {
-            if (!userScopes.Any())
-            {
-                return new List<VoterDto>();
-            }
-
-            var constituencyIds = userScopes
-                .Where(x => x.ConstituencyId.HasValue)
-                .Select(x => x.ConstituencyId!.Value)
-                .ToList();
-
-            var islandIds = userScopes
-                .Where(x => x.IslandId.HasValue)
-                .Select(x => x.IslandId!.Value)
-                .ToList();
-
-            query = query.Where(v =>
-                constituencyIds.Contains(v.ConstituencyId) ||
-                (v.IslandId.HasValue &&
-                 islandIds.Contains(v.IslandId.Value)));
-        }
+        var query =
+            await GetAuthorizedVoterQueryAsync(
+                userId);
 
         return await query
             .Select(v => new VoterDto
@@ -139,10 +112,59 @@ public class VoterService : IVoterService
             .ToListAsync();
     }
 
-    public async Task<VoterDto?> GetVoterByIdAsync(Guid id)
+    public async Task<VoterDto?> GetVoterByIdAsync(
+     Guid userId,
+     Guid voterId)
     {
-        return await _dbContext.Voters
-            .Where(v => v.Id == id)
+        var query =
+            await GetAuthorizedVoterQueryAsync(userId);
+
+        return await query
+            .Where(v => v.Id == voterId)
+            .Select(v => new VoterDto
+            {
+                Id = v.Id,
+                NationalId = v.NationalId,
+                FullName = v.FullName,
+                Address = v.Address,
+                MobileNumber = v.MobileNumber,
+                ConstituencyId = v.ConstituencyId,
+                IslandId = v.IslandId,
+
+                ConstituencyName =
+                    v.Constituency != null
+                        ? v.Constituency.Name
+                        : string.Empty,
+
+                IslandName =
+                    v.Island != null
+                        ? v.Island.Name
+                        : string.Empty,
+
+                Remarks = v.Remarks,
+                SupportStatus = v.SupportStatus
+            })
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<List<VoterDto>> SearchVotersAsync(
+        Guid userId,
+        string searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            return new List<VoterDto>();
+        }
+
+        var query =
+            await GetAuthorizedVoterQueryAsync(userId);
+
+        return await query
+            .Where(v =>
+                v.FullName.Contains(searchTerm) ||
+                v.NationalId.Contains(searchTerm))
+            .OrderBy(v => v.FullName)
+            .Take(50)
             .Select(v => new VoterDto
             {
                 Id = v.Id,
@@ -154,27 +176,6 @@ public class VoterService : IVoterService
                 IslandId = v.IslandId,
                 Remarks = v.Remarks,
                 SupportStatus = v.SupportStatus
-            })
-            .FirstOrDefaultAsync();
-    }
-
-    public async Task<List<VoterDto>> SearchVotersAsync(
-        string searchTerm)
-    {
-        return await _dbContext.Voters
-            .Where(v =>
-                v.FullName.Contains(searchTerm) ||
-                v.NationalId.Contains(searchTerm))
-            .Select(v => new VoterDto
-            {
-                Id = v.Id,
-                NationalId = v.NationalId,
-                FullName = v.FullName,
-                Address = v.Address,
-                MobileNumber = v.MobileNumber,
-                ConstituencyId = v.ConstituencyId,
-                IslandId = v.IslandId,
-                Remarks = v.Remarks
             })
             .ToListAsync();
     }
@@ -223,66 +224,90 @@ public class VoterService : IVoterService
             "Voter",
             id.ToString());
     }
-
     public async Task<VoterProfileDto> GetProfileAsync(
-    Guid voterId)
+        Guid userId,
+        Guid voterId)
     {
-        var voter = await GetVoterByIdAsync(voterId);
+        var voter =
+            await GetVoterByIdAsync(
+                userId,
+                voterId);
 
         if (voter == null)
         {
-            throw new Exception("Voter not found.");
+            throw new KeyNotFoundException(
+                "Voter not found.");
         }
 
-        var influencers = await _dbContext.VoterInfluencers
-            .Where(x => x.VoterId == voterId)
-            .Join(
-                _dbContext.Influencers,
-                vi => vi.InfluencerId,
-                i => i.Id,
-                (vi, i) => new VoterInfluencerDto
-                {
-                    InfluencerId = i.Id,
-                    FullName = i.FullName,
-                    NationalId = i.NationalId,
-                    ContactNumber = i.ContactNumber,
-                    RelationshipType = vi.RelationshipType
-                })
-            .ToListAsync();
+        var influencers =
+            await _dbContext.VoterInfluencers
+                .Where(x =>
+                    x.VoterId == voterId)
+                .Join(
+                    _dbContext.Influencers,
+                    vi => vi.InfluencerId,
+                    i => i.Id,
+                    (vi, i) =>
+                        new VoterInfluencerDto
+                        {
+                            InfluencerId = i.Id,
+                            FullName = i.FullName,
+                            NationalId = i.NationalId,
+                            ContactNumber =
+                                i.ContactNumber,
+                            RelationshipType =
+                                vi.RelationshipType
+                        })
+                .ToListAsync();
 
-        var encounters = await _dbContext.Encounters
-            .Where(x => x.VoterId == voterId)
-            .OrderByDescending(x => x.EncounterDate)
-            .Select(x => new EncounterDto
-            {
-                Id = x.Id,
-                VoterId = x.VoterId,
-                EncounterDate = x.EncounterDate,
-                EncounterType = x.EncounterType,
-                Outcome = x.Outcome,
-                Notes = x.Notes,
-                RecordedByUserId = x.RecordedByUserId
-            })
-            .ToListAsync();
+        var encounters =
+            await _dbContext.Encounters
+                .Where(x =>
+                    x.VoterId == voterId)
+                .OrderByDescending(x =>
+                    x.EncounterDate)
+                .Select(x =>
+                    new EncounterDto
+                    {
+                        Id = x.Id,
+                        VoterId = x.VoterId,
+                        EncounterDate =
+                            x.EncounterDate,
+                        EncounterType =
+                            x.EncounterType,
+                        Outcome = x.Outcome,
+                        Notes = x.Notes,
+                        RecordedByUserId =
+                            x.RecordedByUserId
+                    })
+                .ToListAsync();
 
-        var pledges = await _dbContext.Pledges
-            .Where(x => x.VoterId == voterId)
-            .OrderByDescending(x => x.PledgeDate)
-            .Select(x => new PledgeDto
-            {
-                Id = x.Id,
-                VoterId = x.VoterId,
-                CreatedByUserId = x.CreatedByUserId,
-                AssignedToUserId = x.AssignedToUserId,
-                PledgeDate = x.PledgeDate,
-                Title = x.Title,
-                Description = x.Description,
-                Status = x.Status,
-                DueDate = x.DueDate,
-                FulfilledDate = x.FulfilledDate,
-                ResolutionNotes = x.ResolutionNotes
-            })
-            .ToListAsync();
+        var pledges =
+            await _dbContext.Pledges
+                .Where(x =>
+                    x.VoterId == voterId)
+                .OrderByDescending(x =>
+                    x.PledgeDate)
+                .Select(x =>
+                    new PledgeDto
+                    {
+                        Id = x.Id,
+                        VoterId = x.VoterId,
+                        CreatedByUserId =
+                            x.CreatedByUserId,
+                        AssignedToUserId =
+                            x.AssignedToUserId,
+                        PledgeDate = x.PledgeDate,
+                        Title = x.Title,
+                        Description = x.Description,
+                        Status = x.Status,
+                        DueDate = x.DueDate,
+                        FulfilledDate =
+                            x.FulfilledDate,
+                        ResolutionNotes =
+                            x.ResolutionNotes
+                    })
+                .ToListAsync();
 
         return new VoterProfileDto
         {
@@ -292,6 +317,9 @@ public class VoterService : IVoterService
             Pledges = pledges
         };
     }
+
+    // Keep your existing influencer,
+    // encounter and pledge queries below.
     public async Task<List<VoterDto>> GetRecentAsync(
         int count = 10)
     {
@@ -312,6 +340,50 @@ public class VoterService : IVoterService
             })
             .ToListAsync();
     }
+    private async Task<IQueryable<Voter>>
+        GetAuthorizedVoterQueryAsync(Guid userId)
+    {
+        var query = _dbContext.Voters.AsQueryable();
+
+        if (await HasFullAccessAsync(userId))
+        {
+            return query;
+        }
+
+        var scopes = await _dbContext.UserScopes
+            .Where(x => x.UserId == userId)
+            .ToListAsync();
+
+        if (scopes.Count == 0)
+        {
+            return query.Where(_ => false);
+        }
+
+        var constituencyOnlyIds = scopes
+            .Where(x =>
+                x.ConstituencyId.HasValue &&
+                !x.IslandId.HasValue)
+            .Select(x => x.ConstituencyId!.Value)
+            .Distinct()
+            .ToList();
+
+        var islandIds = scopes
+            .Where(x => x.IslandId.HasValue)
+            .Select(x => x.IslandId!.Value)
+            .Distinct()
+            .ToList();
+
+        return query.Where(v =>
+            constituencyOnlyIds.Contains(
+                v.ConstituencyId)
+            ||
+            (
+                v.IslandId.HasValue &&
+                islandIds.Contains(
+                    v.IslandId.Value)
+            ));
+    }
+
 
 
 }

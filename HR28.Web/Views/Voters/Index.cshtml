@@ -1,0 +1,75 @@
+﻿@model List<HR28.Web.Models.VoterSearchDto>
+
+<div class="container mt-4">
+
+    <h2>Voter Search</h2>
+
+    <form asp-action="Search"
+          method="post">
+
+        <div class="row">
+
+            <div class="col-md-8">
+
+                <input name="searchTerm"
+                       class="form-control"
+                       placeholder="Search by National ID" />
+
+            </div>
+
+            <div class="col-md-4">
+
+                <button class="btn btn-primary">
+                    Search
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+    <hr/>
+
+    <table class="table table-striped">
+
+        <thead>
+            <tr>
+                <th>National ID</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        @foreach(var voter in Model)
+        {
+            <tr>
+
+                <td>@voter.NationalId</td>
+
+                <td>@voter.FullName</td>
+
+                <td>@voter.Address</td>
+
+                <td>@voter.SupportStatus</td>
+
+                <td>
+                <a class="btn btn-sm btn-success"
+                   asp-action="Profile"
+                   asp-route-id="@voter.Id">
+                    View
+                </a>
+                </td>
+
+            </tr>
+        }
+
+        </tbody>
+
+    </table>
+
+</div>

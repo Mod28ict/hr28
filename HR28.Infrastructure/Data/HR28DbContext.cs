@@ -129,6 +129,10 @@ public class HR28DbContext : DbContext
         // Voter and influencer relationships
         // --------------------------------------------------
 
+        // ------------------------------------------------
+        // Voter and influencer relationships
+        // ------------------------------------------------
+
         modelBuilder.Entity<VoterInfluencer>()
             .HasOne(vi => vi.Voter)
             .WithMany(v => v.Influencers)
@@ -140,6 +144,14 @@ public class HR28DbContext : DbContext
             .WithMany(i => i.Voters)
             .HasForeignKey(vi => vi.InfluencerId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<VoterInfluencer>()
+            .HasIndex(vi => new
+            {
+                vi.VoterId,
+                vi.InfluencerId
+            })
+            .IsUnique();
 
         // --------------------------------------------------
         // Influencer geography relationships

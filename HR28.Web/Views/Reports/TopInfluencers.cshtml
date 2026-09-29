@@ -1,0 +1,30 @@
+﻿@model List<HR28.Web.Models.TopInfluencerDto>
+
+<div class="container mt-4">
+
+    <h2>Top Influencers</h2>
+
+    <table class="table table-striped">
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Linked Voters</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        @foreach(var item in Model)
+        {
+            <tr>
+                <td>@item.FullName</td>
+                <td>@item.LinkedVoters</td>
+            </tr>
+        }
+
+        </tbody>
+
+    </table>
+
+</div>

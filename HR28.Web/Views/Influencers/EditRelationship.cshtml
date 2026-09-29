@@ -1,0 +1,49 @@
+﻿@model HR28.Web.Models.UpdateInfluencerRelationshipDto
+
+<div class="container mt-4">
+
+    <h2>Edit Relationship</h2>
+
+    <form asp-action="EditRelationship"
+          method="post">
+
+        <input asp-for="VoterId"
+               type="hidden" />
+
+        <input asp-for="InfluencerId"
+               type="hidden" />
+
+        <div class="mb-3">
+
+            <label class="form-label">
+                Relationship Type
+            </label>
+
+            <select asp-for="RelationshipType"
+                    class="form-select">
+
+                <option value="Parent">Parent</option>
+                <option value="Child">Child</option>
+                <option value="Sibling">Sibling</option>
+                <option value="Relative">Relative</option>
+                <option value="Friend">Friend</option>
+                <option value="Colleague">Colleague</option>
+                <option value="Community Leader">
+                    Community Leader
+                </option>
+                <option value="Spouse">Spouse</option>
+
+            </select>
+
+        </div>
+
+        <button type="submit"
+                class="btn btn-warning">
+
+            Save Changes
+
+        </button>
+
+    </form>
+
+</div>

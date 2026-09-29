@@ -1,4 +1,5 @@
-﻿using HR28.Application.DTOs.Constituencies;
+﻿using HR28.Application.DTOs;
+using HR28.Application.DTOs.Constituencies;
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using HR28.Infrastructure.Data;
@@ -136,5 +137,19 @@ public class ConstituencyService : IConstituencyService
         await _context.SaveChangesAsync();
 
         return true;
+    }
+    public async Task<List<LookupDto>>
+        GetIslandsByConstituencyAsync(
+            Guid constituencyId)
+    {
+        return await _context.ConstituencyIslands
+            .Where(ci => ci.ConstituencyId == constituencyId)
+            .Select(ci => new LookupDto
+            {
+                Id = ci.Island.Id,
+                Name = ci.Island.Name
+            })
+            .OrderBy(x => x.Name)
+            .ToListAsync();
     }
 }

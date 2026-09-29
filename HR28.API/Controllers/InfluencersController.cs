@@ -1,5 +1,6 @@
 ﻿using HR28.Application.DTOs.Influencers;
 using HR28.Application.Interfaces;
+using HR28.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -58,4 +59,17 @@ public class InfluencersController : ControllerBase
 
         return Ok(result);
     }
+    [HttpPut("relationship")]
+    public async Task<IActionResult>
+        UpdateRelationship(
+            UpdateInfluencerRelationshipDto request)
+    {
+        await _influencerService
+            .UpdateRelationshipAsync(
+                request);
+
+        return NoContent();
+    }
+
+
 }

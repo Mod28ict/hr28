@@ -1,6 +1,6 @@
-﻿namespace HR28.Application.DTOs.Voters;
+﻿namespace HR28.Web.Models;
 
-public class VoterDto
+public class VoterSearchDto
 {
     public Guid Id { get; set; }
 
@@ -12,17 +12,17 @@ public class VoterDto
 
     public string MobileNumber { get; set; } = string.Empty;
 
-    public Guid ConstituencyId { get; set; }
+    public Guid? ConstituencyId { get; set; }
 
     public Guid? IslandId { get; set; }
-
-    public string Remarks { get; set; } = string.Empty;
-    public string SupportStatus { get; set; }
-    = string.Empty;
     public string ConstituencyName { get; set; }
         = string.Empty;
 
     public string IslandName { get; set; }
         = string.Empty;
+
+    public string Remarks { get; set; } = string.Empty;
+
+    public string SupportStatus { get; set; } = string.Empty;
 
 }

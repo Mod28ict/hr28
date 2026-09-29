@@ -1,5 +1,6 @@
 ﻿using HR28.Application.DTOs.Constituencies;
 using HR28.Application.Interfaces;
+using HR28.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -68,5 +69,16 @@ public class ConstituenciesController : ControllerBase
             return NotFound();
 
         return NoContent();
+    }
+    [HttpGet("{id}/islands")]
+    public async Task<IActionResult>
+        GetIslands(Guid id)
+    {
+        var islands =
+await _service
+    .GetIslandsByConstituencyAsync(id);
+
+
+        return Ok(islands);
     }
 }

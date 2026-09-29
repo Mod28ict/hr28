@@ -1,0 +1,34 @@
+﻿@model List<HR28.Web.Models.ConstituencySummaryDto>
+
+<h2>Constituency Summary</h2>
+
+<table class="table table-bordered table-striped">
+
+    <thead>
+        <tr>
+            <th>Constituency</th>
+            <th>Voters</th>
+            <th>Supporters</th>
+            <th>Undecided</th>
+            <th>Support %</th>
+            <th>Engagement</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.ConstituencyName</td>
+                <td>@item.TotalVoters</td>
+                <td>@item.Supporters</td>
+                <td>@item.Undecided</td>
+                <td>@item.SupportPercentage %</td>
+                <td>@item.EngagementScore</td>
+            </tr>
+        }
+
+    </tbody>
+
+</table>

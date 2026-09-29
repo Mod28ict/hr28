@@ -1,4 +1,4 @@
-﻿@model HR28.Web.Models.DashboardDto
+﻿@model HR28.Web.Models.DashboardViewModel
 
 <div class="container mt-4">
 
@@ -10,7 +10,7 @@
             <div class="card bg-primary text-white">
                 <div class="card-body">
                     <h5>Total Voters</h5>
-                    <h2>@Model.TotalVoters</h2>
+                    <h2>@Model.Dashboard?.TotalVoters</h2>
                 </div>
             </div>
         </div>
@@ -19,7 +19,7 @@
             <div class="card bg-success text-white">
                 <div class="card-body">
                     <h5>Supporters</h5>
-                    <h2>@Model.Supporters</h2>
+                    <h2>@Model.Dashboard?.Supporters</h2>
                 </div>
             </div>
         </div>
@@ -28,7 +28,7 @@
             <div class="card bg-warning">
                 <div class="card-body">
                     <h5>Influencers</h5>
-                    <h2>@Model.TotalInfluencers</h2>
+                    <h2>@Model.Dashboard?.TotalInfluencers</h2>
                 </div>
             </div>
         </div>
@@ -37,7 +37,7 @@
             <div class="card bg-info text-white">
                 <div class="card-body">
                     <h5>Encounters</h5>
-                    <h2>@Model.TotalEncounters</h2>
+                    <h2>@Model.Dashboard?.TotalEncounters</h2>
                 </div>
             </div>
         </div>
@@ -50,7 +50,7 @@
             <div class="card bg-secondary text-white">
                 <div class="card-body">
                     <h5>Total Pledges</h5>
-                    <h2>@Model.TotalPledges</h2>
+                    <h2>@Model.Dashboard?.TotalPledges</h2>
                 </div>
             </div>
         </div>
@@ -59,11 +59,68 @@
             <div class="card bg-dark text-white">
                 <div class="card-body">
                     <h5>Completed Pledges</h5>
-                    <h2>@Model.CompletedPledges</h2>
+                    <h2>@Model.Dashboard?.CompletedPledges</h2>
                 </div>
             </div>
         </div>
+        <hr />
+
+        <h3>Recent Activity</h3>
+
+        <table class="table table-striped">
+
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (var item in Model.Activities)
+                {
+                    <tr>
+                        <td>@item.Action</td>
+                        <td>@item.EntityName</td>
+                        <td>@item.CreatedAt.ToString("dd-MMM-yyyy HH:mm")</td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+        <hr />
+
+        <h3>Recent Voters</h3>
+
+        <table class="table table-striped">
+
+            <thead>
+                <tr>
+                    <th>National ID</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (var voter in Model.RecentVoters)
+                {
+                    <tr>
+                        <td>@voter.NationalId</td>
+                        <td>@voter.FullName</td>
+                        <td>@voter.SupportStatus</td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
 
     </div>
+
 
 </div>

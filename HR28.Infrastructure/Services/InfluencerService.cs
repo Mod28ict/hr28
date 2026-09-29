@@ -12,6 +12,7 @@ public class InfluencerService : IInfluencerService
     private readonly HR28DbContext _dbContext;
     private readonly IAuditService _auditService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IInfluencerService _influencerService;
 
     public InfluencerService(
         HR28DbContext dbContext,
@@ -95,24 +96,51 @@ public class InfluencerService : IInfluencerService
     public async Task LinkToVoterAsync(
         LinkInfluencerDto request)
     {
-        var link = new VoterInfluencer
-        {
-            Id = Guid.NewGuid(),
-            VoterId = request.VoterId,
-            InfluencerId = request.InfluencerId,
-            RelationshipType = request.RelationshipType,
-            LinkedAt = DateTime.UtcNow
-        };
+        var existingLink =
+            await _dbContext.VoterInfluencers
+                .FirstOrDefaultAsync(x =>
+                    x.VoterId == request.VoterId &&
+                    x.InfluencerId == request.InfluencerId);
 
-        _dbContext.VoterInfluencers.Add(link);
+        string auditAction;
+
+        if (existingLink == null)
+        {
+            var newLink = new VoterInfluencer
+            {
+                Id = Guid.NewGuid(),
+                VoterId = request.VoterId,
+                InfluencerId = request.InfluencerId,
+                RelationshipType =
+                    request.RelationshipType,
+                LinkedAt = DateTime.UtcNow
+            };
+
+            _dbContext.VoterInfluencers.Add(
+                newLink);
+
+            auditAction = "Link To Voter";
+        }
+        else
+        {
+            existingLink.RelationshipType =
+                request.RelationshipType;
+
+            // Treat this timestamp as the latest link update.
+            existingLink.LinkedAt =
+                DateTime.UtcNow;
+
+            auditAction =
+                "Update Voter Relationship";
+        }
 
         await _dbContext.SaveChangesAsync();
+
         await _auditService.LogAsync(
             GetCurrentUserId(),
-            "Link To Voter",
+            auditAction,
             "Influencer",
             request.InfluencerId.ToString());
-
     }
     public async Task<List<VoterInfluencerDto>>
         GetByVoterIdAsync(Guid voterId)
@@ -144,4 +172,34 @@ public class InfluencerService : IInfluencerService
 
         return result;
     }
+    public async Task UpdateRelationshipAsync(
+        UpdateInfluencerRelationshipDto request)
+    {
+        var relationship =
+            await _dbContext.VoterInfluencers
+                .FirstOrDefaultAsync(x =>
+                    x.VoterId == request.VoterId &&
+                    x.InfluencerId == request.InfluencerId);
+
+        if (relationship == null)
+        {
+            throw new KeyNotFoundException(
+                "Relationship not found.");
+        }
+
+        relationship.RelationshipType =
+            request.RelationshipType;
+
+        relationship.LinkedAt =
+            DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            "Update Influencer Relationship",
+            "Influencer",
+            request.InfluencerId.ToString());
+    }
+
 }

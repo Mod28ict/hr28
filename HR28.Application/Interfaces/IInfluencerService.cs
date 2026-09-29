@@ -14,4 +14,6 @@ public interface IInfluencerService
 
     Task<List<VoterInfluencerDto>>
         GetByVoterIdAsync(Guid voterId);
+    Task UpdateRelationshipAsync(
+        UpdateInfluencerRelationshipDto request);
 }

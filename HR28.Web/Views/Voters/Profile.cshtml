@@ -1,0 +1,366 @@
+﻿@model HR28.Web.Models.VoterProfileDto
+@{
+    var influencers =
+        Model?.Influencers
+        ?? new List<HR28.Web.Models.VoterInfluencerDto>();
+
+    var encounters =
+        Model?.Encounters
+        ?? new List<HR28.Web.Models.EncounterDto>();
+
+    var pledges =
+        Model?.Pledges
+        ?? new List<HR28.Web.Models.PledgeDto>();
+}
+
+<div class="container mt-4">
+    <h2>Voter Profile</h2>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+
+
+    <div class="card">
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-6">
+                    <strong>National ID</strong><br />
+                    @Model?.Voter?.NationalId
+                </div>
+
+                <div class="col-md-6">
+                    <strong>Mobile Number</strong><br />
+                    @Model?.Voter?.MobileNumber
+                </div>
+
+            </div>
+
+            <hr />
+
+            <div class="row">
+
+                <div class="col-md-6">
+                    <strong>Address</strong><br />
+                    @Model?.Voter?.Address
+                </div>
+
+                <div class="col-md-6">
+                    <strong>Support Status</strong><br />
+                    @Model?.Voter?.SupportStatus
+                </div>
+
+            </div>
+
+            <hr />
+
+            <div class="row">
+
+                <div class="col-md-6">
+                    <strong>Constituency</strong><br />
+                    @Model?.Voter?.ConstituencyName
+                </div>
+
+                <div class="col-md-6">
+                    <strong>Island</strong><br />
+                    @Model?.Voter?.IslandName
+                </div>
+
+            </div>
+
+            <hr />
+
+            <strong>Remarks</strong><br />
+            @Model?.Voter?.Remarks
+
+        </div>
+    </div>
+
+    <br />
+
+    <a asp-action="Edit"
+       asp-route-id="@Model?.Voter?.Id"
+       class="btn btn-warning">
+        Edit Voter
+    </a>
+
+<br /><br />
+<div class="row mt-3">
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Influencers</h5>
+                <h2>@influencers.Count</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Encounters</h5>
+                <h2>@encounters.Count</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Pledges</h5>
+                <h2>@pledges.Count</h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+    <hr />
+
+    <!-- Influencers -->
+
+    <div class="d-flex justify-content-between mb-2">
+
+        <h3>
+            Influencers
+            <span class="badge bg-primary">
+                @influencers.Count
+            </span>
+        </h3>
+
+        <a asp-controller="Influencers"
+           asp-action="Link"
+           asp-route-voterId="@Model?.Voter?.Id"
+           class="btn btn-primary btn-sm">
+
+            Link Influencer
+
+        </a>
+    </div>
+@if (!influencers.Any())
+{
+    <p class="text-muted">
+        No influencers linked.
+    </p>
+}
+else
+{
+    <div class="table-responsive">
+
+        <table class="table table-striped">
+<thead>
+    <tr>
+        <th>National ID</th>
+        <th>Name</th>
+        <th>Contact</th>
+        <th>Relationship</th>
+        <th>Actions</th>
+    </tr>
+</thead>
+
+            <tbody>
+
+@foreach (var influencer in influencers)
+{
+    <tr>
+
+        <td>@influencer.NationalId</td>
+
+        <td>@influencer.FullName</td>
+
+        <td>@influencer.ContactNumber</td>
+
+        <td>@influencer.RelationshipType</td>
+
+        <td>
+
+            <a asp-controller="Influencers"
+               asp-action="EditRelationship"
+               asp-route-voterId="@Model!.Voter!.Id"
+               asp-route-influencerId="@influencer.InfluencerId"
+               class="btn btn-warning btn-sm">
+
+                Edit
+
+            </a>
+
+        </td>
+
+    </tr>
+}
+
+            </tbody>
+
+        </table>
+
+    </div>
+}
+    <hr />
+
+    <!-- Encounters -->
+
+    <div class="d-flex justify-content-between mb-2">
+
+<h3>
+    Encounters
+    <span class="badge bg-success">
+        @encounters.Count
+    </span>
+</h3>
+
+        <a asp-controller="Encounters"
+            asp-action="Create"
+            asp-route-voterId="@Model?.Voter?.Id"
+            class="btn btn-success btn-sm">
+
+            Add Encounter
+
+        </a>
+
+    </div>
+
+    @if (!encounters.Any())
+    {
+        <p class="text-muted">
+            No encounters recorded.
+        </p>
+    }
+    else
+    {
+        <table class="table table-striped">
+
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Outcome</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            @foreach (var encounter in Model.Encounters.OrderByDescending(x => x.EncounterDate))
+            {
+                <tr>
+
+
+                    <td>
+                        @($"{encounter.EncounterDate:dd-MMM-yyyy}")
+                    </td>
+
+
+                    <td>
+                        @encounter.EncounterType
+                    </td>
+
+                    <td>
+                        @encounter.Outcome
+                    </td>
+
+                    <td>
+                        @encounter.Notes
+                    </td>
+
+                </tr>
+            }
+
+            </tbody>
+
+        </table>
+    }
+
+    <hr />
+
+    <!-- Pledges -->
+
+    <div class="d-flex justify-content-between mb-2">
+
+<h3>
+    Pledges
+    <span class="badge bg-warning text-dark">
+        @pledges.Count
+    </span>
+</h3>
+
+        <a asp-controller="Pledges"
+           asp-action="Create"
+           asp-route-voterId="@Model?.Voter?.Id"
+           class="btn btn-warning btn-sm">
+
+            Add Pledge
+
+        </a>
+
+    </div>
+
+@if (!pledges.Any())
+{
+    <p class="text-muted">
+        No pledges recorded.
+    </p>
+}
+else
+{
+    <div class="table-responsive">
+
+        <table class="table table-striped">
+
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Pledge Date</th>
+                    <th>Due Date</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            @foreach(var pledge in pledges.OrderByDescending(x => x.PledgeDate))
+            {
+                <tr>
+
+                    <td>
+                        @pledge.Title
+                    </td>
+
+                    <td>
+                        @pledge.Description
+                    </td>
+
+                    <td>
+                        @pledge.Status
+                    </td>
+
+                    <td>
+                        @($"{pledge.PledgeDate:dd-MMM-yyyy}")
+
+                    </td>
+
+                    <td>
+                        @(pledge.DueDate.HasValue
+                            ? pledge.DueDate.Value
+                                .ToString(
+                                    "dd-MMM-yyyy")
+                            : "-")
+                    </td>
+
+                </tr>
+            }
+
+            </tbody>
+
+        </table>
+
+    </div>
+}
+
+</div>

@@ -1,0 +1,157 @@
+﻿@model HR28.Web.Models.LinkInfluencerViewModel
+
+@{
+    ViewData["Title"] = "Link Influencer";
+}
+
+<div class="container mt-4">
+
+    <h2>Link Influencer</h2>
+
+    <p class="text-muted">
+        Select an existing influencer and record
+        the influencer's relationship to this voter.
+    </p>
+
+    <form asp-action="Link"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="Link.VoterId"
+               type="hidden" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger">
+        </div>
+
+        <div class="mb-3">
+
+            <label asp-for="Link.InfluencerId"
+                   class="form-label">
+            </label>
+
+            <select asp-for="Link.InfluencerId"
+                    id="InfluencerDropdown"
+                    class="form-select">
+
+                <option value="">
+                    Select Influencer
+                </option>
+
+                @foreach (
+                    var influencer
+                    in Model.Influencers)
+                {
+                    <option value="@influencer.Id">
+
+                        @influencer.FullName
+                        (@influencer.NationalId)
+
+                    </option>
+                }
+
+            </select>
+
+            <span asp-validation-for=
+                      "Link.InfluencerId"
+                  class="text-danger">
+            </span>
+
+        </div>
+
+        <div class="mb-3">
+
+            <label asp-for="Link.RelationshipType"
+                   class="form-label">
+            </label>
+
+            <select asp-for="Link.RelationshipType"
+                    class="form-select">
+
+                <option value="">
+                    Select Relationship
+                </option>
+
+                <option value="Spouse">
+                    Spouse
+                </option>
+
+                <option value="Parent">
+                    Parent
+                </option>
+
+                <option value="Child">
+                    Child
+                </option>
+
+                <option value="Sibling">
+                    Sibling
+                </option>
+
+                <option value="Relative">
+                    Relative
+                </option>
+
+                <option value="Friend">
+                    Friend
+                </option>
+
+                <option value="Colleague">
+                    Colleague
+                </option>
+
+                <option value="Community Leader">
+                    Community Leader
+                </option>
+
+                <option value="Other">
+                    Other
+                </option>
+
+            </select>
+
+            <span asp-validation-for=
+                      "Link.RelationshipType"
+                  class="text-danger">
+            </span>
+
+        </div>
+
+        <button type="submit"
+                class="btn btn-primary">
+
+            Link Influencer
+
+        </button>
+
+        <a asp-controller="Voters"
+           asp-action="Profile"
+           asp-route-id="@Model.Link.VoterId"
+           class="btn btn-secondary">
+
+            Cancel
+
+        </a>
+
+    </form>
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+
+            $('#InfluencerDropdown').select2({
+                placeholder:
+                    'Search by influencer name or National ID',
+
+                width: '100%'
+            });
+
+        });
+    </script>
+}

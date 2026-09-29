@@ -9,17 +9,23 @@ public interface IVoterService
 
     Task<List<VoterDto>> GetVotersAsync(Guid userId);
 
-    Task<VoterDto?> GetVoterByIdAsync(
-        Guid id);
+
     Task<List<VoterDto>> SearchVotersAsync(
-    string searchTerm);
+        Guid userId,
+        string searchTerm);
     Task UpdateVoterAsync(
     Guid id,
     UpdateVoterDto request);
     Task DeleteVoterAsync(Guid id);
-    Task<VoterProfileDto> GetProfileAsync(
-        Guid voterId);
+
     Task<List<VoterDto>> GetRecentAsync(
     int count = 10);
+    Task<VoterDto?> GetVoterByIdAsync(
+        Guid userId,
+        Guid voterId);
+
+    Task<VoterProfileDto> GetProfileAsync(
+        Guid userId,
+        Guid voterId);
 
 }

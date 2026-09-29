@@ -1,0 +1,47 @@
+﻿@model HR28.Web.Models.PledgeStatusSummaryDto
+
+<div class="container mt-4">
+
+    <h2>Pledge Summary</h2>
+
+    <div class="row">
+
+        <div class="col-md-3">
+            <div class="card bg-warning">
+                <div class="card-body">
+                    <h5>Open</h5>
+                    <h2>@Model.Pending</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5>In Progress</h5>
+                    <h2>@Model.InProgress</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5>Completed</h5>
+                    <h2>@Model.Completed</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5>Cancelled</h5>
+                    <h2>@Model.Cancelled</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
