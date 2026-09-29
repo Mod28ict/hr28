@@ -27,4 +27,24 @@ public class ReportsController : ControllerBase
 
         return Ok(result);
     }
+    [HttpGet("pledge-status-summary")]
+    public async Task<IActionResult>
+    GetPledgeStatusSummary()
+    {
+        var result =
+            await _reportService
+                .GetPledgeStatusSummaryAsync();
+
+        return Ok(result);
+    }
+    [HttpGet("top-influencers")]
+    public async Task<IActionResult>
+        GetTopInfluencers()
+    {
+        var result =
+            await _reportService
+                .GetTopInfluencersAsync();
+
+        return Ok(result);
+    }
 }

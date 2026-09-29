@@ -6,4 +6,10 @@ public interface IReportingService
 {
     Task<List<ConstituencySummaryDto>>
         GetConstituencySummaryAsync();
+    Task<PledgeStatusSummaryDto> GetPledgeStatusSummaryAsync();
+    Task<List<TopInfluencerDto>>
+        GetTopInfluencersAsync(int top = 10);
+
+
+
 }

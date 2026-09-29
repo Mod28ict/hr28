@@ -125,4 +125,40 @@ public class ReportService : IReportingService
             .OrderByDescending(x => x.TotalVoters)
             .ToList();
     }
+    public async Task<PledgeStatusSummaryDto>
+        GetPledgeStatusSummaryAsync()
+    {
+        return new PledgeStatusSummaryDto
+        {
+            Pending = await _dbContext.Pledges
+                .CountAsync(x => x.Status == "Open"),
+
+            InProgress = await _dbContext.Pledges
+                .CountAsync(x => x.Status == "In Progress"),
+
+            Completed = await _dbContext.Pledges
+                .CountAsync(x => x.Status == "Completed"),
+
+            Cancelled = await _dbContext.Pledges
+                .CountAsync(x => x.Status == "Cancelled")
+        };
+    }
+    public async Task<List<TopInfluencerDto>>
+        GetTopInfluencersAsync(int top = 10)
+    {
+        return await _dbContext.Influencers
+            .Select(i => new TopInfluencerDto
+            {
+                InfluencerId = i.Id,
+                FullName = i.FullName,
+
+                LinkedVoters =
+                    _dbContext.VoterInfluencers
+                        .Count(v =>
+                            v.InfluencerId == i.Id)
+            })
+            .OrderByDescending(x => x.LinkedVoters)
+            .Take(top)
+            .ToListAsync();
+    }
 }
