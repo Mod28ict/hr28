@@ -2,6 +2,7 @@
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using HR28.Infrastructure.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace HR28.Infrastructure.Services;
@@ -9,11 +10,29 @@ namespace HR28.Infrastructure.Services;
 public class InfluencerService : IInfluencerService
 {
     private readonly HR28DbContext _dbContext;
+    private readonly IAuditService _auditService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public InfluencerService(
-        HR28DbContext dbContext)
+        HR28DbContext dbContext,
+        IAuditService auditService,
+        IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
+        _auditService = auditService;
+        _httpContextAccessor = httpContextAccessor;
+    }
+    private Guid? GetCurrentUserId()
+    {
+        var userIdClaim = _httpContextAccessor
+            .HttpContext?
+            .User
+            .FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null)
+            return null;
+
+        return Guid.Parse(userIdClaim.Value);
     }
 
     public async Task<InfluencerDto> CreateAsync(
@@ -35,6 +54,13 @@ public class InfluencerService : IInfluencerService
         _dbContext.Influencers.Add(influencer);
 
         await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            "Create",
+            "Influencer",
+            influencer.Id.ToString());
+
 
         return new InfluencerDto
         {
@@ -81,6 +107,12 @@ public class InfluencerService : IInfluencerService
         _dbContext.VoterInfluencers.Add(link);
 
         await _dbContext.SaveChangesAsync();
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            "Link To Voter",
+            "Influencer",
+            request.InfluencerId.ToString());
+
     }
     public async Task<List<VoterInfluencerDto>>
         GetByVoterIdAsync(Guid voterId)

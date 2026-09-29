@@ -2,6 +2,7 @@
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using HR28.Infrastructure.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace HR28.Infrastructure.Services;
@@ -9,11 +10,28 @@ namespace HR28.Infrastructure.Services;
 public class EncounterService : IEncounterService
 {
     private readonly HR28DbContext _dbContext;
-
+    private readonly IAuditService _auditService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     public EncounterService(
-        HR28DbContext dbContext)
+        HR28DbContext dbContext,
+        IAuditService auditService,
+        IHttpContextAccessor httpContextAccessor)
     {
         _dbContext = dbContext;
+        _auditService = auditService;
+        _httpContextAccessor = httpContextAccessor;
+    }
+    private Guid? GetCurrentUserId()
+    {
+        var userIdClaim = _httpContextAccessor
+            .HttpContext?
+            .User
+            .FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null)
+            return null;
+
+        return Guid.Parse(userIdClaim.Value);
     }
 
     public async Task<EncounterDto> CreateAsync(
@@ -34,6 +52,13 @@ public class EncounterService : IEncounterService
         _dbContext.Encounters.Add(encounter);
 
         await _dbContext.SaveChangesAsync();
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            "Create",
+            "Encounter",
+            encounter.Id.ToString());
+
+
 
         return new EncounterDto
         {
