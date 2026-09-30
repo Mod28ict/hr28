@@ -10,13 +10,13 @@ public class VoterCreateEditDto
 
     public string Address { get; set; } = "";
 
-    public string MobileNumber { get; set; } = "";
+    public string MobileNumber { get; set; } = string.Empty;
 
     public Guid ConstituencyId { get; set; }
 
     public Guid? IslandId { get; set; }
 
-    public string Remarks { get; set; } = "";
+    public string Remarks { get; set; } = string.Empty;
 
     public string SupportStatus { get; set; } = "";
 }

@@ -2,6 +2,7 @@
 using HR28.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
+
 namespace HR28.Web.Controllers;
 
 public class VotersController : Controller
@@ -14,11 +15,45 @@ public class VotersController : Controller
         _dashboardService = dashboardService;
     }
 
-    public IActionResult Index()
+    [HttpGet]
+    public async Task<IActionResult> Index(
+        int page = 1,
+        int pageSize = 20,
+        string? searchTerm = null)
     {
-        return View(
-            new List<VoterSearchDto>());
+        var token =
+            HttpContext.Session.GetString(
+                "JwtToken");
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return RedirectToAction(
+                "Login",
+                "Auth");
+        }
+
+        var result =
+            await _dashboardService.GetVotersAsync(
+                token,
+                page,
+                pageSize,
+                searchTerm);
+
+        if (result == null)
+        {
+            result =
+                new PagedResult<VoterSearchDto>
+                {
+                    Page = 1,
+                    PageSize = pageSize
+                };
+        }
+
+        ViewBag.SearchTerm = searchTerm;
+
+        return View(result);
     }
+
 
     [HttpPost]
     public async Task<IActionResult>
@@ -161,15 +196,19 @@ public class VotersController : Controller
 
             };
 
+        ViewBag.IsSuperAdmin = true;
         return View(model);
     }
     [HttpPost]
-    public async Task<IActionResult>
-        Edit(VoterCreateViewModel model)
+    public async Task<IActionResult> Edit(
+        VoterCreateViewModel model)
     {
         var token =
             HttpContext.Session.GetString(
                 "JwtToken");
+
+        model.Voter.Remarks ??= string.Empty;
+        model.Voter.MobileNumber ??= string.Empty;
 
         var success =
             await _dashboardService
@@ -179,7 +218,11 @@ public class VotersController : Controller
                     token);
 
         if (!success)
+        {
+            ViewBag.IsSuperAdmin = true;
+
             return View(model);
+        }
 
         return RedirectToAction(
             "Profile",

@@ -1,4 +1,5 @@
-﻿using HR28.Application.DTOs.Encounters;
+﻿using HR28.Application.DTOs.Common;
+using HR28.Application.DTOs.Encounters;
 using HR28.Application.DTOs.Influencers;
 using HR28.Application.DTOs.Pledges;
 using HR28.Application.DTOs.Voters;
@@ -196,7 +197,7 @@ public class VoterService : IVoterService
         voter.ConstituencyId = request.ConstituencyId;
         voter.IslandId = request.IslandId;
         voter.SupportStatus = request.SupportStatus;
-        voter.Remarks = request.Remarks;
+        voter.Remarks = request.Remarks ?? string.Empty;
 
         await _dbContext.SaveChangesAsync();
 
@@ -384,6 +385,72 @@ public class VoterService : IVoterService
             ));
     }
 
+    public async Task<PagedResult<VoterDto>>
+        GetVotersAsync(
+            Guid userId,
+            int page,
+            int pageSize,
+            string? searchTerm)
+    {
+        page = page < 1
+            ? 1
+            : page;
 
+        pageSize = pageSize switch
+        {
+            < 1 => 20,
+            > 100 => 100,
+            _ => pageSize
+        };
+
+        var query =
+            await GetAuthorizedVoterQueryAsync(
+                userId);
+
+        query = query.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(
+            searchTerm))
+        {
+            var term = searchTerm.Trim();
+
+            query = query.Where(v =>
+                v.NationalId.Contains(term) ||
+                v.FullName.Contains(term));
+        }
+
+        var totalCount =
+            await query.CountAsync();
+
+        var items =
+            await query
+                .OrderBy(v => v.FullName)
+                .ThenBy(v => v.NationalId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(v => new VoterDto
+                {
+                    Id = v.Id,
+                    NationalId = v.NationalId,
+                    FullName = v.FullName,
+                    Address = v.Address,
+                    MobileNumber = v.MobileNumber,
+                    ConstituencyId =
+                        v.ConstituencyId,
+                    IslandId = v.IslandId,
+                    Remarks = v.Remarks,
+                    SupportStatus =
+                        v.SupportStatus
+                })
+                .ToListAsync();
+
+        return new PagedResult<VoterDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
+    }
 
 }

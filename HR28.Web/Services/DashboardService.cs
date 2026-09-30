@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
 using System.Net.Http.Headers;
+using HR28.Web.Models.Users;
+
 
 namespace HR28.Web.Services;
 
@@ -69,13 +71,12 @@ public class DashboardService
             List<VoterSearchDto>>(
                 $"{_settings.BaseUrl}Voters/search?searchTerm={searchTerm}");
     }
-    public async Task<VoterProfileDto?>
-        GetVoterProfileAsync(
-            Guid voterId,
-            string? token)
+    public async Task<VoterProfileDto?> GetVoterProfileAsync(
+        Guid voterId,
+        string? token)
     {
         _httpClient.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue(
+            new AuthenticationHeaderValue(
                 "Bearer",
                 token);
 
@@ -155,7 +156,7 @@ public class DashboardService
         string? token)
     {
         _httpClient.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue(
+            new AuthenticationHeaderValue(
                 "Bearer",
                 token);
 
@@ -290,6 +291,77 @@ public class DashboardService
                 request);
 
         return response.IsSuccessStatusCode;
+    }
+    public async Task<PagedResult<VoterSearchDto>?>
+        GetVotersAsync(
+            string? token,
+            int page = 1,
+            int pageSize = 20,
+            string? searchTerm = null)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return null;
+        }
+
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        var url =
+            $"{_settings.BaseUrl}Voters" +
+            $"?page={page}" +
+            $"&pageSize={pageSize}";
+
+        if (!string.IsNullOrWhiteSpace(
+            searchTerm))
+        {
+            url +=
+                $"&searchTerm=" +
+                Uri.EscapeDataString(
+                    searchTerm.Trim());
+        }
+
+        return await _httpClient
+            .GetFromJsonAsync<
+                PagedResult<VoterSearchDto>>(
+                    url);
+    }
+    public async Task<List<UserDto>?> GetUsersAsync(
+        string? token)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        return await _httpClient.GetFromJsonAsync<
+            List<UserDto>>(
+            $"{_settings.BaseUrl}Users");
+    }
+
+    public async Task<UserDto?> CreateUserAsync(
+        CreateUserDto request,
+        string? token)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        var response =
+            await _httpClient.PostAsJsonAsync(
+                $"{_settings.BaseUrl}Users",
+                request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        return await response.Content
+            .ReadFromJsonAsync<UserDto>();
     }
 
 }

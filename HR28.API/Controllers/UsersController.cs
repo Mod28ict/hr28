@@ -57,4 +57,16 @@ public class UsersController : ControllerBase
 
         return Ok("Scope assigned successfully.");
     }
+    [HttpPost("{userId}/role")]
+    public async Task<IActionResult> AssignRole(
+        Guid userId,
+        [FromBody] AssignRoleDto request)
+    {
+        await _userService.AssignRoleAsync(
+            userId,
+            request.RoleId);
+
+        return Ok("Role assigned successfully.");
+    }
+
 }

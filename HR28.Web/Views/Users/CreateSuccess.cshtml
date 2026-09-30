@@ -1,0 +1,25 @@
+﻿@model HR28.Web.Models.UserCreateViewModel
+
+<div class="container mt-4">
+
+    <div class="alert alert-success">
+
+        <h4>User Created Successfully</h4>
+
+        <p>
+            Authorization Code:
+        </p>
+
+        <h2>
+            @Model.GeneratedAuthorizationCode
+        </h2>
+
+    </div>
+
+    <a asp-action="Index"
+       class="btn btn-primary">
+        Back to Users
+    </a>
+
+</div>
+``

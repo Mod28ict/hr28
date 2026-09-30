@@ -1,0 +1,53 @@
+﻿@model List<HR28.Web.Models.Users.UserDto>
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Users</h2>
+
+        <a asp-action="Create"
+           class="btn btn-primary">
+            Create User
+        </a>
+    </div>
+
+    <table class="table table-bordered table-striped">
+
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>National ID</th>
+                <th>Mobile Number</th>
+                <th>Email</th>
+                <th>Designation</th>
+                <th>Authorization Code</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.FullName</td>
+                    <td>@user.NationalId</td>
+                    <td>@user.MobileNumber</td>
+                    <td>@user.Email</td>
+                    <td>@user.Designation</td>
+                    <td>
+                        <code>@user.AuthorizationCode</code>
+                    </td>
+                    <td>
+                        @(user.IsActive
+                            ? "Active"
+                            : "Inactive")
+                    </td>
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+
+</div>

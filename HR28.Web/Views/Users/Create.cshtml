@@ -1,0 +1,78 @@
+﻿@model HR28.Web.Models.UserCreateViewModel
+
+<div class="container mt-4">
+
+    <h2>Create User</h2>
+
+    <form asp-action="Create"
+          method="post">
+
+        <div class="mb-3">
+            <label class="form-label">
+                National ID
+            </label>
+            <input asp-for="User.NationalId"
+                   class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">
+                Full Name
+            </label>
+            <input asp-for="User.FullName"
+                   class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">
+                Mobile Number
+            </label>
+            <input asp-for="User.MobileNumber"
+                   class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">
+                Email
+            </label>
+            <input asp-for="User.Email"
+                   class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">
+                Designation
+            </label>
+            <input asp-for="User.Designation"
+                   class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">
+                Address
+            </label>
+            <textarea asp-for="User.Address"
+                      class="form-control"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">
+                Remarks
+            </label>
+            <textarea asp-for="User.Remarks"
+                      class="form-control"></textarea>
+        </div>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Create User
+        </button>
+
+        <a asp-action="Index"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+
+</div>

@@ -30,21 +30,29 @@ public class VotersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetVoters()
+    public async Task<IActionResult> GetVoters(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? searchTerm = null)
     {
-        var userIdClaim =
-            User.FindFirst(ClaimTypes.NameIdentifier);
+        var userIdValue =
+            User.FindFirst(
+                ClaimTypes.NameIdentifier)?
+                .Value;
 
-        if (userIdClaim == null)
+        if (!Guid.TryParse(
+            userIdValue,
+            out var userId))
         {
             return Unauthorized();
         }
 
-        var userId =
-            Guid.Parse(userIdClaim.Value);
-
         var result =
-            await _voterService.GetVotersAsync(userId);
+            await _voterService.GetVotersAsync(
+                userId,
+                page,
+                pageSize,
+                searchTerm);
 
         return Ok(result);
     }
@@ -99,8 +107,8 @@ await _voterService.GetVoterByIdAsync(
     }
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateVoter(
-    Guid id,
-    UpdateVoterDto request)
+        Guid id,
+        UpdateVoterDto request)
     {
         await _voterService.UpdateVoterAsync(
             id,
@@ -108,6 +116,7 @@ await _voterService.GetVoterByIdAsync(
 
         return Ok("Voter updated successfully.");
     }
+
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteVoter(Guid id)

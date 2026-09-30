@@ -1,5 +1,15 @@
 ﻿@model HR28.Web.Models.VoterCreateViewModel
 
+@{
+bool isSuperAdmin = false;
+
+if (ViewBag.IsSuperAdmin != null)
+{
+    isSuperAdmin = (bool)ViewBag.IsSuperAdmin;
+}
+
+}
+
 <div class="container mt-4">
 
     <h2>Edit Voter</h2>
@@ -7,6 +17,7 @@
     <form asp-action="Edit" method="post">
 <input asp-for="Voter.Id"
        type="hidden" />
+
 
         <div class="mb-3">
             <label class="form-label">National ID</label>
@@ -28,45 +39,82 @@
             <textarea asp-for="Voter.Address" class="form-control"></textarea>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Constituency</label>
-            <select asp-for="Voter.ConstituencyId"
-                    id="ConstituencyDropdown"
-                    class="form-select">
+<div class="mb-3">
+    <label class="form-label">Constituency</label>
 
-                <option value="">
-                    Select Constituency
+    <select asp-for="Voter.ConstituencyId"
+            id="ConstituencyDropdown"
+            class="form-select"
+            disabled="@(!isSuperAdmin)">
+
+        <option value="">
+            Select Constituency
+        </option>
+
+        @foreach (var item in Model.Constituencies)
+        {
+            if (item.Id == Model.Voter.ConstituencyId)
+            {
+                <option value="@item.Id" selected>
+                    @item.Name
                 </option>
-
-                @foreach (var item in Model.Constituencies)
-                {
-                    <option value="@item.Id">
-                        @item.Name
-                    </option>
-                }
-
-        </select>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Island</label>
-            <select asp-for="Voter.IslandId"
-                    id="IslandDropdown"
-                    class="form-select">
-
-                <option value="">
-                    Select Island
+            }
+            else
+            {
+                <option value="@item.Id">
+                    @item.Name
                 </option>
+            }
+        }
 
-                @foreach (var item in Model.Islands)
-                {
-                    <option value="@item.Id">
-                        @item.Name
-                    </option>
-                }
+    </select>
 
-            </select>
-        </div>
+    @if (!isSuperAdmin)
+    {
+        <input type="hidden"
+               asp-for="Voter.ConstituencyId" />
+    }
+</div>
+<div class="mb-3">
+    <label class="form-label">Island</label>
+
+    <select asp-for="Voter.IslandId"
+            id="IslandDropdown"
+            class="form-select"
+            disabled="@(!isSuperAdmin)">
+
+        <option value="">
+            Select Island
+        </option>
+
+        @foreach (var item in Model.Islands)
+        {
+            if (item.Id == Model.Voter.IslandId)
+            {
+                <option value="@item.Id" selected>
+                    @item.Name
+                </option>
+            }
+            else
+            {
+                <option value="@item.Id">
+                    @item.Name
+                </option>
+            }
+        }
+
+    </select>
+
+    @if (!isSuperAdmin)
+    {
+        <input type="hidden"
+               asp-for="Voter.IslandId" />
+    }
+
+    <span id="islandDebug"></span>
+</div>
+
+
 
         <div class="mb-3">
             <label class="form-label">Support Status</label>
@@ -89,25 +137,34 @@
         </button>
 
     </form>
+
+
+
 @section Scripts
 {
     <script>
 
         $(document).ready(function () {
-            $('#IslandDropdown')
-                .empty()
-                .prop('disabled', true);
+if ($('#IslandDropdown option').length <= 1)
+{
+    $('#IslandDropdown').empty();
 
-            $('#ConstituencyDropdown').select2({
-                placeholder: 'Search constituency',
-                width: '100%'
-            });
+    $('#IslandDropdown')
+        .append(
+            $('<option>')
+                .text('Select Island')
+                .val('')
+        );
+}
 
-            $('#IslandDropdown').select2({
-                placeholder: 'Search island',
-                width: '100%'
-            });
-            $('#IslandDropdown').prop('disabled', true);            
+$('#IslandDropdown').change(function () {
+    $('#islandDebug').text(
+        'Selected Island ID = ' +
+        $(this).val()
+    );
+});
+
+
 
             $('#ConstituencyDropdown').change(function () {
 
@@ -141,7 +198,10 @@
                                             .val(item.id)
                                     );
                             });
-                        $('#IslandDropdown').prop('disabled', false);
+                       if (!$('#IslandDropdown').is(':disabled'))
+{
+    $('#IslandDropdown').prop('disabled', false);
+}
 
                         $('#IslandDropdown')
                             .trigger('change');
