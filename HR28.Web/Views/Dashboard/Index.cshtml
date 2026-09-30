@@ -1,311 +1,828 @@
-﻿@model DashboardViewModel
+﻿@model HR28.Web.Models.DashboardViewModel
 
 @{
     ViewData["Title"] = "Dashboard";
+
+    var dashboard =
+        Model.Dashboard
+        ?? new HR28.Web.Models.DashboardDto();
+
+    var userName =
+        Context.Session.GetString("UserName")
+        ?? "HR28 User";
+
+    var role =
+        Context.Session.GetString("UserRole")
+        ?? string.Empty;
+
+    var totalVoters =
+        dashboard.TotalVoters;
+
+    var supporters =
+        dashboard.Supporters;
+
+    var opponents =
+        dashboard.Opponents;
+
+    var undecided =
+        dashboard.Undecided;
+
+    var neutral =
+        dashboard.Neutral;
+
+    var statusTotal =
+        supporters
+        + opponents
+        + undecided
+        + neutral;
+
+    var supporterPercentage =
+        statusTotal > 0
+            ? Math.Round(
+                supporters * 100.0 / statusTotal,
+                1)
+            : 0;
+
+    var opponentPercentage =
+        statusTotal > 0
+            ? Math.Round(
+                opponents * 100.0 / statusTotal,
+                1)
+            : 0;
+
+    var undecidedPercentage =
+        statusTotal > 0
+            ? Math.Round(
+                undecided * 100.0 / statusTotal,
+                1)
+            : 0;
+
+    var neutralPercentage =
+        statusTotal > 0
+            ? Math.Round(
+                neutral * 100.0 / statusTotal,
+                1)
+            : 0;
+
+    var completedPledgePercentage =
+        dashboard.TotalPledges > 0
+            ? Math.Round(
+                dashboard.CompletedPledges
+                * 100.0
+                / dashboard.TotalPledges,
+                1)
+            : 0;
+
+    var openPledgePercentage =
+        dashboard.TotalPledges > 0
+            ? Math.Round(
+                dashboard.OpenPledges
+                * 100.0
+                / dashboard.TotalPledges,
+                1)
+            : 0;
+
+    var initials =
+        string.Join(
+            string.Empty,
+            userName
+                .Split(
+                    ' ',
+                    StringSplitOptions.RemoveEmptyEntries)
+                .Take(2)
+                .Select(name =>
+                    char.ToUpperInvariant(name[0])));
 }
 
-<div class="container-fluid">
+<div class="campaign-dashboard">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Executive Header -->
+    <section class="campaign-hero">
 
-        <div>
-            <h2 class="fw-bold">
-                Welcome back!
-            </h2>
+        <div class="campaign-hero-content">
 
-            <p class="text-muted">
-                Here's what's happening across HR28.
-            </p>
+            <div class="campaign-user-badge">
+                @initials
+            </div>
+
+            <div>
+                <div class="campaign-eyebrow">
+                    HR28 CAMPAIGN OVERVIEW
+                </div>
+
+                <h1>
+                    Welcome, @userName
+                </h1>
+
+                <p>
+                    Live information from your authorized
+                    voter scope.
+                </p>
+
+                <div class="campaign-role-pill">
+                    @role
+                </div>
+            </div>
+
         </div>
 
-        <div>
+        <div class="campaign-hero-actions">
+
+            @if (role != "Reporter")
+            {
+                <a asp-controller="Voters"
+                   asp-action="Create"
+                   class="campaign-primary-button">
+                    <span class="button-plus">+</span>
+                    Add Voter
+                </a>
+            }
+
             <a asp-controller="Voters"
-               asp-action="Create"
-               class="btn btn-primary">
-                + Add Voter
+               asp-action="Index"
+               class="campaign-secondary-button">
+                Search Voters
             </a>
+
         </div>
 
-    </div>
+        <div class="campaign-hero-decoration decoration-one">
+        </div>
 
-    <div class="row g-3">
+        <div class="campaign-hero-decoration decoration-two">
+        </div>
 
-        <div class="col-md-3">
-            <div class="card stat-card border-0 shadow-sm">
-                <div class="card-body">
+    </section>
 
-                    <div class="stat-title">
-                        Total Voters
-                    </div>
+    <!-- Main KPI Cards -->
+    <section class="campaign-kpi-grid">
 
-                    <div class="stat-value text-primary">
-                        @Model.Dashboard?.TotalVoters.ToString("N0")
-                    </div>
+        <a asp-controller="Voters"
+           asp-action="Index"
+           class="campaign-kpi-card">
 
+            <div class="kpi-top-row">
+                <div class="kpi-icon kpi-icon-blue">
+                    VT
                 </div>
+
+                <span class="kpi-badge">
+                    Authorized scope
+                </span>
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card stat-card border-0 shadow-sm">
-                <div class="card-body">
-
-                    <div class="stat-title">
-                        Supporters
-                    </div>
-
-                    <div class="stat-value text-success">
-                        @Model.Dashboard?.Supporters.ToString("N0")
-                    </div>
-
-                </div>
+            <div class="kpi-label">
+                Total Voters
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card stat-card border-0 shadow-sm">
-                <div class="card-body">
-
-                    <div class="stat-title">
-                        Influencers
-                    </div>
-
-                    <div class="stat-value text-warning">
-                        @Model.Dashboard?.TotalInfluencers.ToString("N0")
-                    </div>
-
-                </div>
+            <div class="kpi-number">
+                @totalVoters.ToString("N0")
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card stat-card border-0 shadow-sm">
-                <div class="card-body">
-
-                    <div class="stat-title">
-                        Encounters
-                    </div>
-
-                    <div class="stat-value text-info">
-                        @Model.Dashboard?.TotalEncounters.ToString("N0")
-                    </div>
-
-                </div>
+            <div class="kpi-footer">
+                View voter register
+                <span>→</span>
             </div>
-        </div>
 
-    </div>
+        </a>
 
-    <div class="row g-3 mt-2">
+        <div class="campaign-kpi-card">
 
-        <div class="col-md-3">
-            <div class="card stat-card border-0 shadow-sm">
-                <div class="card-body">
-
-                    <div class="stat-title">
-                        Total Pledges
-                    </div>
-
-                    <div class="stat-value text-secondary">
-                        @Model.Dashboard?.TotalPledges.ToString("N0")
-                    </div>
-
+            <div class="kpi-top-row">
+                <div class="kpi-icon kpi-icon-green">
+                    SP
                 </div>
+
+                <span class="kpi-badge kpi-badge-green">
+                    @supporterPercentage%
+                </span>
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card stat-card border-0 shadow-sm">
-                <div class="card-body">
-
-                    <div class="stat-title">
-                        Completed Pledges
-                    </div>
-
-                    <div class="stat-value text-dark">
-                        @Model.Dashboard?.CompletedPledges.ToString("N0")
-                    </div>
-
-                </div>
+            <div class="kpi-label">
+                Supporters
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card stat-card border-0 shadow-sm">
-                <div class="card-body">
-
-                    <div class="stat-title">
-                        Opponents
-                    </div>
-
-                    <div class="stat-value text-danger">
-                        @Model.Dashboard?.Opponents.ToString("N0")
-                    </div>
-
-                </div>
+            <div class="kpi-number">
+                @supporters.ToString("N0")
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card stat-card border-0 shadow-sm">
-                <div class="card-body">
-
-                    <div class="stat-title">
-                        Undecided
-                    </div>
-
-                    <div class="stat-value text-warning">
-                        @Model.Dashboard?.Undecided.ToString("N0")
-                    </div>
-
+            <div class="kpi-progress-track">
+                <div class="kpi-progress-fill supporter-fill"
+                     style="width:@supporterPercentage%">
                 </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="row mt-4">
-
-        <div class="col-md-5">
-
-            <div class="card border-0 shadow-sm">
-
-                <div class="card-header bg-white">
-                    <h5>
-                        Voter Distribution
-                    </h5>
-                </div>
-
-                <div class="card-body">
-
-                    <table class="table table-sm">
-
-                        <tr>
-                            <td>Supporters</td>
-                            <td>
-                                @Model.Dashboard?.Supporters
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Opponents</td>
-                            <td>
-                                @Model.Dashboard?.Opponents
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Undecided</td>
-                            <td>
-                                @Model.Dashboard?.Undecided
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Neutral</td>
-                            <td>
-                                @Model.Dashboard?.Neutral
-                            </td>
-                        </tr>
-
-                    </table>
-
-                </div>
-
             </div>
 
         </div>
 
-        <div class="col-md-7">
+        <a asp-controller="Influencers"
+           asp-action="Index"
+           class="campaign-kpi-card">
 
-            <div class="card border-0 shadow-sm">
+            <div class="kpi-top-row">
+                <div class="kpi-icon kpi-icon-violet">
+                    IN
+                </div>
 
-                <div class="card-header bg-white">
-                    <h5>
+                <span class="kpi-badge kpi-badge-violet">
+                    Network
+                </span>
+            </div>
+
+            <div class="kpi-label">
+                Influencers
+            </div>
+
+            <div class="kpi-number">
+                @dashboard.TotalInfluencers.ToString("N0")
+            </div>
+
+            <div class="kpi-footer">
+                Manage relationships
+                <span>→</span>
+            </div>
+
+        </a>
+
+        <div class="campaign-kpi-card">
+
+            <div class="kpi-top-row">
+                <div class="kpi-icon kpi-icon-cyan">
+                    EN
+                </div>
+
+                <span class="kpi-badge kpi-badge-cyan">
+                    Interactions
+                </span>
+            </div>
+
+            <div class="kpi-label">
+                Encounters
+            </div>
+
+            <div class="kpi-number">
+                @dashboard.TotalEncounters.ToString("N0")
+            </div>
+
+            <div class="kpi-footer kpi-footer-muted">
+                Recorded voter interactions
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- Main Analytics Row -->
+    <section class="campaign-analytics-grid">
+
+        <!-- Status Distribution -->
+        <article class="campaign-panel distribution-panel">
+
+            <div class="campaign-panel-header">
+
+                <div>
+                    <span class="panel-eyebrow">
+                        VOTER INSIGHTS
+                    </span>
+
+                    <h2>
+                        Status Distribution
+                    </h2>
+                </div>
+
+                <span class="panel-total">
+                    @statusTotal.ToString("N0") classified
+                </span>
+
+            </div>
+
+            <div class="distribution-layout">
+
+                <div class="distribution-donut-wrapper">
+
+                    <div class="distribution-donut"
+                         style="
+                            --supporter:@supporterPercentage;
+                            --opponent:@opponentPercentage;
+                            --undecided:@undecidedPercentage;
+                            --neutral:@neutralPercentage;">
+
+                        <div class="distribution-donut-center">
+
+                            <strong>
+                                @statusTotal.ToString("N0")
+                            </strong>
+
+                            <span>
+                                Status records
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="distribution-list">
+
+                    <div class="distribution-item">
+
+                        <span class="distribution-dot
+                                     distribution-supporter">
+                        </span>
+
+                        <div class="distribution-item-body">
+                            <span>Supporters</span>
+
+                            <strong>
+                                @supporters.ToString("N0")
+                            </strong>
+                        </div>
+
+                        <span class="distribution-percent">
+                            @supporterPercentage%
+                        </span>
+
+                    </div>
+
+                    <div class="distribution-item">
+
+                        <span class="distribution-dot
+                                     distribution-opponent">
+                        </span>
+
+                        <div class="distribution-item-body">
+                            <span>Opponents</span>
+
+                            <strong>
+                                @opponents.ToString("N0")
+                            </strong>
+                        </div>
+
+                        <span class="distribution-percent">
+                            @opponentPercentage%
+                        </span>
+
+                    </div>
+
+                    <div class="distribution-item">
+
+                        <span class="distribution-dot
+                                     distribution-undecided">
+                        </span>
+
+                        <div class="distribution-item-body">
+                            <span>Undecided</span>
+
+                            <strong>
+                                @undecided.ToString("N0")
+                            </strong>
+                        </div>
+
+                        <span class="distribution-percent">
+                            @undecidedPercentage%
+                        </span>
+
+                    </div>
+
+                    <div class="distribution-item">
+
+                        <span class="distribution-dot
+                                     distribution-neutral">
+                        </span>
+
+                        <div class="distribution-item-body">
+                            <span>Neutral</span>
+
+                            <strong>
+                                @neutral.ToString("N0")
+                            </strong>
+                        </div>
+
+                        <span class="distribution-percent">
+                            @neutralPercentage%
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </article>
+
+        <!-- Pledge Progress -->
+        <article class="campaign-panel pledge-panel">
+
+            <div class="campaign-panel-header">
+
+                <div>
+                    <span class="panel-eyebrow">
+                        COMMITMENTS
+                    </span>
+
+                    <h2>
+                        Pledge Progress
+                    </h2>
+                </div>
+
+                <a asp-controller="Reports"
+                   asp-action="Pledges"
+                   class="panel-link">
+                    View all
+                </a>
+
+            </div>
+
+            <div class="pledge-total-row">
+
+                <div>
+                    <span>Total Pledges</span>
+
+                    <strong>
+                        @dashboard.TotalPledges.ToString("N0")
+                    </strong>
+                </div>
+
+                <div class="pledge-completion-circle">
+                    <strong>
+                        @completedPledgePercentage%
+                    </strong>
+
+                    <span>
+                        completed
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="pledge-progress-group">
+
+                <div class="pledge-progress-heading">
+                    <span>Completed</span>
+
+                    <strong>
+                        @dashboard.CompletedPledges.ToString("N0")
+                    </strong>
+                </div>
+
+                <div class="pledge-progress-track">
+                    <div class="pledge-progress-fill
+                                pledge-completed-fill"
+                         style="width:@completedPledgePercentage%">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="pledge-progress-group">
+
+                <div class="pledge-progress-heading">
+                    <span>Open</span>
+
+                    <strong>
+                        @dashboard.OpenPledges.ToString("N0")
+                    </strong>
+                </div>
+
+                <div class="pledge-progress-track">
+                    <div class="pledge-progress-fill
+                                pledge-open-fill"
+                         style="width:@openPledgePercentage%">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="pledge-summary-grid">
+
+                <div class="pledge-summary-item">
+                    <span>Completed</span>
+
+                    <strong>
+                        @dashboard.CompletedPledges
+                    </strong>
+                </div>
+
+                <div class="pledge-summary-item">
+                    <span>Open</span>
+
+                    <strong>
+                        @dashboard.OpenPledges
+                    </strong>
+                </div>
+
+                <div class="pledge-summary-item">
+                    <span>Total</span>
+
+                    <strong>
+                        @dashboard.TotalPledges
+                    </strong>
+                </div>
+
+            </div>
+
+        </article>
+
+        <!-- Quick Actions -->
+        <article class="campaign-panel actions-panel">
+
+            <div class="campaign-panel-header">
+
+                <div>
+                    <span class="panel-eyebrow">
+                        OPERATIONS
+                    </span>
+
+                    <h2>
+                        Quick Actions
+                    </h2>
+                </div>
+
+            </div>
+
+            <div class="quick-action-grid">
+
+                @if (role != "Reporter")
+                {
+                    <a asp-controller="Voters"
+                       asp-action="Create"
+                       class="quick-action-item">
+
+                        <span class="quick-action-icon
+                                     quick-action-blue">
+                            +
+                        </span>
+
+                        <span class="quick-action-content">
+                            <strong>Add Voter</strong>
+                            <small>Create a voter record</small>
+                        </span>
+
+                        <span class="quick-action-arrow">
+                            →
+                        </span>
+
+                    </a>
+
+                    <a asp-controller="Voters"
+                       asp-action="Index"
+                       class="quick-action-item">
+
+                        <span class="quick-action-icon
+                                     quick-action-green">
+                            S
+                        </span>
+
+                        <span class="quick-action-content">
+                            <strong>Search Voters</strong>
+                            <small>Find a voter profile</small>
+                        </span>
+
+                        <span class="quick-action-arrow">
+                            →
+                        </span>
+
+                    </a>
+
+                    <a asp-controller="Influencers"
+                       asp-action="Index"
+                       class="quick-action-item">
+
+                        <span class="quick-action-icon
+                                     quick-action-violet">
+                            I
+                        </span>
+
+                        <span class="quick-action-content">
+                            <strong>Influencers</strong>
+                            <small>Manage the network</small>
+                        </span>
+
+                        <span class="quick-action-arrow">
+                            →
+                        </span>
+
+                    </a>
+                }
+
+                <a asp-controller="Reports"
+                   asp-action="Pledges"
+                   class="quick-action-item">
+
+                    <span class="quick-action-icon
+                                 quick-action-orange">
+                        P
+                    </span>
+
+                    <span class="quick-action-content">
+                        <strong>Pledges</strong>
+                        <small>Review commitments</small>
+                    </span>
+
+                    <span class="quick-action-arrow">
+                        →
+                    </span>
+
+                </a>
+
+                @if (role == "Super Administrator")
+                {
+                    <a asp-controller="Users"
+                       asp-action="Index"
+                       class="quick-action-item">
+
+                        <span class="quick-action-icon
+                                     quick-action-dark">
+                            U
+                        </span>
+
+                        <span class="quick-action-content">
+                            <strong>Manage Users</strong>
+                            <small>Roles and scopes</small>
+                        </span>
+
+                        <span class="quick-action-arrow">
+                            →
+                        </span>
+
+                    </a>
+                }
+
+            </div>
+
+        </article>
+
+    </section>
+
+    <!-- Activity and Recent Voters -->
+    <section class="campaign-lists-grid">
+
+        <article class="campaign-panel activity-panel">
+
+            <div class="campaign-panel-header">
+
+                <div>
+                    <span class="panel-eyebrow">
+                        AUDIT TRAIL
+                    </span>
+
+                    <h2>
                         Recent Activity
-                    </h5>
+                    </h2>
                 </div>
 
-                <div class="card-body">
-
-                    <table class="table">
-
-                        <thead>
-                        <tr>
-                            <th>Action</th>
-                            <th>Entity</th>
-                            <th>Date</th>
-                        </tr>
-                        </thead>
-
-                        <tbody>
-
-                        @foreach (var item in Model.Activities.Take(10))
-                        {
-                            <tr>
-                                <td>@item.Action</td>
-                                <td>@item.EntityName</td>
-                                <td>
-                                    @item.CreatedAt.ToString("dd-MMM-yyyy HH:mm")
-                                </td>
-                            </tr>
-                        }
-
-                        </tbody>
-
-                    </table>
-
-                </div>
+                <span class="panel-total">
+                    Latest @Model.Activities.Take(8).Count()
+                </span>
 
             </div>
 
-        </div>
+            @if (Model.Activities.Any())
+            {
+                <div class="activity-feed">
 
-    </div>
+                    @foreach (
+                        var activity
+                        in Model.Activities.Take(8))
+                    {
+                        var activityClass =
+                            activity.Action
+                                .Equals(
+                                    "Create",
+                                    StringComparison
+                                        .OrdinalIgnoreCase)
+                                ? "activity-create"
+                                : activity.Action
+                                    .Equals(
+                                        "Delete",
+                                        StringComparison
+                                            .OrdinalIgnoreCase)
+                                    ? "activity-delete"
+                                    : "activity-update";
 
-    <div class="row mt-4">
+                        <div class="activity-item">
 
-        <div class="col-md-12">
+                            <div class="activity-marker
+                                        @activityClass">
+                            </div>
 
-            <div class="card border-0 shadow-sm">
+                            <div class="activity-content">
 
-                <div class="card-header bg-white">
-                    <h5>
+                                <div class="activity-description">
+
+                                    <strong>
+                                        @activity.Action
+                                    </strong>
+
+                                    <span>
+                                        @activity.EntityName
+                                    </span>
+
+                                </div>
+
+                                <div class="activity-meta">
+                                    @activity.CreatedAt.ToString(
+                                        "dd MMM yyyy, HH:mm")
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="dashboard-empty-state">
+                    No recent activity is available.
+                </div>
+            }
+
+        </article>
+
+        <article class="campaign-panel recent-voters-panel">
+
+            <div class="campaign-panel-header">
+
+                <div>
+                    <span class="panel-eyebrow">
+                        LATEST RECORDS
+                    </span>
+
+                    <h2>
                         Recent Voters
-                    </h5>
+                    </h2>
                 </div>
 
-                <div class="card-body">
-
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>National ID</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-
-                        @foreach (var voter in Model.RecentVoters.Take(10))
-                        {
-                            <tr>
-                                <td>@voter.FullName</td>
-                                <td>@voter.NationalId</td>
-                            </tr>
-                        }
-
-                        </tbody>
-
-                    </table>
-
-                </div>
+                <a asp-controller="Voters"
+                   asp-action="Index"
+                   class="panel-link">
+                    View all
+                </a>
 
             </div>
 
-        </div>
+            @if (Model.RecentVoters.Any())
+            {
+                <div class="recent-voter-list">
 
-    </div>
+                    @foreach (
+                        var voter
+                        in Model.RecentVoters.Take(7))
+                    {
+                        var voterInitials =
+                            string.Join(
+                                string.Empty,
+                                voter.FullName
+                                    .Split(
+                                        ' ',
+                                        StringSplitOptions
+                                            .RemoveEmptyEntries)
+                                    .Take(2)
+                                    .Select(name =>
+                                        char.ToUpperInvariant(
+                                            name[0])));
+
+                        <div class="recent-voter-item">
+
+                            <div class="recent-voter-avatar">
+                                @voterInitials
+                            </div>
+
+                            <div class="recent-voter-details">
+
+                                <strong>
+                                    @voter.FullName
+                                </strong>
+
+                                <span>
+                                    @voter.NationalId
+                                </span>
+
+                            </div>
+
+                            <a asp-controller="Voters"
+                               asp-action="Profile"
+                               asp-route-id="@voter.Id"
+                               class="recent-voter-button">
+                                View
+                            </a>
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="dashboard-empty-state">
+                    No recent voter records are available.
+                </div>
+            }
+
+        </article>
+
+    </section>
 
 </div>
-    
