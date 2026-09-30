@@ -1,0 +1,197 @@
+﻿@model HR28.Web.Models.Users.UserAccessViewModel
+
+@{
+    ViewData["Title"] = "Assign Scope";
+}
+
+<div class="container mt-4">
+
+    <h2>Assign Scope</h2>
+
+    <p class="text-muted">
+        Assign geographic access for this user.
+    </p>
+
+    <form asp-action="AssignScope"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3">
+        </div>
+
+        <input asp-for="UserId"
+               type="hidden" />
+
+        <input asp-for="UserName"
+               type="hidden" />
+
+        <div class="mb-3">
+            <label class="form-label">
+                User
+            </label>
+
+            <input value="@Model.UserName"
+                   class="form-control"
+                   readonly />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="ConstituencyId"
+                   class="form-label">
+                Constituency
+            </label>
+
+            <select asp-for="ConstituencyId"
+                    id="ConstituencyDropdown"
+                    class="form-select">
+
+                <option value="">
+                    Select Constituency
+                </option>
+
+                @foreach (
+                    var constituency
+                    in Model.Constituencies)
+                {
+                    <option value="@constituency.Id">
+                        @constituency.Name
+                    </option>
+                }
+
+            </select>
+
+            <span asp-validation-for="ConstituencyId"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="IslandId"
+                   class="form-label">
+                Island
+            </label>
+
+            <select asp-for="IslandId"
+                    id="IslandDropdown"
+                    class="form-select">
+
+                <option value="">
+                    All islands in constituency
+                </option>
+
+                @foreach (var island in Model.Islands)
+                {
+                    <option value="@island.Id">
+                        @island.Name
+                    </option>
+                }
+
+            </select>
+
+            <div class="form-text">
+                Leave Island blank to grant access to
+                the complete constituency.
+            </div>
+
+            <span asp-validation-for="IslandId"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Assign Scope
+        </button>
+
+        <a asp-action="Index"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+            const constituencyDropdown =
+                $('#ConstituencyDropdown');
+
+            const islandDropdown =
+                $('#IslandDropdown');
+
+            function resetIslands() {
+                islandDropdown
+                    .empty()
+                    .append(
+                        $('<option>')
+                            .val('')
+                            .text(
+                                'All islands in constituency'
+                            )
+                    );
+            }
+
+            constituencyDropdown.on(
+                'change',
+                function () {
+                    const constituencyId =
+                        $(this).val();
+
+                    resetIslands();
+
+                    if (!constituencyId) {
+                        islandDropdown
+                            .prop('disabled', true);
+
+                        return;
+                    }
+
+                    islandDropdown
+                        .prop('disabled', true);
+
+                    $.getJSON(
+                        '@Url.Action(
+                            "GetIslands",
+                            "Users")',
+                        {
+                            constituencyId:
+                                constituencyId
+                        }
+                    )
+                    .done(function (data) {
+                        $.each(
+                            data,
+                            function (_, island) {
+                                islandDropdown.append(
+                                    $('<option>')
+                                        .val(island.id)
+                                        .text(island.name)
+                                );
+                            }
+                        );
+
+                        islandDropdown
+                            .prop('disabled', false);
+                    })
+                    .fail(function () {
+                        alert(
+                            'Unable to load islands.'
+                        );
+                    });
+                }
+            );
+
+            if (!constituencyDropdown.val()) {
+                islandDropdown
+                    .prop('disabled', true);
+            }
+        });
+    </script>
+}

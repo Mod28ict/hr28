@@ -363,5 +363,49 @@ public class DashboardService
         return await response.Content
             .ReadFromJsonAsync<UserDto>();
     }
+    public async Task<List<RoleDto>?> GetRolesAsync(
+        string? token)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        return await _httpClient.GetFromJsonAsync<
+            List<RoleDto>>(
+            $"{_settings.BaseUrl}Roles");
+    }
+    public async Task<bool> AssignRoleAsync(
+        AssignRoleDto request,
+        string? token)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        var response =
+            await _httpClient.PostAsJsonAsync(
+                $"{_settings.BaseUrl}Users/{request.UserId}/role",
+                request);
+
+        return response.IsSuccessStatusCode;
+    }
+    public async Task<bool> AssignScopeAsync(
+        AssignScopeDto request,
+        string? token)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        var response =
+            await _httpClient.PostAsJsonAsync(
+                $"{_settings.BaseUrl}Users/{request.UserId}/scope",
+                request);
+
+        return response.IsSuccessStatusCode;
+    }
 
 }

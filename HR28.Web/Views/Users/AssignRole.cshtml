@@ -1,0 +1,47 @@
+﻿@model HR28.Web.Models.Users.UserAccessViewModel
+
+<div class="container mt-4">
+
+    <h2>Assign Role</h2>
+
+    <form method="post">
+
+        <input asp-for="UserId"
+               type="hidden" />
+
+        <div class="mb-3">
+            <label>User</label>
+
+            <input value="@Model.UserName"
+                   class="form-control"
+                   readonly />
+        </div>
+
+        <div class="mb-3">
+            <label>Role</label>
+
+            <select asp-for="RoleId"
+                    class="form-select">
+
+                <option value="">
+                    Select Role
+                </option>
+
+                @foreach (var role in Model.Roles)
+                {
+                    <option value="@role.Id">
+                        @role.Name
+                    </option>
+                }
+
+            </select>
+        </div>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Save
+        </button>
+
+    </form>
+
+</div>

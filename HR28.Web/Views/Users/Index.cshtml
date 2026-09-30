@@ -22,6 +22,7 @@
                 <th>Designation</th>
                 <th>Authorization Code</th>
                 <th>Status</th>
+                <th>Actions</th>
             </tr>
         </thead>
 
@@ -43,6 +44,21 @@
                             ? "Active"
                             : "Inactive")
                     </td>
+                    <td>
+
+                        <a asp-action="AssignRole"
+                           asp-route-id="@user.Id"
+                           class="btn btn-sm btn-warning">
+                            Role
+                        </a>
+
+                        <a asp-action="AssignScope"
+                           asp-route-id="@user.Id"
+                           class="btn btn-sm btn-info">
+                            Scope
+                        </a>
+
+                </td>
                 </tr>
             }
 
