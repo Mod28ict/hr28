@@ -1,126 +1,311 @@
-﻿@model HR28.Web.Models.DashboardViewModel
+﻿@model DashboardViewModel
 
-<div class="container mt-4">
+@{
+    ViewData["Title"] = "Dashboard";
+}
 
-    <h2>HR28 Dashboard</h2>
+<div class="container-fluid">
 
-    <div class="row">
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-        <div class="col-md-3 mb-3">
-            <div class="card bg-primary text-white">
+        <div>
+            <h2 class="fw-bold">
+                Welcome back!
+            </h2>
+
+            <p class="text-muted">
+                Here's what's happening across HR28.
+            </p>
+        </div>
+
+        <div>
+            <a asp-controller="Voters"
+               asp-action="Create"
+               class="btn btn-primary">
+                + Add Voter
+            </a>
+        </div>
+
+    </div>
+
+    <div class="row g-3">
+
+        <div class="col-md-3">
+            <div class="card stat-card border-0 shadow-sm">
                 <div class="card-body">
-                    <h5>Total Voters</h5>
-                    <h2>@Model.Dashboard?.TotalVoters</h2>
+
+                    <div class="stat-title">
+                        Total Voters
+                    </div>
+
+                    <div class="stat-value text-primary">
+                        @Model.Dashboard?.TotalVoters.ToString("N0")
+                    </div>
+
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-3">
-            <div class="card bg-success text-white">
+        <div class="col-md-3">
+            <div class="card stat-card border-0 shadow-sm">
                 <div class="card-body">
-                    <h5>Supporters</h5>
-                    <h2>@Model.Dashboard?.Supporters</h2>
+
+                    <div class="stat-title">
+                        Supporters
+                    </div>
+
+                    <div class="stat-value text-success">
+                        @Model.Dashboard?.Supporters.ToString("N0")
+                    </div>
+
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-3">
-            <div class="card bg-warning">
+        <div class="col-md-3">
+            <div class="card stat-card border-0 shadow-sm">
                 <div class="card-body">
-                    <h5>Influencers</h5>
-                    <h2>@Model.Dashboard?.TotalInfluencers</h2>
+
+                    <div class="stat-title">
+                        Influencers
+                    </div>
+
+                    <div class="stat-value text-warning">
+                        @Model.Dashboard?.TotalInfluencers.ToString("N0")
+                    </div>
+
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-3">
-            <div class="card bg-info text-white">
+        <div class="col-md-3">
+            <div class="card stat-card border-0 shadow-sm">
                 <div class="card-body">
-                    <h5>Encounters</h5>
-                    <h2>@Model.Dashboard?.TotalEncounters</h2>
+
+                    <div class="stat-title">
+                        Encounters
+                    </div>
+
+                    <div class="stat-value text-info">
+                        @Model.Dashboard?.TotalEncounters.ToString("N0")
+                    </div>
+
                 </div>
             </div>
         </div>
 
     </div>
 
-    <div class="row">
+    <div class="row g-3 mt-2">
 
-        <div class="col-md-3 mb-3">
-            <div class="card bg-secondary text-white">
+        <div class="col-md-3">
+            <div class="card stat-card border-0 shadow-sm">
                 <div class="card-body">
-                    <h5>Total Pledges</h5>
-                    <h2>@Model.Dashboard?.TotalPledges</h2>
+
+                    <div class="stat-title">
+                        Total Pledges
+                    </div>
+
+                    <div class="stat-value text-secondary">
+                        @Model.Dashboard?.TotalPledges.ToString("N0")
+                    </div>
+
                 </div>
             </div>
         </div>
 
-        <div class="col-md-3 mb-3">
-            <div class="card bg-dark text-white">
+        <div class="col-md-3">
+            <div class="card stat-card border-0 shadow-sm">
                 <div class="card-body">
-                    <h5>Completed Pledges</h5>
-                    <h2>@Model.Dashboard?.CompletedPledges</h2>
+
+                    <div class="stat-title">
+                        Completed Pledges
+                    </div>
+
+                    <div class="stat-value text-dark">
+                        @Model.Dashboard?.CompletedPledges.ToString("N0")
+                    </div>
+
                 </div>
             </div>
         </div>
-        <hr />
 
-        <h3>Recent Activity</h3>
+        <div class="col-md-3">
+            <div class="card stat-card border-0 shadow-sm">
+                <div class="card-body">
 
-        <table class="table table-striped">
+                    <div class="stat-title">
+                        Opponents
+                    </div>
 
-            <thead>
-                <tr>
-                    <th>Action</th>
-                    <th>Entity</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
+                    <div class="stat-value text-danger">
+                        @Model.Dashboard?.Opponents.ToString("N0")
+                    </div>
 
-            <tbody>
+                </div>
+            </div>
+        </div>
 
-                @foreach (var item in Model.Activities)
-                {
-                    <tr>
-                        <td>@item.Action</td>
-                        <td>@item.EntityName</td>
-                        <td>@item.CreatedAt.ToString("dd-MMM-yyyy HH:mm")</td>
-                    </tr>
-                }
+        <div class="col-md-3">
+            <div class="card stat-card border-0 shadow-sm">
+                <div class="card-body">
 
-            </tbody>
+                    <div class="stat-title">
+                        Undecided
+                    </div>
 
-        </table>
-        <hr />
+                    <div class="stat-value text-warning">
+                        @Model.Dashboard?.Undecided.ToString("N0")
+                    </div>
 
-        <h3>Recent Voters</h3>
-
-        <table class="table table-striped">
-
-            <thead>
-                <tr>
-                    <th>National ID</th>
-                    <th>Name</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                @foreach (var voter in Model.RecentVoters)
-                {
-                    <tr>
-                        <td>@voter.NationalId</td>
-                        <td>@voter.FullName</td>
-                        <td>@voter.SupportStatus</td>
-                    </tr>
-                }
-
-            </tbody>
-
-        </table>
+                </div>
+            </div>
+        </div>
 
     </div>
 
+    <div class="row mt-4">
+
+        <div class="col-md-5">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header bg-white">
+                    <h5>
+                        Voter Distribution
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <table class="table table-sm">
+
+                        <tr>
+                            <td>Supporters</td>
+                            <td>
+                                @Model.Dashboard?.Supporters
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Opponents</td>
+                            <td>
+                                @Model.Dashboard?.Opponents
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Undecided</td>
+                            <td>
+                                @Model.Dashboard?.Undecided
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Neutral</td>
+                            <td>
+                                @Model.Dashboard?.Neutral
+                            </td>
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-7">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header bg-white">
+                    <h5>
+                        Recent Activity
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <table class="table">
+
+                        <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Entity</th>
+                            <th>Date</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        @foreach (var item in Model.Activities.Take(10))
+                        {
+                            <tr>
+                                <td>@item.Action</td>
+                                <td>@item.EntityName</td>
+                                <td>
+                                    @item.CreatedAt.ToString("dd-MMM-yyyy HH:mm")
+                                </td>
+                            </tr>
+                        }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row mt-4">
+
+        <div class="col-md-12">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-header bg-white">
+                    <h5>
+                        Recent Voters
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>National ID</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                        @foreach (var voter in Model.RecentVoters.Take(10))
+                        {
+                            <tr>
+                                <td>@voter.FullName</td>
+                                <td>@voter.NationalId</td>
+                            </tr>
+                        }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
+    

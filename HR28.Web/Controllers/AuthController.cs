@@ -66,6 +66,17 @@ public class AuthController : Controller
         HttpContext.Session.SetString(
             "JwtToken",
             response.Token);
+        HttpContext.Session.SetString(
+            "UserRole",
+            response.RoleName);
+
+        HttpContext.Session.SetString(
+            "UserName",
+            response.FullName);
+
+        HttpContext.Session.SetString(
+            "UserId",
+            response.UserId.ToString());
 
         return RedirectToAction(
             "Index",

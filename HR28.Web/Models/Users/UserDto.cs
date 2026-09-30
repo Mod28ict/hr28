@@ -21,4 +21,9 @@ public class UserDto
     public bool IsActive { get; set; }
 
     public DateTime? LastLoginAt { get; set; }
+    public string? RoleName { get; set; }
+
+    public string? ConstituencyName { get; set; }
+
+    public string? IslandName { get; set; }
 }

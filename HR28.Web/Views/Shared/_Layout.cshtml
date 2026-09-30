@@ -24,6 +24,9 @@
 </head>
 
 <body>
+    @{
+    var role = Context.Session.GetString("UserRole");
+}
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
@@ -37,30 +40,45 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-controller="Reports"
-                               asp-action="ConstituencySummary">
-                                Constituencies
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-controller="Voters"
-                               asp-action="Index">
-                                Voters
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-controller="Influencers"
-                               asp-action="Index">
-                                Influencers
-                            </a>
-                        </li>
+<li class="nav-item">
+    <a class="nav-link text-dark"
+       asp-controller="Home"
+       asp-action="Privacy">
+        Privacy
+    </a>
+</li>
+@if (role == "Super Administrator"
+    || role == "National Administrator"
+    || role == "Reporter")
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark"
+           asp-controller="Reports"
+           asp-action="ConstituencySummary">
+            Constituencies
+        </a>
+    </li>
+}
+@if (role != "Reporter")
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark"
+           asp-controller="Voters"
+           asp-action="Index">
+            Voters
+        </a>
+    </li>
+}
+@if (role != "Reporter")
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark"
+           asp-controller="Influencers"
+           asp-action="Index">
+            Influencers
+        </a>
+    </li>
+}
                         <li class="nav-item">
                             <a class="nav-link text-dark"
                                asp-controller="Reports"
@@ -68,20 +86,26 @@
                                 Pledges
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-controller="Voters"
-                               asp-action="Create">
-                                Add Voter
-                            </a>
-                        </li>
-                        <li class="nav-item">
-    <a class="nav-link"
-       asp-controller="Users"
-       asp-action="Index">
-        Users
-    </a>
-</li>
+@if (role != "Reporter")
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark"
+           asp-controller="Voters"
+           asp-action="Create">
+            Add Voter
+        </a>
+    </li>
+}
+@if (role == "Super Administrator")
+{
+    <li class="nav-item">
+        <a class="nav-link"
+           asp-controller="Users"
+           asp-action="Index">
+            Users
+        </a>
+    </li>
+}
 
                     </ul>
                 </div>

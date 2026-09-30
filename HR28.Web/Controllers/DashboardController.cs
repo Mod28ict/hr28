@@ -3,6 +3,7 @@ using HR28.Web.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
+
 namespace HR28.Web.Controllers;
 
 public class DashboardController : Controller
@@ -18,7 +19,11 @@ public class DashboardController : Controller
     public async Task<IActionResult> Index()
     {
         var token =
-            HttpContext.Session.GetString("JwtToken");
+            HttpContext.Session.GetString(
+                "JwtToken");
+
+
+
 
         var dashboard =
             await _dashboardService.GetDashboardAsync(token);

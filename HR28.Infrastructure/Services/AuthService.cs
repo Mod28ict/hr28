@@ -122,12 +122,23 @@ public class AuthService : IAuthService
 
         user.LastLoginAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
+        var roleName =
+    await _dbContext.UserRoles
+        .Where(x => x.UserId == user.Id)
+        .Select(x => x.Role.Name)
+        .FirstOrDefaultAsync()
+    ?? string.Empty;
+
 
         return new LoginResponseDto
         {
             Success = true,
             Message = "OTP verified successfully.",
-            Token = token
+            Token = token,
+
+            UserId = user.Id,
+            FullName = user.FullName,
+            RoleName = roleName
         };
     }
 }

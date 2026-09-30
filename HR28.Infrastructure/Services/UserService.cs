@@ -79,7 +79,22 @@ public class UserService : IUserService
                 Designation = user.Designation,
                 AuthorizationCode = user.AuthorizationCode,
                 IsActive = user.IsActive,
-                LastLoginAt = user.LastLoginAt
+                LastLoginAt = user.LastLoginAt,
+
+                RoleName =
+                    user.UserRoles
+                        .Select(x => x.Role.Name)
+                        .FirstOrDefault(),
+
+                ConstituencyName =
+                    user.UserScopes
+                        .Select(x => x.Constituency.Name)
+                        .FirstOrDefault(),
+
+                IslandName =
+                    user.UserScopes
+                        .Select(x => x.Island.Name)
+                        .FirstOrDefault()
             })
             .ToListAsync();
     }
@@ -99,7 +114,22 @@ public class UserService : IUserService
                 Designation = user.Designation,
                 AuthorizationCode = user.AuthorizationCode,
                 IsActive = user.IsActive,
-                LastLoginAt = user.LastLoginAt
+                LastLoginAt = user.LastLoginAt,
+
+                RoleName =
+                    user.UserRoles
+                        .Select(x => x.Role.Name)
+                        .FirstOrDefault(),
+
+                ConstituencyName =
+                    user.UserScopes
+                        .Select(x => x.Constituency.Name)
+                        .FirstOrDefault(),
+
+                IslandName =
+                    user.UserScopes
+                        .Select(x => x.Island.Name)
+                        .FirstOrDefault()
             })
             .FirstOrDefaultAsync();
     }

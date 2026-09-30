@@ -8,6 +8,12 @@ namespace HR28.Web.Controllers;
 public class UsersController : Controller
 {
     private readonly DashboardService _dashboardService;
+    private bool IsSuperAdmin()
+    {
+        return HttpContext.Session.GetString(
+            "UserRole")
+            == "Super Administrator";
+    }
 
     public UsersController(
         DashboardService dashboardService)
@@ -18,6 +24,12 @@ public class UsersController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
+        if (!IsSuperAdmin())
+        {
+            return RedirectToAction(
+                "Index",
+                "Dashboard");
+        }
         var token =
             HttpContext.Session.GetString(
                 "JwtToken");
@@ -32,6 +44,12 @@ public class UsersController : Controller
     [HttpGet]
     public IActionResult Create()
     {
+        if (!IsSuperAdmin())
+        {
+            return RedirectToAction(
+                "Index",
+                "Dashboard");
+        }
         return View(
             new UserCreateViewModel());
     }
@@ -40,6 +58,13 @@ public class UsersController : Controller
     public async Task<IActionResult> Create(
         UserCreateViewModel model)
     {
+        if (!IsSuperAdmin())
+        {
+            return RedirectToAction(
+                "Index",
+                "Dashboard");
+        }
+
         var token =
             HttpContext.Session.GetString(
                 "JwtToken");
@@ -66,6 +91,13 @@ public class UsersController : Controller
     public async Task<IActionResult> AssignRole(
         Guid id)
     {
+            if (!IsSuperAdmin())
+            {
+                return RedirectToAction(
+                    "Index",
+                    "Dashboard");
+            }
+
         var token =
             HttpContext.Session.GetString(
                 "JwtToken");
@@ -93,6 +125,12 @@ public class UsersController : Controller
     public async Task<IActionResult> AssignRole(
         UserAccessViewModel model)
     {
+        if (!IsSuperAdmin())
+        {
+            return RedirectToAction(
+                "Index",
+                "Dashboard");
+        }
         var token =
             HttpContext.Session.GetString(
                 "JwtToken");
@@ -117,12 +155,21 @@ public class UsersController : Controller
             return View(model);
         }
 
+        TempData["SuccessMessage"] =
+            "Role assigned successfully.";
+
         return RedirectToAction(
             nameof(Index));
     }
     [HttpGet]
     public async Task<IActionResult> AssignScope(Guid id)
     {
+        if (!IsSuperAdmin())
+        {
+            return RedirectToAction(
+                "Index",
+                "Dashboard");
+        }
         var token =
             HttpContext.Session.GetString("JwtToken");
 
@@ -165,6 +212,12 @@ public class UsersController : Controller
     public async Task<IActionResult> AssignScope(
         UserAccessViewModel model)
     {
+        if (!IsSuperAdmin())
+        {
+            return RedirectToAction(
+                "Index",
+                "Dashboard");
+        }
         var token =
             HttpContext.Session.GetString("JwtToken");
 
@@ -220,6 +273,8 @@ public class UsersController : Controller
         TempData["SuccessMessage"] =
             $"Scope assigned successfully to {model.UserName}.";
 
+
+
         return RedirectToAction(
             nameof(Index));
     }
@@ -247,6 +302,7 @@ public class UsersController : Controller
     public async Task<IActionResult> GetIslands(
         Guid constituencyId)
     {
+
         var token =
             HttpContext.Session.GetString("JwtToken");
 

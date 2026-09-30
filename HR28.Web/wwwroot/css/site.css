@@ -29,3 +29,31 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+.stat-card {
+    border-radius: 14px;
+    transition: all .2s ease-in-out;
+}
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+
+.stat-title {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 36px;
+    font-weight: 700;
+}
+
+.card {
+    border-radius: 14px;
+}
+
+.card-header {
+    border-bottom: 1px solid #f1f1f1;
+    font-weight: 600;
+}
