@@ -17,28 +17,34 @@ public static class IslandSeeder
         var henveiru = await context.Constituencies
             .FirstAsync(x => x.Name == "Henveiru");
 
+        // Each island belongs to exactly one constituency (Island.ConstituencyId);
+        // the ConstituencyIsland rows below are kept in step until that table is dropped.
         var hulhumalePhase1 = new Island
         {
             Id = Guid.NewGuid(),
-            Name = "Hulhumale Phase 1"
+            Name = "Hulhumale Phase 1",
+            ConstituencyId = hulhumale.Id
         };
 
         var hulhumalePhase2 = new Island
         {
             Id = Guid.NewGuid(),
-            Name = "Hulhumale Phase 2"
+            Name = "Hulhumale Phase 2",
+            ConstituencyId = hulhumale.Id
         };
 
         var henveiruEast = new Island
         {
             Id = Guid.NewGuid(),
-            Name = "Henveiru East"
+            Name = "Henveiru East",
+            ConstituencyId = henveiru.Id
         };
 
         var henveiruWest = new Island
         {
             Id = Guid.NewGuid(),
-            Name = "Henveiru West"
+            Name = "Henveiru West",
+            ConstituencyId = henveiru.Id
         };
 
         var islands = new List<Island>
