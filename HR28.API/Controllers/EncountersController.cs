@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using HR28.API.Extensions;
+using System.Security.Claims;
 using HR28.Application.DTOs.Encounters;
 using HR28.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +21,7 @@ public class EncountersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
     public async Task<IActionResult> Create(
         [FromBody] CreateEncounterDto request)
     {

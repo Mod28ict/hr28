@@ -12,6 +12,9 @@ using Microsoft.OpenApi;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Older .xls voter lists use legacy code pages; the Excel reader needs them registered.
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 // Add services to the container.
 builder.Services.AddDbContext<HR28DbContext>(options =>
     options.UseSqlServer(

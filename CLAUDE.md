@@ -59,6 +59,12 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   - Other roles: National Administrator (all data, no user management),
     Constituency Administrator, Island Administrator, Collector, Reporter (read-only
     reports). "Sees everything" = Super Administrator or National Administrator.
+  - Writing records (voters, encounters, pledges, influencer create/link) needs the
+    API `RecordWriter` policy: any role except Reporter-only (`AccessScope.CanWriteRecords`;
+    web mirror `Hr28Roles.CanManageRecords`). Influencer edit/delete use granted rights.
+  - **Voter list upload** (Voters → Upload voter list, API `POST api/VoterImports`) is
+    for administrators only (`Administrator` policy: Super + National), max 20 MB
+    .xlsx/.xls, 10 uploads per hour per user, one audit entry per upload with counts.
 - Planned hosting: Azure App Service + Azure SQL Database, one deployment per client,
   published by one automated pipeline to all clients.
 
@@ -155,7 +161,8 @@ strong despite that:
   consume), constant-time comparison, max attempts per code (setting, default 5).
 - Rate limits (implemented): per IP 10 code requests and 20 code checks per 5 minutes;
   per account 60s between requests, 5 codes per hour, and 10 wrong codes in a row
-  locks sign-in for 15 minutes. The web app forwards the visitor IP; the API trusts it
+  locks sign-in for 15 minutes. Per user: 120 searches/min, 20 report downloads/hour,
+  10 voter list uploads/hour. The web app forwards the visitor IP; the API trusts it
   only from `ReverseProxy:KnownProxies` (loopback by default; set the web app's
   outbound IPs in Azure). Per phone number: not yet (there is no SMS sender yet).
 - SMS text includes a warning, e.g. "HR28 code: 482913. Never share this code.
@@ -186,7 +193,9 @@ strong despite that:
 - Security headers: Content-Security-Policy, X-Content-Type-Options: nosniff,
   frame protection (frame-ancestors / X-Frame-Options), Referrer-Policy.
 - Cookies: Secure, HttpOnly, SameSite.
-- Anti-forgery tokens on every form and state-changing request in MVC.
+- Anti-forgery tokens on every form and state-changing request in MVC (implemented
+  site-wide with `AutoValidateAntiforgeryTokenAttribute` in web `Program.cs`; form tag
+  helpers add the token automatically, JavaScript POSTs must send it).
 - Validate every input on the server; use EF Core / parameterized queries only.
   No string-built SQL.
 - Encode all output in Razor; never render user input as raw HTML.
@@ -264,10 +273,11 @@ Status as of 2026-10-02 (update when an item changes):
    the tables already allowed many rows). Roles page = tick list; Areas page =
    add/remove.
 3. Permission matrix and API authorization policies — **mostly done.** Policies:
-   default (active account), `Administrator`, `SuperAdministrator`, resolved live.
+   default (active account), `Administrator`, `SuperAdministrator`, `RecordWriter`
+   (blocks Reporter-only accounts from writing), resolved live.
    Granted rights (`PermissionCatalog`) cover influencer edit/delete, managed in
    Settings → Permissions and per user. Still to do: a written matrix of what each
-   role may do by default; stop Reporters writing via the API; consider moving other
+   role may do by default; consider moving other
    sensitive actions (voter delete, exports) to granted rights.
 4. Central session / 401 handling — **partly done.** `ApiClient` + `AppController`
    handle 401/403 for newer pages; `SessionRoleRefreshFilter` ends sessions of
@@ -275,7 +285,7 @@ Status as of 2026-10-02 (update when an item changes):
    possible, including on 429).
 5. Authentication hardening — **partly done:** 6-digit secure OTP, hashed
    authorization codes, attempt limits, cooldown, lockout, per-IP rate limits,
-   inactive users blocked, anti-forgery on login forms, SMS text with the
+   inactive users blocked, anti-forgery on every form, SMS text with the
    "never share" warning (dev sender only), voter area changes limited to
    administrators in API and UI. Still to do: real SMS provider (with per-phone
    limits), step-up codes for exports/user
@@ -301,6 +311,8 @@ Known open issues (fix or confirm with the owner):
 - Influencer edit/delete with granted rights is built but not yet tested end to end
   with a signed-in non-Administrator. No right is granted to any role yet.
 - `Users.AuthorizationCode` (plain, now always empty) can be dropped in a migration.
+- SMS codes are stored as plain digits in `OtpRequests.OtpCode` (short-lived, single
+  use). Store a keyed hash like authorization codes.
 - Dev data to tidy: "Collector Demo" holds three roles incl. National Administrator;
   Mariyam Waheed's area pairs Henveiru West with Galolhu.
 

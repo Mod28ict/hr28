@@ -8,6 +8,9 @@ builder.Services.AddControllersWithViews(options =>
 {
     // Re-checks the signed-in user's role with the API about once a minute.
     options.Filters.Add<HR28.Web.Filters.SessionRoleRefreshFilter>();
+
+    // Every POST/PUT/DELETE must carry the anti-forgery token (forms add it automatically).
+    options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
 });
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 

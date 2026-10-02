@@ -22,6 +22,7 @@ public class VotersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
     public async Task<IActionResult> CreateVoter(
         CreateVoterDto request)
     {
@@ -110,6 +111,7 @@ await _voterService.GetVoterByIdAsync(
         return Ok(result);
     }
     [HttpPut("{id}")]
+    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
     public async Task<IActionResult> UpdateVoter(
         Guid id,
         UpdateVoterDto request)

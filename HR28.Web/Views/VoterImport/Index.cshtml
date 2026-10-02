@@ -1,0 +1,187 @@
+@model HR28.Web.Models.VoterImportViewModel
+
+@{
+    ViewData["Title"] = "Upload Voter List";
+
+    var result = Model.Result;
+}
+
+<div class="ui-page is-narrow">
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-blue"><partial name="_Icon" model='"upload"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a asp-controller="Voters" asp-action="Index">Voters</a>
+                    <span aria-hidden="true">/</span> <span>Upload voter list</span>
+                </nav>
+                <h1 class="ui-title">Upload Voter List</h1>
+                <p class="ui-sub">Add new voters and update existing ones from the voter list spreadsheet.</p>
+            </div>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="ui-alert is-red" role="alert">
+            <partial name="_Icon" model='"alert"' />
+            <span>@Model.ErrorMessage</span>
+        </div>
+    }
+
+    @if (result != null)
+    {
+        <div class="ui-alert @(result.Stopped ? "is-red" : "is-green")" role="status">
+            <partial name="_Icon" model='@(result.Stopped ? "alert" : "check-circle")' />
+            <span>
+                @if (result.Stopped)
+                {
+                    @:The upload of <strong>@Model.FileName</strong> stopped early. See the details below.
+                }
+                else
+                {
+                    @:<strong>@Model.FileName</strong> was processed: @result.TotalRows.ToString("N0") rows read.
+                }
+            </span>
+        </div>
+
+        <section class="ui-stats">
+            <div class="ui-stat is-green">
+                <span class="ui-stat-icon"><partial name="_Icon" model='"user-plus"' /></span>
+                <div>
+                    <div class="ui-stat-label">New voters added</div>
+                    <div class="ui-stat-value">@result.VotersInserted.ToString("N0")</div>
+                </div>
+            </div>
+            <div class="ui-stat is-blue">
+                <span class="ui-stat-icon"><partial name="_Icon" model='"edit"' /></span>
+                <div>
+                    <div class="ui-stat-label">Voters updated</div>
+                    <div class="ui-stat-value">@result.VotersUpdated.ToString("N0")</div>
+                </div>
+            </div>
+            <div class="ui-stat is-violet">
+                <span class="ui-stat-icon"><partial name="_Icon" model='"user-check"' /></span>
+                <div>
+                    <div class="ui-stat-label">Already up to date</div>
+                    <div class="ui-stat-value">@result.VotersUnchanged.ToString("N0")</div>
+                </div>
+            </div>
+            <div class="ui-stat is-red">
+                <span class="ui-stat-icon"><partial name="_Icon" model='"alert"' /></span>
+                <div>
+                    <div class="ui-stat-label">Rows not imported</div>
+                    <div class="ui-stat-value">@result.Errors.ToString("N0")</div>
+                </div>
+            </div>
+        </section>
+
+        @if (result.ConstituenciesCreated > 0)
+        {
+            <div class="ui-note is-amber">
+                <partial name="_Icon" model='"info"' />
+                <span>
+                    @result.ConstituenciesCreated.ToString("N0") new
+                    @(result.ConstituenciesCreated == 1 ? "constituency was" : "constituencies were")
+                    created from codes in the file. Check their names under Settings → Constituencies &amp; islands.
+                </span>
+            </div>
+        }
+
+        @if (result.ErrorMessages.Any())
+        {
+            <section class="ui-card">
+                <div class="ui-card-head">
+                    <h2>Rows that need attention</h2>
+                </div>
+                <ul class="ui-import-errors">
+                    @foreach (var message in result.ErrorMessages)
+                    {
+                        <li>@message</li>
+                    }
+                </ul>
+                @if (result.Errors > result.ErrorMessages.Count)
+                {
+                    <p class="ui-muted" style="font-size: 13px;">
+                        Showing the first @result.ErrorMessages.Count.ToString("N0") of @result.Errors.ToString("N0").
+                        Fix these rows and upload the file again; rows already imported are not duplicated.
+                    </p>
+                }
+            </section>
+        }
+    }
+
+    <section class="ui-card ui-card-lg">
+
+        <form asp-action="Index" method="post" enctype="multipart/form-data" id="h28ImportForm">
+
+            <div class="ui-note is-amber">
+                <partial name="_Icon" model='"info"' />
+                <span>
+                    Voters are matched by National ID. Existing voters are updated with the values in the file;
+                    phone numbers, remarks and support status are never changed. Every upload is recorded in the Audit Trail.
+                </span>
+            </div>
+
+            <div class="ui-field">
+                <label for="h28ImportFile" class="ui-label">Voter list file</label>
+                <input type="file"
+                       id="h28ImportFile"
+                       name="file"
+                       class="ui-input"
+                       accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                       required />
+                <span class="ui-hint">Excel file (.xlsx or .xls), up to 20 MB. Only the first sheet is read.</span>
+            </div>
+
+            <details class="ui-import-template">
+                <summary>Columns the file must have</summary>
+                <p>The first row is a header and is skipped. Each row after it needs these 9 columns, in this order:</p>
+                <ol>
+                    <li>National ID <span class="ui-muted">(required)</span></li>
+                    <li>Full name</li>
+                    <li>Gender <span class="ui-muted">(M or F)</span></li>
+                    <li>Address</li>
+                    <li>Ward <span class="ui-muted">(optional)</span></li>
+                    <li>Registered island</li>
+                    <li>Atoll code</li>
+                    <li>Constituency code <span class="ui-muted">(required)</span></li>
+                    <li>Constituency name</li>
+                </ol>
+            </details>
+
+            <div class="ui-form-actions">
+                <button type="submit" class="ui-btn ui-btn-primary" id="h28ImportSubmit">
+                    <partial name="_Icon" model='"upload"' />
+                    Upload and import
+                </button>
+
+                <a asp-controller="Voters" asp-action="Index" class="ui-btn ui-btn-secondary">
+                    Back to voters
+                </a>
+            </div>
+
+        </form>
+
+    </section>
+
+</div>
+
+@section Scripts
+{
+    <script>
+        (function () {
+            var form = document.getElementById("h28ImportForm");
+            var button = document.getElementById("h28ImportSubmit");
+
+            if (!form || !button) return;
+
+            // Large files take a while; stop a second click from starting another import.
+            form.addEventListener("submit", function () {
+                button.disabled = true;
+                button.lastChild.textContent = " Importing… please keep this page open";
+            });
+        })();
+    </script>
+}

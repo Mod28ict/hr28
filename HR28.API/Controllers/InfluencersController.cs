@@ -1,4 +1,5 @@
-﻿using HR28.Application.DTOs.Influencers;
+﻿using HR28.API.Extensions;
+using HR28.Application.DTOs.Influencers;
 using HR28.Application.Interfaces;
 using HR28.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +21,7 @@ public class InfluencersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
     public async Task<IActionResult> Create(
         [FromBody] CreateInfluencerDto request)
     {
@@ -63,6 +65,7 @@ public class InfluencersController : ControllerBase
     }
 
     [HttpPost("link")]
+    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
     public async Task<IActionResult> LinkToVoter(
         [FromBody] LinkInfluencerDto request)
     {
@@ -84,6 +87,7 @@ public class InfluencersController : ControllerBase
         return Ok(result);
     }
     [HttpPut("relationship")]
+    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
     public async Task<IActionResult>
         UpdateRelationship(
             UpdateInfluencerRelationshipDto request)

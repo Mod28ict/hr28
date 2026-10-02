@@ -38,6 +38,15 @@ public class AccessScope
     /// <summary>Constituencies the user touches at all, including through an island scope.</summary>
     public IReadOnlyList<Guid> VisibleConstituencyIds { get; init; } = Array.Empty<Guid>();
 
+    /// <summary>
+    /// May create or change records (voters, encounters, pledges, influencer links).
+    /// Reporters only read; someone who is a Reporter AND has another role may write.
+    /// </summary>
+    public bool CanWriteRecords =>
+        IsActive && Roles.Any(r => !string.Equals(r, ReporterRole, StringComparison.Ordinal));
+
+    public const string ReporterRole = "Reporter";
+
     public bool HasAnyScope =>
         IsAdministrator || ConstituencyIds.Count > 0 || IslandIds.Count > 0;
 

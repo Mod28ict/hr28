@@ -16,6 +16,7 @@ public static class RateLimitPolicies
     public const string OtpVerify = "otp-verify";
     public const string Export = "export";
     public const string Search = "search";
+    public const string Import = "import";
 
     public static IServiceCollection AddHr28RateLimiting(
         this IServiceCollection services,
@@ -81,6 +82,16 @@ public static class RateLimitPolicies
                     _ => new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = 20,
+                        Window = TimeSpan.FromHours(1),
+                        QueueLimit = 0
+                    }));
+
+            options.AddPolicy(Import, http =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    UserOrIp(http),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10,
                         Window = TimeSpan.FromHours(1),
                         QueueLimit = 0
                     }));

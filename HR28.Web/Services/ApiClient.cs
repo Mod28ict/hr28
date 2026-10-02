@@ -135,6 +135,65 @@ public class ApiClient
         }
     }
 
+    /// <summary>Uploads one file as multipart form data (field name "file").</summary>
+    public async Task<ApiResult<T>> PostFileAsync<T>(string path, IFormFile file, string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return new ApiResult<T>
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Your session has ended. Please sign in again."
+            };
+        }
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, _settings.BaseUrl + path);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            AddClientIp(request, _httpContextAccessor.HttpContext);
+
+            await using var stream = file.OpenReadStream();
+            using var content = new MultipartFormDataContent();
+            using var fileContent = new StreamContent(stream);
+
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            content.Add(fileContent, "file", Path.GetFileName(file.FileName));
+            request.Content = content;
+
+            using var response = await _httpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new ApiResult<T>
+                {
+                    Success = true,
+                    StatusCode = response.StatusCode,
+                    Data = await response.Content.ReadFromJsonAsync<T>(JsonOptions)
+                };
+            }
+
+            return new ApiResult<T>
+            {
+                StatusCode = response.StatusCode,
+                Message = await ReadMessageAsync(response)
+            };
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
+        {
+            _logger.LogWarning(ex, "File upload {Path} failed", path);
+
+            // A timeout does not mean the server stopped: a large import may still finish.
+            return new ApiResult<T>
+            {
+                StatusCode = HttpStatusCode.ServiceUnavailable,
+                Message = ex is TaskCanceledException
+                    ? "The upload is taking longer than expected and may still finish. Check the Audit Trail in a few minutes before uploading the file again."
+                    : "The upload did not finish. Please try again shortly."
+            };
+        }
+    }
+
     public Task<ApiResult<T>> PostAsync<T>(string path, object body, string? token) =>
         SendAsync<T>(HttpMethod.Post, path, body, token);
 

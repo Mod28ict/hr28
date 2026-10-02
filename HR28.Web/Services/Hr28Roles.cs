@@ -44,13 +44,11 @@ public static class Hr28Roles
 
     /// <summary>
     /// Reporters only read reports. Someone who is a Reporter AND has another
-    /// role can still work with records (permissions combine).
+    /// role can still work with records (permissions combine). Matches the API's
+    /// RecordWriter policy, so an account with no role cannot change records either.
     /// </summary>
-    public static bool CanManageRecords(string? roles)
-    {
-        var list = Parse(roles);
-        return list.Count == 0 || list.Any(r => r != Reporter);
-    }
+    public static bool CanManageRecords(string? roles) =>
+        Parse(roles).Any(r => r != Reporter);
 
     /// <summary>
     /// The name shown on screen. "Super Administrator" is the client's own

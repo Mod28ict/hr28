@@ -3,7 +3,9 @@ using HR28.Application.DTOs.Imports;
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using HR28.Infrastructure.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace HR28.Infrastructure.Services;
 
@@ -13,14 +15,78 @@ public class VoterImportService : IVoterImportService
     private const int MaximumReturnedErrors = 100;
 
     private readonly HR28DbContext _dbContext;
+    private readonly IAuditService _auditService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<VoterImportService> _logger;
 
     public VoterImportService(
-        HR28DbContext dbContext)
+        HR28DbContext dbContext,
+        IAuditService auditService,
+        IHttpContextAccessor httpContextAccessor,
+        ILogger<VoterImportService> logger)
     {
+        _logger = logger;
         _dbContext = dbContext;
+        _auditService = auditService;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    private Guid? GetCurrentUserId()
+    {
+        var userIdClaim = _httpContextAccessor
+            .HttpContext?
+            .User
+            .FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+        return Guid.TryParse(userIdClaim?.Value, out var id) ? id : null;
     }
 
     public async Task<ImportResultDto> ImportAsync(
+        Stream excelStream,
+        string fileName)
+    {
+        ImportResultDto result;
+
+        try
+        {
+            result = await ImportRowsAsync(excelStream);
+        }
+        catch (DbUpdateException ex)
+        {
+            // Rows saved in earlier batches stay saved; the audit entry records the stop.
+            _logger.LogError(ex, "Voter import stopped while saving");
+
+            result = new ImportResultDto { Errors = 1, Stopped = true };
+            result.ErrorMessages.Add(
+                "The import stopped while saving. Rows saved before that point are kept. Please try again.");
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Not a readable workbook (wrong type, damaged or password-protected).
+            _logger.LogWarning(ex, "Voter import file could not be read");
+
+            result = new ImportResultDto { Errors = 1, Stopped = true };
+            result.ErrorMessages.Add(
+                "The file could not be read as an Excel workbook. Check it is the voter list template and try again.");
+        }
+
+        // One audit entry per upload, with the outcome, so bulk changes are traceable.
+        var name = Path.GetFileName(fileName ?? string.Empty);
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            $"Import voters from \"{(name.Length > 80 ? name[..80] : name)}\": " +
+            $"{result.VotersInserted} added, {result.VotersUpdated} updated, " +
+            $"{result.VotersUnchanged} unchanged, {result.ConstituenciesCreated} constituencies created, " +
+            $"{result.Errors} rows with errors" +
+            (result.Stopped ? " (import stopped early)" : string.Empty),
+            "Voter",
+            null);
+
+        return result;
+    }
+
+    private async Task<ImportResultDto> ImportRowsAsync(
         Stream excelStream)
     {
         var result = new ImportResultDto();
@@ -122,13 +188,15 @@ public class VoterImportService : IVoterImportService
                         _dbContext.ChangeTracker.Clear();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is InvalidOperationException or FormatException or InvalidCastException)
                 {
                     result.Errors++;
 
                     AddError(
                         result,
-                        $"Row {rowNumber}: {ex.Message}");
+                        ex is InvalidOperationException
+                            ? $"Row {rowNumber}: {ex.Message}"
+                            : $"Row {rowNumber}: could not be read.");
                 }
             }
 
@@ -401,8 +469,8 @@ public class VoterImportService : IVoterImportService
         if (reader.FieldCount < 9)
         {
             throw new InvalidOperationException(
-                $"Expected 9 columns but found " +
-                $"{reader.FieldCount}.");
+                $"has {reader.FieldCount} columns; " +
+                "the voter list template needs 9.");
         }
 
         var nationalId = GetText(reader, 0);

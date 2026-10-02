@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using HR28.API.Extensions;
+using System.Security.Claims;
 using HR28.Application.DTOs.Pledges;
 using HR28.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +21,7 @@ public class PledgesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
     public async Task<IActionResult> Create(
         [FromBody] CreatePledgeDto request)
     {
@@ -49,6 +51,7 @@ public class PledgesController : ControllerBase
     }
 
     [HttpPut("{pledgeId}/status")]
+    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
     public async Task<IActionResult> UpdateStatus(
     Guid pledgeId,
     [FromBody] UpdatePledgeStatusDto request)

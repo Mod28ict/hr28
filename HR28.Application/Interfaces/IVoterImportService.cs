@@ -5,5 +5,6 @@ namespace HR28.Application.Interfaces;
 public interface IVoterImportService
 {
     Task<ImportResultDto> ImportAsync(
-        Stream excelStream);
+        Stream excelStream,
+        string fileName);
 }

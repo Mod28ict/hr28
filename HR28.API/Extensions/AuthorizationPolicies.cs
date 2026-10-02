@@ -16,6 +16,9 @@ public static class AuthorizationPolicies
     /// <summary>The client's Administrator (stored as "Super Administrator"): users, roles and scopes.</summary>
     public const string SuperAdministrator = "SuperAdministrator";
 
+    /// <summary>Anyone who may create or change records: every role except Reporter-only accounts.</summary>
+    public const string RecordWriter = "RecordWriter";
+
     public static IServiceCollection AddHr28AuthorizationPolicies(
         this IServiceCollection services)
     {
@@ -40,6 +43,10 @@ public static class AuthorizationPolicies
             options.AddPolicy(SuperAdministrator, policy => policy
                 .RequireAuthenticatedUser()
                 .AddRequirements(new AccessRequirement(AccessLevel.SuperAdministrator)));
+
+            options.AddPolicy(RecordWriter, policy => policy
+                .RequireAuthenticatedUser()
+                .AddRequirements(new AccessRequirement(AccessLevel.RecordWriter)));
         });
 
         return services;
@@ -50,7 +57,8 @@ public enum AccessLevel
 {
     ActiveUser,
     Administrator,
-    SuperAdministrator
+    SuperAdministrator,
+    RecordWriter
 }
 
 public class AccessRequirement : IAuthorizationRequirement
@@ -90,6 +98,7 @@ public class AccessRequirementHandler : AuthorizationHandler<AccessRequirement>
             AccessLevel.ActiveUser => true,
             AccessLevel.Administrator => access.IsAdministrator,
             AccessLevel.SuperAdministrator => access.IsSuperAdministrator,
+            AccessLevel.RecordWriter => access.CanWriteRecords,
             _ => false
         };
 

@@ -1672,3 +1672,37 @@ fieldset {
             transform: none;
         }
 }
+
+/* ---------- Voter list upload ---------- */
+
+.ui-import-errors {
+    margin: 0 0 10px;
+    padding-left: 20px;
+    max-height: 320px;
+    overflow-y: auto;
+    font-size: 14px;
+    color: var(--ui-text-2);
+}
+
+    .ui-import-errors li {
+        padding: 3px 0;
+    }
+
+.ui-import-template {
+    margin: 4px 0 18px;
+    padding: 12px 14px;
+    border: 1px solid var(--ui-border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--ui-text-2);
+}
+
+    .ui-import-template summary {
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .ui-import-template ol {
+        margin: 6px 0 0;
+        padding-left: 22px;
+    }

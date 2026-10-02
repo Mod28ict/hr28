@@ -5,6 +5,10 @@
 
     var searchTerm = ViewBag.SearchTerm as string ?? string.Empty;
 
+    var userRole = Context.Session.GetString("UserRole");
+    var isAdministrator = HR28.Web.Services.Hr28Roles.IsAdministrator(userRole);
+    var canWrite = HR28.Web.Services.Hr28Roles.CanManageRecords(userRole);
+
     var startRecord = Model.TotalCount == 0
         ? 0
         : ((Model.Page - 1) * Model.PageSize) + 1;
@@ -41,10 +45,20 @@
         </div>
 
         <div class="ui-head-actions">
-            <a asp-action="Create" class="ui-btn ui-btn-primary">
-                <partial name="_Icon" model='"plus"' />
-                Add Voter
-            </a>
+            @if (isAdministrator)
+            {
+                <a asp-controller="VoterImport" asp-action="Index" class="ui-btn ui-btn-secondary">
+                    <partial name="_Icon" model='"upload"' />
+                    Upload voter list
+                </a>
+            }
+            @if (canWrite)
+            {
+                <a asp-action="Create" class="ui-btn ui-btn-primary">
+                    <partial name="_Icon" model='"plus"' />
+                    Add Voter
+                </a>
+            }
         </div>
     </header>
 
