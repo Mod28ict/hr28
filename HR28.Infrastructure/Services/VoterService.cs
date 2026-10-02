@@ -531,6 +531,8 @@ public class VoterService : IVoterService
                     ConstituencyId =
                         v.ConstituencyId,
                     IslandId = v.IslandId,
+                    ConstituencyName = v.Constituency != null ? v.Constituency.Name : string.Empty,
+                    IslandName = v.Island != null ? v.Island.Name : string.Empty,
                     Remarks = v.Remarks,
                     SupportStatus =
                         v.SupportStatus

@@ -128,6 +128,7 @@
                             <th>Voter</th>
                             <th>National ID</th>
                             <th>Phone</th>
+                            <th>Island</th>
                             <th class="ui-hide-sm">Address</th>
                             <th>Status</th>
                             <th><span class="visually-hidden">Actions</span></th>
@@ -146,10 +147,6 @@
                                         <span class="ui-avatar" aria-hidden="true">@InitialsOf(name)</span>
                                         <span>
                                             <strong>@name</strong>
-                                            @if (!string.IsNullOrWhiteSpace(voter.IslandName) || !string.IsNullOrWhiteSpace(voter.ConstituencyName))
-                                            {
-                                                <small>@string.Join(" · ", new[] { voter.IslandName, voter.ConstituencyName }.Where(s => !string.IsNullOrWhiteSpace(s)))</small>
-                                            }
                                         </span>
                                     </div>
                                 </td>
@@ -166,6 +163,21 @@
                                     else
                                     {
                                         <span class="ui-faint">—</span>
+                                    }
+                                </td>
+
+                                <td style="min-width: 130px;">
+                                    @if (!string.IsNullOrWhiteSpace(voter.IslandName))
+                                    {
+                                        <div>@voter.IslandName</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="ui-faint">No island</div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(voter.ConstituencyName))
+                                    {
+                                        <div class="ui-muted" style="font-size: 12px;">@voter.ConstituencyName</div>
                                     }
                                 </td>
 
