@@ -1,4 +1,4 @@
-﻿namespace HR28.Web.Models;
+namespace HR28.Web.Models;
 
 public class ConstituencySummaryDto
 {
@@ -18,5 +18,12 @@ public class ConstituencySummaryDto
 
     public decimal SupportPercentage { get; set; }
 
+    /// <summary>Encounters plus pledges recorded for voters in the constituency.</summary>
     public int EngagementScore { get; set; }
+
+    public int TotalInfluencers { get; set; }
+
+    public int TotalEncounters { get; set; }
+
+    public int TotalPledges { get; set; }
 }

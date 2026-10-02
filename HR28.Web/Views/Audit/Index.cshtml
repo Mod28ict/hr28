@@ -1,0 +1,257 @@
+﻿@model HR28.Web.Models.AuditIndexViewModel
+
+@{
+    ViewData["Title"] = "Audit Trail";
+
+    var filter = Model.Filter;
+    var result = Model.Result;
+    var isAdministrator = Model.Facets.IsAdministrator;
+
+    var firstVisiblePage = Math.Max(1, result.Page - 2);
+    var lastVisiblePage = Math.Min(result.TotalPages, result.Page + 2);
+
+    (string Tone, string Icon) ActionStyle(string action)
+    {
+        var a = action.ToLowerInvariant();
+        if (a.Contains("delete") || a.Contains("remove")) return ("is-red", "trash");
+        if (a.Contains("create") || a.Contains("add") || a.Contains("link")) return ("is-green", "plus");
+        return ("is-blue", "edit");
+    }
+
+    // Keeps the current filters when changing page.
+    object RouteFor(int page) => new
+    {
+        page,
+        pageSize = filter.PageSize,
+        search = filter.Search,
+        entityName = filter.EntityName,
+        actionName = filter.ActionName,
+        from = filter.From?.ToString("yyyy-MM-dd"),
+        to = filter.To?.ToString("yyyy-MM-dd")
+    };
+}
+
+<div class="ui-page">
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="ui-alert is-red" role="alert">
+            <partial name="_Icon" model='"alert"' />
+            <span>@TempData["ErrorMessage"]</span>
+        </div>
+    }
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-cyan"><partial name="_Icon" model='"clipboard"' /></span>
+            <div>
+                <h1 class="ui-title">Audit Trail</h1>
+                <p class="ui-sub">
+                    @(isAdministrator
+                        ? "Every create, update and delete across the platform, with who did it and when."
+                        : "A record of the changes you have made.")
+                </p>
+            </div>
+        </div>
+        <div class="ui-head-actions">
+            @if (isAdministrator)
+            {
+                <span class="ui-pill is-blue">All users</span>
+            }
+            else
+            {
+                <span class="ui-pill is-amber">Your actions only</span>
+            }
+        </div>
+    </header>
+
+    <section class="ui-card">
+
+        <form method="get" asp-action="Index" class="ui-audit-filters" role="search">
+            <input type="hidden" name="pageSize" value="@filter.PageSize" />
+
+            <div class="ui-search ui-audit-search">
+                <partial name="_Icon" model='"search"' />
+                <label for="auditSearch" class="visually-hidden">Search</label>
+                <input type="search"
+                       id="auditSearch"
+                       name="search"
+                       value="@filter.Search"
+                       class="ui-input"
+                       placeholder="@(isAdministrator ? "Search action, record type or user" : "Search action or record type")" />
+            </div>
+
+            <div>
+                <label for="auditEntity" class="visually-hidden">Record type</label>
+                <select id="auditEntity" name="entityName" class="ui-select">
+                    <option value="">All record types</option>
+                    @foreach (var name in Model.Facets.EntityNames)
+                    {
+                        <option value="@name" selected="@(name == filter.EntityName)">@name</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="auditAction" class="visually-hidden">Action</label>
+                <select id="auditAction" name="actionName" class="ui-select">
+                    <option value="">All actions</option>
+                    @foreach (var name in Model.Facets.Actions)
+                    {
+                        <option value="@name" selected="@(name == filter.ActionName)">@name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="ui-audit-dates">
+                <label for="auditFrom" class="visually-hidden">From date</label>
+                <input type="date" id="auditFrom" name="from" class="ui-input" value="@filter.From?.ToString("yyyy-MM-dd")" title="From" />
+                <span class="ui-muted" aria-hidden="true">â€“</span>
+                <label for="auditTo" class="visually-hidden">To date</label>
+                <input type="date" id="auditTo" name="to" class="ui-input" value="@filter.To?.ToString("yyyy-MM-dd")" title="To" />
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button type="submit" class="ui-btn ui-btn-primary">Filter</button>
+                @if (filter.HasFilters)
+                {
+                    <a asp-action="Index" class="ui-btn ui-btn-secondary">Clear</a>
+                }
+            </div>
+        </form>
+
+        @if (!result.Items.Any())
+        {
+            <div class="ui-empty">
+                <partial name="_Icon" model='"clipboard"' />
+                @(filter.HasFilters
+                    ? "No entries match these filters."
+                    : isAdministrator ? "No activity has been recorded yet." : "You haven't made any recorded changes yet.")
+            </div>
+        }
+        else
+        {
+            <div class="ui-meta">
+                Showing <strong>@(((result.Page - 1) * result.PageSize + 1).ToString("N0"))</strong>
+                to <strong>@Math.Min(result.Page * result.PageSize, result.TotalCount).ToString("N0")</strong>
+                of <strong>@result.TotalCount.ToString("N0")</strong> entries
+            </div>
+
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th>When</th>
+                            @if (isAdministrator)
+                            {
+                                <th>User</th>
+                            }
+                            <th>Action</th>
+                            <th>Record</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var entry in result.Items)
+                        {
+                            var style = ActionStyle(entry.Action);
+                            var local = entry.CreatedAt.Kind == DateTimeKind.Local
+                                ? entry.CreatedAt
+                                : DateTime.SpecifyKind(entry.CreatedAt, DateTimeKind.Utc).ToLocalTime();
+
+                            <tr>
+                                <td class="ui-num" style="white-space: nowrap;">
+                                    <div class="ui-strong">@local.ToString("dd MMM yyyy")</div>
+                                    <div class="ui-muted" style="font-size: 12px;">@local.ToString("HH:mm")</div>
+                                </td>
+
+                                @if (isAdministrator)
+                                {
+                                    <td>
+                                        <div class="ui-person">
+                                            <span class="ui-avatar" aria-hidden="true">
+                                                @string.Concat(entry.ActorName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])))
+                                            </span>
+                                            <strong>@entry.ActorName</strong>
+                                        </div>
+                                    </td>
+                                }
+
+                                <td>
+                                    <span style="display: inline-flex; align-items: center; gap: 10px;">
+                                        <span class="ui-avatar @style.Tone" style="width: 30px; height: 30px; flex-basis: 30px; color: var(--tone); background: var(--tone-soft);" aria-hidden="true">
+                                            <partial name="_Icon" model="@style.Icon" />
+                                        </span>
+                                        <span>@entry.Action</span>
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="ui-tag" style="margin-right: 6px;">@entry.EntityName</span>
+                                    @if (entry.EntityName == "Voter" && Guid.TryParse(entry.EntityId, out var voterId) && !string.IsNullOrWhiteSpace(entry.EntityLabel))
+                                    {
+                                        <a asp-controller="Voters" asp-action="Profile" asp-route-id="@voterId" class="ui-link">@entry.EntityLabel</a>
+                                    }
+                                    else if (!string.IsNullOrWhiteSpace(entry.EntityLabel))
+                                    {
+                                        <span>@entry.EntityLabel</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ui-faint">Record no longer available</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (result.TotalPages > 1)
+            {
+                <nav class="ui-pager" aria-label="Audit trail pagination">
+                    @if (result.HasPreviousPage)
+                    {
+                        <a class="ui-page-btn" asp-action="Index" asp-all-route-data="@ToRoute(RouteFor(result.Page - 1))">â€¹ Previous</a>
+                    }
+                    else
+                    {
+                        <span class="ui-page-btn is-disabled">â€¹ Previous</span>
+                    }
+
+                    @for (var p = firstVisiblePage; p <= lastVisiblePage; p++)
+                    {
+                        if (p == result.Page)
+                        {
+                            <span class="ui-page-btn is-current" aria-current="page">@p</span>
+                        }
+                        else
+                        {
+                            <a class="ui-page-btn" asp-action="Index" asp-all-route-data="@ToRoute(RouteFor(p))">@p</a>
+                        }
+                    }
+
+                    @if (result.HasNextPage)
+                    {
+                        <a class="ui-page-btn" asp-action="Index" asp-all-route-data="@ToRoute(RouteFor(result.Page + 1))">Next â€º</a>
+                    }
+                    else
+                    {
+                        <span class="ui-page-btn is-disabled">Next â€º</span>
+                    }
+                </nav>
+            }
+        }
+
+    </section>
+
+</div>
+
+@functions {
+    // asp-all-route-data needs a string dictionary; drop empty values so URLs stay clean.
+    private static Dictionary<string, string> ToRoute(object values) =>
+        values.GetType()
+            .GetProperties()
+            .Select(p => new { p.Name, Value = p.GetValue(values)?.ToString() })
+            .Where(x => !string.IsNullOrWhiteSpace(x.Value))
+            .ToDictionary(x => x.Name, x => x.Value!);
+}

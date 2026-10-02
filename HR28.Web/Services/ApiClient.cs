@@ -1,0 +1,151 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using HR28.Web.Models;
+using Microsoft.Extensions.Options;
+
+namespace HR28.Web.Services;
+
+/// <summary>
+/// Result of an API call with a user-friendly message on failure.
+/// </summary>
+public class ApiResult<T>
+{
+    public bool Success { get; init; }
+
+    public T? Data { get; init; }
+
+    public HttpStatusCode StatusCode { get; init; }
+
+    public string Message { get; init; } = string.Empty;
+
+    /// <summary>The session token is missing or expired; the user must sign in again.</summary>
+    public bool IsUnauthorized => StatusCode == HttpStatusCode.Unauthorized;
+
+    public bool IsForbidden => StatusCode == HttpStatusCode.Forbidden;
+}
+
+/// <summary>
+/// Thin JSON client for the HR28 API. Never throws for HTTP errors:
+/// failures come back as <see cref="ApiResult{T}"/> with a safe message.
+/// </summary>
+public class ApiClient
+{
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    private readonly HttpClient _httpClient;
+    private readonly ApiSettings _settings;
+    private readonly ILogger<ApiClient> _logger;
+
+    public ApiClient(
+        HttpClient httpClient,
+        IOptions<ApiSettings> settings,
+        ILogger<ApiClient> logger)
+    {
+        _httpClient = httpClient;
+        _settings = settings.Value;
+        _logger = logger;
+    }
+
+    public Task<ApiResult<T>> GetAsync<T>(string path, string? token) =>
+        SendAsync<T>(HttpMethod.Get, path, null, token);
+
+    public Task<ApiResult<T>> PostAsync<T>(string path, object body, string? token) =>
+        SendAsync<T>(HttpMethod.Post, path, body, token);
+
+    public Task<ApiResult<T>> PutAsync<T>(string path, object body, string? token) =>
+        SendAsync<T>(HttpMethod.Put, path, body, token);
+
+    private async Task<ApiResult<T>> SendAsync<T>(
+        HttpMethod method,
+        string path,
+        object? body,
+        string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return new ApiResult<T>
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Your session has ended. Please sign in again."
+            };
+        }
+
+        try
+        {
+            using var request = new HttpRequestMessage(method, _settings.BaseUrl + path);
+
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            if (body != null)
+                request.Content = JsonContent.Create(body, options: JsonOptions);
+
+            using var response = await _httpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var hasBody = response.Content.Headers.ContentLength is null or > 0 &&
+                              response.StatusCode != HttpStatusCode.NoContent;
+
+                return new ApiResult<T>
+                {
+                    Success = true,
+                    StatusCode = response.StatusCode,
+                    Data = hasBody
+                        ? await response.Content.ReadFromJsonAsync<T>(JsonOptions)
+                        : default
+                };
+            }
+
+            return new ApiResult<T>
+            {
+                StatusCode = response.StatusCode,
+                Message = await ReadMessageAsync(response)
+            };
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
+        {
+            _logger.LogWarning(ex, "API call {Method} {Path} failed", method, path);
+
+            return new ApiResult<T>
+            {
+                StatusCode = HttpStatusCode.ServiceUnavailable,
+                Message = "The service is not responding. Please try again shortly."
+            };
+        }
+    }
+
+    private static async Task<string> ReadMessageAsync(HttpResponseMessage response)
+    {
+        switch (response.StatusCode)
+        {
+            case HttpStatusCode.Unauthorized:
+                return "Your session has ended. Please sign in again.";
+            case HttpStatusCode.NotFound:
+                return "The requested record was not found.";
+        }
+
+        // The API returns { "message": "..." } for business-rule and access errors.
+        try
+        {
+            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+
+            if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                doc.RootElement.TryGetProperty("message", out var message) &&
+                message.ValueKind == JsonValueKind.String &&
+                (int)response.StatusCode < 500)
+            {
+                return message.GetString() ?? string.Empty;
+            }
+        }
+        catch (JsonException)
+        {
+            // Not JSON; fall through to a generic message.
+        }
+
+        return response.StatusCode == HttpStatusCode.Forbidden
+            ? "You don't have permission to do that."
+            : "Something went wrong. Please try again.";
+    }
+}

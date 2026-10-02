@@ -34,9 +34,10 @@
         <div class="ui-head-main">
             <span class="ui-head-icon is-amber"><partial name="_Icon" model='"handshake"' /></span>
             <div>
-                <nav class="ui-crumb" aria-label="Breadcrumb"><span>Reports</span></nav>
+                <nav class="ui-crumb" aria-label="Breadcrumb"><a asp-action="Index">Reports</a> <span aria-hidden="true">/</span> <span>Pledges</span></nav>
                 <h1 class="ui-title">Pledge Summary</h1>
                 <p class="ui-sub">Track campaign commitments from first promise to delivery.</p>
+                <div style="margin-top: 8px;"><partial name="_ScopeChip" model="(bool)(ViewBag.IsAdministrator ?? false)" /></div>
             </div>
         </div>
 

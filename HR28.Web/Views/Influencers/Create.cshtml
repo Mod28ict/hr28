@@ -1,0 +1,251 @@
+@model HR28.Web.Models.CreateInfluencerViewModel
+
+@{
+    ViewData["Title"] = "Add Influencer";
+
+    var selectedIslandId = Model.Influencer.IslandId?.ToString() ?? string.Empty;
+}
+
+<div class="ui-page is-narrow">
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-violet"><partial name="_Icon" model='"star"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a asp-action="Index">Influencers</a> <span aria-hidden="true">/</span> <span>Add influencer</span>
+                </nav>
+                <h1 class="ui-title">Add Influencer</h1>
+                <p class="ui-sub">Record a community leader or trusted contact in your area.</p>
+            </div>
+        </div>
+    </header>
+
+    <section class="ui-card ui-card-lg">
+
+        @if (!Model.Constituencies.Any())
+        {
+            <div class="ui-empty">
+                <partial name="_Icon" model='"map-pin"' />
+                You don't have an assigned area yet, so you can't add influencers.
+                Ask an administrator to assign your scope.
+            </div>
+        }
+        else
+        {
+            <form asp-action="Create" method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="ui-summary"></div>
+
+                <!-- 1. IDENTITY -->
+                <div class="ui-section">
+                    <div class="ui-section-head">
+                        <span class="ui-step">1</span>
+                        <div>
+                            <div class="ui-section-title">Identity</div>
+                            <div class="ui-section-sub">Who the influencer is and how to reach them</div>
+                        </div>
+                    </div>
+
+                    <div class="ui-grid-2">
+                        <div class="ui-field">
+                            <label asp-for="Influencer.NationalId" class="ui-label">National ID</label>
+                            <input asp-for="Influencer.NationalId"
+                                   id="h28InfNationalId"
+                                   class="ui-input ui-upper"
+                                   placeholder="A123456"
+                                   autocomplete="off" />
+                            <span asp-validation-for="Influencer.NationalId" class="ui-error"></span>
+                        </div>
+
+                        <div class="ui-field">
+                            <label asp-for="Influencer.ContactNumber" class="ui-label">
+                                Contact number <span class="ui-optional">(optional)</span>
+                            </label>
+                            <input asp-for="Influencer.ContactNumber"
+                                   class="ui-input"
+                                   inputmode="tel"
+                                   placeholder="7XXXXXX" />
+                            <span asp-validation-for="Influencer.ContactNumber" class="ui-error"></span>
+                        </div>
+
+                        <div class="ui-field ui-full">
+                            <label asp-for="Influencer.FullName" class="ui-label">Full name</label>
+                            <input asp-for="Influencer.FullName"
+                                   class="ui-input"
+                                   placeholder="As shown on the national ID card" />
+                            <span asp-validation-for="Influencer.FullName" class="ui-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. AREA -->
+                <div class="ui-section">
+                    <div class="ui-section-head">
+                        <span class="ui-step">2</span>
+                        <div>
+                            <div class="ui-section-title">Area</div>
+                            <div class="ui-section-sub">Only areas within your assigned scope are listed</div>
+                        </div>
+                    </div>
+
+                    <div class="ui-grid-2">
+                        <div class="ui-field">
+                            <label asp-for="Influencer.ConstituencyId" class="ui-label">Constituency</label>
+                            <select asp-for="Influencer.ConstituencyId"
+                                    id="InfConstituency"
+                                    class="ui-select">
+                                <option value="">Select Constituency</option>
+                                @foreach (var item in Model.Constituencies)
+                                {
+                                    <option value="@item.Id">@item.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Influencer.ConstituencyId" class="ui-error"></span>
+                        </div>
+
+                        <div class="ui-field">
+                            <label asp-for="Influencer.IslandId" class="ui-label">
+                                Island <span class="ui-optional">(optional)</span>
+                            </label>
+                            <select asp-for="Influencer.IslandId"
+                                    id="InfIsland"
+                                    class="ui-select">
+                                <option value="">Whole constituency</option>
+                            </select>
+                            <div class="ui-hint" id="InfIslandHint">Select a constituency to load its islands.</div>
+                            <span asp-validation-for="Influencer.IslandId" class="ui-error"></span>
+                        </div>
+
+                        <div class="ui-field ui-full">
+                            <label asp-for="Influencer.Address" class="ui-label">
+                                Address <span class="ui-optional">(optional)</span>
+                            </label>
+                            <input asp-for="Influencer.Address"
+                                   class="ui-input"
+                                   placeholder="House name and street" />
+                            <span asp-validation-for="Influencer.Address" class="ui-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. NOTES -->
+                <div class="ui-section">
+                    <div class="ui-section-head">
+                        <span class="ui-step">3</span>
+                        <div>
+                            <div class="ui-section-title">Notes</div>
+                            <div class="ui-section-sub">Keep notes short and factual</div>
+                        </div>
+                    </div>
+
+                    <div class="ui-field">
+                        <label asp-for="Influencer.Remarks" class="ui-label">
+                            Remarks <span class="ui-optional">(optional)</span>
+                        </label>
+                        <textarea asp-for="Influencer.Remarks"
+                                  id="InfRemarks"
+                                  class="ui-textarea"
+                                  maxlength="500"
+                                  placeholder="Example: Community elder, organises the island youth league"></textarea>
+                        <div class="ui-counter"><span id="InfRemarksCount">0</span> / 500</div>
+                        <span asp-validation-for="Influencer.Remarks" class="ui-error"></span>
+                    </div>
+                </div>
+
+                <div class="ui-form-actions">
+                    <button type="submit" class="ui-btn ui-btn-primary">
+                        <partial name="_Icon" model='"check"' />
+                        Save influencer
+                    </button>
+
+                    <a asp-action="Index" class="ui-btn ui-btn-secondary">Cancel</a>
+                </div>
+
+            </form>
+        }
+
+    </section>
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(function () {
+            var $constituency = $('#InfConstituency');
+            var $island = $('#InfIsland');
+            var $hint = $('#InfIslandHint');
+            var preselectedIsland = '@selectedIslandId';
+            var islandsUrl = '@Url.Action("IslandsInScope", "Influencers")';
+
+            if (!$constituency.length) return;
+
+            if (typeof $.fn.select2 === 'function') {
+                $constituency.select2({ placeholder: 'Search constituency', width: '100%' });
+                $island.select2({ placeholder: 'Search island', width: '100%', allowClear: true });
+            }
+
+            function resetIslands(message) {
+                $island.empty()
+                    .append($('<option>').val('').text('Whole constituency'))
+                    .prop('disabled', true)
+                    .trigger('change');
+                $hint.text(message);
+            }
+
+            function loadIslands(constituencyId, selectId) {
+                if (!constituencyId) {
+                    resetIslands('Select a constituency to load its islands.');
+                    return;
+                }
+
+                resetIslands('Loading islands…');
+
+                $.getJSON(islandsUrl, { constituencyId: constituencyId })
+                    .done(function (data) {
+                        $.each(data, function (i, item) {
+                            $island.append($('<option>').val(item.id).text(item.name));
+                        });
+
+                        $island.prop('disabled', false);
+
+                        if (selectId) {
+                            $island.val(selectId);
+                        }
+
+                        $island.trigger('change');
+
+                        $hint.text(data.length
+                            ? 'Leave blank if the influencer works across the whole constituency.'
+                            : 'No islands available in your scope for this constituency.');
+                    })
+                    .fail(function () {
+                        resetIslands('Could not load islands. Please try again.');
+                    });
+            }
+
+            $constituency.on('change', function () {
+                loadIslands($(this).val(), null);
+            });
+
+            loadIslands($constituency.val(), preselectedIsland);
+
+            $('#h28InfNationalId').on('input', function () {
+                var pos = this.selectionStart;
+                this.value = this.value.toUpperCase();
+                this.setSelectionRange(pos, pos);
+            });
+
+            var $remarks = $('#InfRemarks');
+            var $count = $('#InfRemarksCount');
+            function updateCount() { $count.text($remarks.val().length); }
+            $remarks.on('input', updateCount);
+            updateCount();
+        });
+    </script>
+}

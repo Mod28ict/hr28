@@ -1,0 +1,12 @@
+@model bool
+@*
+    Tells the user whose data a page shows. Model = true for administrators.
+*@
+@if (Model)
+{
+    <span class="ui-pill is-blue" title="Administrators see every constituency and island">All constituencies</span>
+}
+else
+{
+    <span class="ui-pill is-amber" title="Figures are limited to the area assigned to you">Your assigned area</span>
+}

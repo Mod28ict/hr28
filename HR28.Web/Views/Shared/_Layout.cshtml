@@ -9,10 +9,49 @@
 
     <title>@ViewData["Title"] | HR28</title>
 
+    <script>
+        // Apply the saved theme before the page paints (no light flash in dark mode).
+        (function () {
+            var key = 'hr28-theme';
+            var media = window.matchMedia('(prefers-color-scheme: dark)');
+
+            function get() {
+                try { return localStorage.getItem(key) || 'light'; } catch (e) { return 'light'; }
+            }
+
+            function resolve(pref) {
+                return pref === 'system' ? (media.matches ? 'dark' : 'light') : pref;
+            }
+
+            function apply(pref) {
+                var theme = resolve(pref);
+                document.documentElement.setAttribute('data-theme', theme);
+                document.documentElement.setAttribute('data-bs-theme', theme);
+            }
+
+            apply(get());
+
+            media.addEventListener('change', function () {
+                if (get() === 'system') apply('system');
+            });
+
+            window.hr28Theme = {
+                get: get,
+                resolved: function () { return resolve(get()); },
+                set: function (pref) {
+                    try { localStorage.setItem(key, pref); } catch (e) { }
+                    apply(pref);
+                    document.dispatchEvent(new CustomEvent('hr28:theme'));
+                }
+            };
+        })();
+    </script>
+
 <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/shell.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/ui.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/theme-dark.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/HR28.Web.styles.css" asp-append-version="true" />
 
     <style>
@@ -175,14 +214,12 @@
         initials = "U";
     }
 
-    var isReporter = role == "Reporter";
+    var canManageRecords = HR28.Web.Services.Hr28Roles.CanManageRecords(role);
+    var isSuperAdmin = HR28.Web.Services.Hr28Roles.IsSuperAdministrator(role);
 
-    var isNational =
-        role == "Super Administrator"
-        || role == "National Administrator"
-        || role == "Reporter";
+    var campaignName = Context.Session.GetString("CampaignName");
 
-    var isSuperAdmin = role == "Super Administrator";
+    var flashError = TempData["FlashError"] as string;
 
     var currentController =
         ViewContext.RouteData.Values["controller"]?.ToString()
@@ -204,7 +241,13 @@
             <span class="shell-brand-mark" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5zm0 2.3 6.8 3.8L12 11.9 5.2 8.1 12 4.3zM5 9.8l6 3.4v6.6l-6-3.4V9.8zm8 10v-6.6l6-3.4v6.6l-6 3.4z" /></svg>
             </span>
-            <span>HR28</span>
+            <span class="shell-brand-text">
+                <span>HR28</span>
+                @if (!string.IsNullOrWhiteSpace(campaignName))
+                {
+                    <small>@campaignName</small>
+                }
+            </span>
         </a>
 
         <nav class="shell-nav">
@@ -215,7 +258,7 @@
                 <span>Dashboard</span>
             </a>
 
-            @if (!isReporter)
+            @if (canManageRecords)
             {
                 <a class="@NavClass(currentController == "Voters")"
                    asp-controller="Voters" asp-action="Index">
@@ -236,14 +279,17 @@
                 <span>Pledges</span>
             </a>
 
-            @if (isNational)
-            {
-                <a class="@NavClass(currentController == "Reports" && currentAction == "ConstituencySummary")"
-                   asp-controller="Reports" asp-action="ConstituencySummary">
-                    <partial name="_Icon" model='"map-pin"' />
-                    <span>Constituencies</span>
-                </a>
-            }
+            <a class="@NavClass(currentController == "Reports" && currentAction != "Pledges")"
+               asp-controller="Reports" asp-action="Index">
+                <partial name="_Icon" model='"chart"' />
+                <span>Reports</span>
+            </a>
+
+            <a class="@NavClass(currentController == "Audit")"
+               asp-controller="Audit" asp-action="Index">
+                <partial name="_Icon" model='"clipboard"' />
+                <span>Audit Trail</span>
+            </a>
 
             @if (isSuperAdmin)
             {
@@ -255,6 +301,12 @@
                     <span>Users</span>
                 </a>
             }
+
+            <a class="@NavClass(currentController == "Settings")"
+               asp-controller="Settings" asp-action="Index">
+                <partial name="_Icon" model='"key"' />
+                <span>Settings</span>
+            </a>
 
         </nav>
 
@@ -279,7 +331,7 @@
                 <partial name="_Icon" model='"menu"' />
             </button>
 
-            @if (!isReporter)
+            @if (canManageRecords)
             {
                 <form class="shell-search"
                       role="search"
@@ -292,7 +344,7 @@
                            name="searchTerm"
                            type="search"
                            autocomplete="off"
-                           placeholder="Search voters by name, National ID or mobile…" />
+                           placeholder="Search voters by name or National ID…" />
                     <kbd class="shell-kbd" aria-hidden="true">Ctrl + K</kbd>
                 </form>
             }
@@ -316,6 +368,21 @@
 
                 <ul class="dropdown-menu dropdown-menu-end shell-user-menu">
                     <li>
+                        <a class="dropdown-item" asp-controller="Settings" asp-action="Index" asp-route-tab="account">
+                            <partial name="_Icon" model='"user"' />
+                            My account
+                        </a>
+                    </li>
+                    <li>
+                        <div class="dropdown-item shell-theme-toggle">
+                            <label class="form-check form-switch m-0 d-flex align-items-center gap-2" for="shellThemeSwitch">
+                                <input class="form-check-input m-0" type="checkbox" role="switch" id="shellThemeSwitch" />
+                                <span>Dark mode</span>
+                            </label>
+                        </div>
+                    </li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li>
                         <a class="dropdown-item text-danger" asp-controller="Auth" asp-action="Logout">
                             <partial name="_Icon" model='"logout"' />
                             Sign out
@@ -327,6 +394,14 @@
         </header>
 
         <main role="main" class="shell-content">
+            @if (!string.IsNullOrWhiteSpace(flashError))
+            {
+                <div class="ui-alert is-red" role="alert">
+                    <partial name="_Icon" model='"alert"' />
+                    <span>@flashError</span>
+                </div>
+            }
+
             @RenderBody()
         </main>
 
@@ -387,6 +462,21 @@
         const backdrop = document.getElementById("shellBackdrop");
         const toggle = document.getElementById("shellMenuToggle");
         const search = document.getElementById("shellSearch");
+        const themeSwitch = document.getElementById("shellThemeSwitch");
+
+        // Quick light/dark switch in the user menu (full choice lives in Settings).
+        if (themeSwitch && window.hr28Theme) {
+            const sync = function () {
+                themeSwitch.checked = window.hr28Theme.resolved() === "dark";
+            };
+
+            sync();
+            document.addEventListener("hr28:theme", sync);
+
+            themeSwitch.addEventListener("change", function () {
+                window.hr28Theme.set(themeSwitch.checked ? "dark" : "light");
+            });
+        }
 
         function setSidebar(open) {
             sidebar.classList.toggle("is-open", open);

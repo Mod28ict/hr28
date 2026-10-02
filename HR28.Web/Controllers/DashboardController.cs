@@ -1,4 +1,4 @@
-﻿using HR28.Web.Models;
+using HR28.Web.Models;
 using HR28.Web.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,11 +11,14 @@ namespace HR28.Web.Controllers;
 public class DashboardController : Controller
 {
     private readonly DashboardService _dashboardService;
+    private readonly ApiClient _apiClient;
 
     public DashboardController(
-        DashboardService dashboardService)
+        DashboardService dashboardService,
+        ApiClient apiClient)
     {
         _dashboardService = dashboardService;
+        _apiClient = apiClient;
     }
 
     public async Task<IActionResult> Index()
@@ -46,54 +49,39 @@ public class DashboardController : Controller
                 "Auth");
         }
 
-        var activities =
-            await _dashboardService
-                .GetRecentActivityAsync(token);
+        await EnsureCampaignNameAsync(token);
 
-        var recentVoters =
-            await _dashboardService
-                .GetRecentVotersAsync(token);
+        // Every list below is limited to the user's scope by the API.
+        var activities = await _apiClient.GetAsync<List<RecentActivityDto>>(
+            "Dashboard/recent-activity?count=5", token);
+
+        var recentVoters = await _apiClient.GetAsync<List<VoterSearchDto>>(
+            "Voters/recent?count=5", token);
+
+        var constituencies = await _apiClient.GetAsync<List<ConstituencySummaryDto>>(
+            "Reports/constituency-summary", token);
 
         var model =
             new DashboardViewModel
             {
                 Dashboard = dashboard,
-                Activities = activities ?? new(),
-                RecentVoters = recentVoters ?? new(),
-                Constituencies =
-                    await GetConstituenciesForRoleAsync(token)
+                Activities = activities.Data ?? new(),
+                RecentVoters = recentVoters.Data ?? new(),
+                Constituencies = constituencies.Data ?? new()
             };
 
         return View(model);
     }
 
-    private async Task<List<ConstituencySummaryDto>>
-        GetConstituenciesForRoleAsync(string token)
+    /// <summary>The sidebar shows the campaign name; load it once per session.</summary>
+    private async Task EnsureCampaignNameAsync(string token)
     {
-        var role =
-            HttpContext.Session.GetString(
-                "UserRole");
+        if (!string.IsNullOrWhiteSpace(HttpContext.Session.GetString("CampaignName")))
+            return;
 
-        var isNational =
-            role == "Super Administrator"
-            || role == "National Administrator"
-            || role == "Reporter";
+        var settings = await _apiClient.GetAsync<SystemSettingsDto>("Settings/system", token);
 
-        if (!isNational)
-        {
-            return new();
-        }
-
-        try
-        {
-            return await _dashboardService
-                .GetConstituencySummaryAsync(token)
-                ?? new();
-        }
-        catch (HttpRequestException)
-        {
-            // The panel is optional; show its empty state rather than failing the dashboard.
-            return new();
-        }
+        if (settings.Success && !string.IsNullOrWhiteSpace(settings.Data?.CampaignName))
+            HttpContext.Session.SetString("CampaignName", settings.Data.CampaignName);
     }
 }

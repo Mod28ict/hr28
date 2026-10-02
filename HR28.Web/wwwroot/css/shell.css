@@ -56,6 +56,32 @@
         color: #ffffff;
     }
 
+.shell-brand-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.1;
+}
+
+    .shell-brand-text small {
+        overflow: hidden;
+        margin-top: 3px;
+        color: #8fa6cf;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+.shell-theme-toggle {
+    cursor: pointer;
+}
+
+    .shell-theme-toggle label {
+        cursor: pointer;
+    }
+
 .shell-brand-mark {
     display: flex;
     width: 30px;
@@ -470,7 +496,23 @@
     border-radius: 16px;
     background: linear-gradient(135deg, #ffffff 55%, var(--tone-soft) 140%);
     box-shadow: 0 6px 20px rgba(18, 43, 85, 0.05);
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
+
+    .hd-kpi:hover {
+        border-color: color-mix(in srgb, var(--tone) 35%, var(--hd-border));
+        box-shadow: 0 16px 34px rgba(18, 43, 85, 0.12);
+        transform: translateY(-4px);
+    }
+
+        .hd-kpi:hover .hd-kpi-icon {
+            transform: scale(1.08) rotate(-6deg);
+            box-shadow: 0 12px 24px color-mix(in srgb, var(--tone) 40%, transparent);
+        }
+
+        .hd-kpi:hover .hd-kpi-value {
+            color: var(--tone);
+        }
 
     .hd-kpi.is-green { --tone: var(--hd-green); --tone-soft: var(--hd-green-soft); }
     .hd-kpi.is-amber { --tone: var(--hd-amber); --tone-soft: var(--hd-amber-soft); }
@@ -488,6 +530,7 @@
     color: #ffffff;
     background: var(--tone);
     box-shadow: 0 8px 18px rgba(18, 43, 85, 0.15);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 
     .hd-kpi-icon .icon {
@@ -502,6 +545,7 @@
 }
 
 .hd-kpi-value {
+    transition: color 0.22s ease;
     font-size: clamp(22px, 2vw, 28px);
     font-weight: 800;
     letter-spacing: -0.5px;
@@ -979,7 +1023,14 @@
 @media (prefers-reduced-motion: reduce) {
     .shell-sidebar,
     .hd-btn-primary,
-    .hd-action {
+    .hd-action,
+    .hd-kpi,
+    .hd-kpi-icon {
         transition: none;
     }
+
+        .hd-kpi:hover,
+        .hd-kpi:hover .hd-kpi-icon {
+            transform: none;
+        }
 }

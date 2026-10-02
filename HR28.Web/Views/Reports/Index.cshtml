@@ -1,0 +1,181 @@
+@model List<HR28.Web.Models.ConstituencySummaryDto>
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Reports";
+
+    var isAdministrator = (bool)(ViewBag.IsAdministrator ?? false);
+    var pledges = (HR28.Web.Models.PledgeStatusSummaryDto)ViewBag.Pledges;
+    var topInfluencers = (List<HR28.Web.Models.TopInfluencerDto>)ViewBag.TopInfluencers;
+
+    var totalVoters = Model.Sum(x => x.TotalVoters);
+    var supporters = Model.Sum(x => x.Supporters);
+    var encounters = Model.Sum(x => x.TotalEncounters);
+    var support = totalVoters > 0 ? supporters * 100.0 / totalVoters : 0;
+
+    var pledgeTotal = pledges.Pending + pledges.InProgress + pledges.Completed + pledges.Cancelled;
+    var completion = pledgeTotal > 0 ? pledges.Completed * 100.0 / pledgeTotal : 0;
+
+    var topConstituencies = Model
+        .Where(x => x.TotalVoters > 0)
+        .OrderByDescending(x => x.SupportPercentage)
+        .Take(5)
+        .ToList();
+
+    string BandTone(double pct) => pct >= 65 ? "is-green" : pct >= 45 ? "is-amber" : "is-red";
+    string Css(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+}
+
+<div class="ui-page">
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-blue"><partial name="_Icon" model='"chart"' /></span>
+            <div>
+                <h1 class="ui-title">Reports</h1>
+                <p class="ui-sub">Support, engagement and commitments at a glance.</p>
+            </div>
+        </div>
+        <div class="ui-head-actions">
+            <partial name="_ScopeChip" model="isAdministrator" />
+        </div>
+    </header>
+
+    <section class="ui-stats">
+        <div class="ui-stat is-blue">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"users"' /></span>
+            <div>
+                <div class="ui-stat-label">Voters</div>
+                <div class="ui-stat-value">@totalVoters.ToString("N0")</div>
+                <div class="ui-stat-foot">@Model.Count.ToString("N0") constituencies</div>
+            </div>
+        </div>
+        <div class="ui-stat is-green">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"user-check"' /></span>
+            <div>
+                <div class="ui-stat-label">Overall support</div>
+                <div class="ui-stat-value">@support.ToString("0.#")%</div>
+                <div class="ui-stat-foot">@supporters.ToString("N0") supporters</div>
+            </div>
+        </div>
+        <div class="ui-stat is-violet">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"message"' /></span>
+            <div>
+                <div class="ui-stat-label">Encounters</div>
+                <div class="ui-stat-value">@encounters.ToString("N0")</div>
+                <div class="ui-stat-foot">Recorded interactions</div>
+            </div>
+        </div>
+        <div class="ui-stat is-amber">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"handshake"' /></span>
+            <div>
+                <div class="ui-stat-label">Pledges completed</div>
+                <div class="ui-stat-value">@completion.ToString("0")%</div>
+                <div class="ui-stat-foot">@pledges.Completed.ToString("N0") of @pledgeTotal.ToString("N0")</div>
+            </div>
+        </div>
+    </section>
+
+    <div class="ui-report-grid">
+
+        <!-- Constituencies -->
+        <section class="ui-card">
+            <div class="ui-card-head">
+                <h2>Constituency support</h2>
+                <a asp-action="ConstituencySummary" class="ui-link" style="font-size: 13px;">Full report →</a>
+            </div>
+
+            @if (!topConstituencies.Any())
+            {
+                <div class="ui-empty">No voters recorded in your area yet.</div>
+            }
+            else
+            {
+                <p class="ui-muted" style="margin: -6px 0 12px; font-size: 12px;">Highest share of supporters</p>
+                <div style="display: grid; gap: 12px;">
+                    @foreach (var c in topConstituencies)
+                    {
+                        var pct = Convert.ToDouble(c.SupportPercentage);
+                        <div style="display: grid; grid-template-columns: minmax(90px, 1fr) minmax(90px, 1.4fr); gap: 12px; align-items: center; font-size: 13px;">
+                            <span class="ui-strong" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@c.ConstituencyName">@c.ConstituencyName</span>
+                            <div class="ui-bar @BandTone(pct)" style="min-width: 0;">
+                                <div class="ui-bar-track"><span class="ui-bar-fill" style="width: @Css(Math.Max(3, pct))%"></span></div>
+                                <span class="ui-bar-value">@pct.ToString("0.#")%</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+
+        <!-- Pledges -->
+        <section class="ui-card">
+            <div class="ui-card-head">
+                <h2>Pledge pipeline</h2>
+                <a asp-action="Pledges" class="ui-link" style="font-size: 13px;">Full report →</a>
+            </div>
+
+            @if (pledgeTotal == 0)
+            {
+                <div class="ui-empty">No pledges recorded yet.</div>
+            }
+            else
+            {
+                var segments = new[]
+                {
+                    new { Label = "Open", Value = pledges.Pending, Tone = "is-amber" },
+                    new { Label = "In progress", Value = pledges.InProgress, Tone = "is-cyan" },
+                    new { Label = "Completed", Value = pledges.Completed, Tone = "is-green" },
+                    new { Label = "Cancelled", Value = pledges.Cancelled, Tone = "is-red" }
+                };
+
+                <div class="ui-stack" role="img" aria-label="@string.Join(", ", segments.Select(s => $"{s.Label} {s.Value}"))">
+                    @foreach (var s in segments.Where(x => x.Value > 0))
+                    {
+                        <span class="@s.Tone" style="width: @Css(s.Value * 100.0 / pledgeTotal)%"></span>
+                    }
+                </div>
+
+                <ul class="ui-legend" style="display: grid; gap: 10px;">
+                    @foreach (var s in segments)
+                    {
+                        <li class="@s.Tone" style="justify-content: space-between;">
+                            <span style="display: flex; align-items: center; gap: 8px;"><i></i>@s.Label</span>
+                            <b>@s.Value.ToString("N0")</b>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        <!-- Influencers -->
+        <section class="ui-card">
+            <div class="ui-card-head">
+                <h2>Top influencers</h2>
+                <a asp-action="TopInfluencers" class="ui-link" style="font-size: 13px;">Full report →</a>
+            </div>
+
+            @if (!topInfluencers.Any())
+            {
+                <div class="ui-empty">No influencers are linked to voters yet.</div>
+            }
+            else
+            {
+                <ol style="display: grid; gap: 10px; margin: 0; padding: 0; list-style: none;">
+                    @{ var rank = 0; }
+                    @foreach (var item in topInfluencers)
+                    {
+                        rank++;
+                        <li style="display: flex; align-items: center; gap: 12px; font-size: 14px;">
+                            <span class="ui-count is-violet">@rank</span>
+                            <span class="ui-strong" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@item.FullName</span>
+                            <span class="ui-muted ui-num" style="font-size: 13px;">@item.LinkedVoters voters</span>
+                        </li>
+                    }
+                </ol>
+            }
+        </section>
+
+    </div>
+
+</div>

@@ -25,10 +25,13 @@
         <div class="ui-head-main">
             <span class="ui-head-icon is-blue"><partial name="_Icon" model='"map-pin"' /></span>
             <div>
-                <nav class="ui-crumb" aria-label="Breadcrumb"><span>Reports</span></nav>
+                <nav class="ui-crumb" aria-label="Breadcrumb"><a asp-action="Index">Reports</a> <span aria-hidden="true">/</span> <span>Constituencies</span></nav>
                 <h1 class="ui-title">Constituency Summary</h1>
-                <p class="ui-sub">Voter support and engagement across @constituencyCount.ToString("N0") constituencies.</p>
+                <p class="ui-sub">Voter support and engagement across @constituencyCount.ToString("N0") @(constituencyCount == 1 ? "constituency" : "constituencies").</p>
             </div>
+        </div>
+        <div class="ui-head-actions">
+            <partial name="_ScopeChip" model="(bool)(ViewBag.IsAdministrator ?? false)" />
         </div>
     </header>
 
@@ -96,7 +99,9 @@
                             <th class="is-right">Supporters</th>
                             <th class="is-right">Undecided</th>
                             <th>Support</th>
-                            <th class="is-right">Engagement</th>
+                            <th class="is-right">Influencers</th>
+                            <th class="is-right">Encounters</th>
+                            <th class="is-right">Pledges</th>
                         </tr>
                     </thead>
 
@@ -120,7 +125,9 @@
                                         <span class="ui-bar-value">@pct.ToString("0.#")%</span>
                                     </div>
                                 </td>
-                                <td class="ui-num is-right">@item.EngagementScore</td>
+                                <td class="ui-num is-right">@item.TotalInfluencers.ToString("N0")</td>
+                                <td class="ui-num is-right">@item.TotalEncounters.ToString("N0")</td>
+                                <td class="ui-num is-right">@item.TotalPledges.ToString("N0")</td>
                             </tr>
                         }
                     </tbody>

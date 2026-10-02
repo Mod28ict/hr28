@@ -1,0 +1,451 @@
+@model HR28.Web.Models.SettingsViewModel
+
+@{
+    ViewData["Title"] = "Settings";
+
+    var tabs = new List<(string Key, string Label, string Icon)>
+    {
+        ("appearance", "Appearance", "eye"),
+        ("account", "My account", "user")
+    };
+
+    if (Model.IsAdministrator)
+    {
+        tabs.Add(("system", "System", "key"));
+        tabs.Add(("geography", "Constituencies & islands", "map"));
+    }
+
+    string LocalTime(DateTime? value) =>
+        value.HasValue
+            ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc).ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+            : "—";
+}
+
+<div class="ui-page">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ui-alert is-green" role="status">
+            <partial name="_Icon" model='"check-circle"' />
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="ui-alert is-red" role="alert">
+            <partial name="_Icon" model='"alert"' />
+            <span>@TempData["ErrorMessage"]</span>
+        </div>
+    }
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-muted" style="background: #64748b;"><partial name="_Icon" model='"key"' /></span>
+            <div>
+                <h1 class="ui-title">Settings</h1>
+                <p class="ui-sub">Personalise HR28 and @(Model.IsAdministrator ? "manage platform-wide options." : "review your account.")</p>
+            </div>
+        </div>
+    </header>
+
+    <nav class="ui-tabs" aria-label="Settings sections">
+        @foreach (var t in tabs)
+        {
+            <a asp-action="Index"
+               asp-route-tab="@t.Key"
+               class="ui-tab @(Model.Tab == t.Key ? "is-active" : "")"
+               aria-current="@(Model.Tab == t.Key ? "page" : null)">
+                <partial name="_Icon" model="@t.Icon" />
+                @t.Label
+            </a>
+        }
+    </nav>
+
+    @* ---------------- APPEARANCE ---------------- *@
+    @if (Model.Tab == "appearance")
+    {
+        <section class="ui-card ui-card-lg">
+            <div class="ui-card-head">
+                <h2>Theme</h2>
+            </div>
+            <p class="ui-muted" style="margin: -6px 0 16px; font-size: 13px;">
+                Saved on this device. You can also switch quickly from the menu under your name.
+            </p>
+
+            <div class="ui-theme-options" role="radiogroup" aria-label="Theme">
+                <label class="ui-theme-option">
+                    <input type="radio" name="hr28Theme" value="light" />
+                    <span class="ui-theme-preview is-light" aria-hidden="true"><i></i><b></b><b></b></span>
+                    <span class="ui-strong">Light</span>
+                    <small class="ui-muted">Bright and clear for daytime use</small>
+                </label>
+                <label class="ui-theme-option">
+                    <input type="radio" name="hr28Theme" value="dark" />
+                    <span class="ui-theme-preview is-dark" aria-hidden="true"><i></i><b></b><b></b></span>
+                    <span class="ui-strong">Dark</span>
+                    <small class="ui-muted">Easier on the eyes in low light</small>
+                </label>
+                <label class="ui-theme-option">
+                    <input type="radio" name="hr28Theme" value="system" />
+                    <span class="ui-theme-preview is-system" aria-hidden="true"><i></i><b></b><b></b></span>
+                    <span class="ui-strong">Match device</span>
+                    <small class="ui-muted">Follows your operating system setting</small>
+                </label>
+            </div>
+        </section>
+    }
+
+    @* ---------------- MY ACCOUNT ---------------- *@
+    @if (Model.Tab == "account")
+    {
+        var a = Model.Account;
+
+        if (a == null)
+        {
+            <div class="ui-empty">Your account details could not be loaded.</div>
+        }
+        else
+        {
+            <section class="ui-card ui-card-lg">
+                <div class="ui-head" style="margin-bottom: 18px;">
+                    <div class="ui-head-main">
+                        <span class="ui-avatar ui-avatar-lg" aria-hidden="true">
+                            @string.Concat(a.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])))
+                        </span>
+                        <div>
+                            <h2 class="ui-title" style="font-size: 22px;">@a.FullName</h2>
+                            <p class="ui-sub">@(string.IsNullOrWhiteSpace(a.Designation) ? a.RoleName : $"{a.Designation} · {a.RoleName}")</p>
+                        </div>
+                    </div>
+                    <span class="ui-pill @(a.IsAdministrator ? "is-blue" : "is-violet")">@(string.IsNullOrWhiteSpace(a.RoleName) ? "No role" : a.RoleName)</span>
+                </div>
+
+                <dl class="ui-details">
+                    <div>
+                        <dt>National ID</dt>
+                        <dd class="ui-num">@a.NationalId</dd>
+                    </div>
+                    <div>
+                        <dt>Mobile</dt>
+                        <dd class="ui-num">@(string.IsNullOrWhiteSpace(a.MobileNumber) ? "—" : a.MobileNumber)</dd>
+                    </div>
+                    <div>
+                        <dt>Email</dt>
+                        <dd>@(string.IsNullOrWhiteSpace(a.Email) ? "—" : a.Email)</dd>
+                    </div>
+                    <div>
+                        <dt>Last sign-in</dt>
+                        <dd>@LocalTime(a.LastLoginAt)</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section class="ui-card ui-card-lg">
+                <div class="ui-card-head">
+                    <h2>What you can see</h2>
+                </div>
+
+                @if (a.Scopes.Any())
+                {
+                    <ul style="display: grid; gap: 10px; margin: 0 0 16px; padding: 0; list-style: none;">
+                        @foreach (var line in a.Scopes)
+                        {
+                            <li style="display: flex; align-items: center; gap: 10px;">
+                                <span class="ui-avatar is-cyan" style="width: 32px; height: 32px; flex-basis: 32px; color: var(--tone); background: var(--tone-soft);" aria-hidden="true">
+                                    <partial name="_Icon" model='"map-pin"' />
+                                </span>
+                                <span class="ui-strong">@line</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="ui-note is-amber">
+                        <partial name="_Icon" model='"alert"' />
+                        <div>
+                            <strong>No area assigned yet</strong>
+                            You won't see any voters or influencers until an administrator assigns your scope.
+                        </div>
+                    </div>
+                }
+
+                <div class="ui-note is-muted" style="margin-bottom: 0;">
+                    <partial name="_Icon" model='"info"' />
+                    <span>Your role decides what you can do; your scope decides which records it applies to. Contact a Super Administrator to change either.</span>
+                </div>
+            </section>
+        }
+    }
+
+    @* ---------------- SYSTEM (administrators) ---------------- *@
+    @if (Model.Tab == "system" && Model.System != null)
+    {
+        var s = Model.System;
+
+        <section class="ui-card ui-card-lg">
+            <form asp-action="SaveSystem" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="ui-section">
+                    <div class="ui-section-head">
+                        <span class="ui-step">1</span>
+                        <div>
+                            <div class="ui-section-title">Campaign</div>
+                            <div class="ui-section-sub">Shown under the HR28 logo in the sidebar for everyone</div>
+                        </div>
+                    </div>
+
+                    <div class="ui-field">
+                        <label for="CampaignName" class="ui-label">Campaign name</label>
+                        <input id="CampaignName" name="CampaignName" class="ui-input" value="@s.CampaignName" required minlength="2" maxlength="80" />
+                    </div>
+                </div>
+
+                <div class="ui-section">
+                    <div class="ui-section-head">
+                        <span class="ui-step">2</span>
+                        <div>
+                            <div class="ui-section-title">Sign-in security</div>
+                            <div class="ui-section-sub">Applies to the next OTP requested by any user</div>
+                        </div>
+                    </div>
+
+                    <div class="ui-grid-2">
+                        <div class="ui-field">
+                            <label for="OtpExpiryMinutes" class="ui-label">OTP expiry (minutes)</label>
+                            <input id="OtpExpiryMinutes" name="OtpExpiryMinutes" type="number" class="ui-input" value="@s.OtpExpiryMinutes" min="1" max="15" required />
+                            <div class="ui-hint">Between 1 and 15 minutes.</div>
+                        </div>
+                        <div class="ui-field">
+                            <label for="OtpMaxAttempts" class="ui-label">Maximum OTP attempts</label>
+                            <input id="OtpMaxAttempts" name="OtpMaxAttempts" type="number" class="ui-input" value="@s.OtpMaxAttempts" min="3" max="10" required />
+                            <div class="ui-hint">After this many wrong entries the code is locked and a new one is needed.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui-form-actions" style="align-items: center;">
+                    <button type="submit" class="ui-btn ui-btn-primary">
+                        <partial name="_Icon" model='"check"' />
+                        Save settings
+                    </button>
+                    @if (s.UpdatedAt.HasValue)
+                    {
+                        <span class="ui-muted" style="font-size: 13px;">
+                            Last changed @LocalTime(s.UpdatedAt)@(string.IsNullOrWhiteSpace(s.UpdatedByName) ? "" : $" by {s.UpdatedByName}"). Every change is recorded in the audit trail.
+                        </span>
+                    }
+                </div>
+            </form>
+        </section>
+    }
+
+    @* ---------------- CONSTITUENCIES & ISLANDS (administrators) ---------------- *@
+    @if (Model.Tab == "geography")
+    {
+        <div class="ui-note">
+            <partial name="_Icon" model='"info"' />
+            <span>Each island belongs to exactly one constituency. An island that already has voters can be renamed but not moved to another constituency.</span>
+        </div>
+
+        <div class="ui-settings-grid">
+
+            <!-- Constituencies -->
+            <section class="ui-card">
+                <div class="ui-card-head">
+                    <h2>Constituencies <span class="ui-count">@Model.Constituencies.Count</span></h2>
+                    <a asp-action="Index" asp-route-tab="geography" asp-route-newConstituency="true" class="ui-btn ui-btn-secondary ui-btn-sm">
+                        <partial name="_Icon" model='"plus"' /> Add
+                    </a>
+                </div>
+
+                @if (Model.ConstituencyForm is { } cf)
+                {
+                    <form asp-action="SaveConstituency" method="post" class="ui-inline-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Id" value="@cf.Id" />
+                        <div class="ui-inline-form-title">@(cf.Id.HasValue ? "Edit constituency" : "New constituency")</div>
+                        <div class="ui-grid-2" style="grid-template-columns: 120px 1fr;">
+                            <div class="ui-field">
+                                <label for="cCode" class="ui-label">Code</label>
+                                <input id="cCode" name="Code" class="ui-input ui-upper" value="@cf.Code" required maxlength="10" />
+                            </div>
+                            <div class="ui-field">
+                                <label for="cName" class="ui-label">Name</label>
+                                <input id="cName" name="Name" class="ui-input" value="@cf.Name" required maxlength="100" />
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">Save</button>
+                            <a asp-action="Index" asp-route-tab="geography" class="ui-btn ui-btn-ghost ui-btn-sm">Cancel</a>
+                        </div>
+                    </form>
+                }
+
+                <div class="ui-search" style="margin-bottom: 12px;">
+                    <partial name="_Icon" model='"search"' />
+                    <label for="cFilter" class="visually-hidden">Filter constituencies</label>
+                    <input type="search" id="cFilter" class="ui-input" placeholder="Filter constituencies" data-filter-table="cTable" />
+                </div>
+
+                <div class="ui-table-wrap" style="max-height: 560px; overflow-y: auto;">
+                    <table class="ui-table" id="cTable">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th class="is-right">Islands</th>
+                                <th class="is-right">Voters</th>
+                                <th><span class="visually-hidden">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Constituencies)
+                            {
+                                <tr>
+                                    <td class="ui-num ui-muted">@c.Code</td>
+                                    <td class="ui-strong">@c.Name</td>
+                                    <td class="ui-num is-right">
+                                        <a asp-action="Index" asp-route-tab="geography" asp-route-constituency="@c.Id" class="ui-link">@c.IslandCount</a>
+                                    </td>
+                                    <td class="ui-num is-right">@c.VoterCount.ToString("N0")</td>
+                                    <td class="is-right">
+                                        <a asp-action="Index" asp-route-tab="geography" asp-route-editConstituency="@c.Id" class="ui-btn ui-btn-ghost ui-btn-sm" aria-label="Edit @c.Name">
+                                            <partial name="_Icon" model='"edit"' />
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Islands -->
+            <section class="ui-card">
+                <div class="ui-card-head">
+                    <h2>Islands <span class="ui-count is-cyan">@Model.Islands.Count</span></h2>
+                    <a asp-action="Index" asp-route-tab="geography" asp-route-newIsland="true" asp-route-constituency="@Model.IslandConstituencyFilter" class="ui-btn ui-btn-secondary ui-btn-sm">
+                        <partial name="_Icon" model='"plus"' /> Add
+                    </a>
+                </div>
+
+                @if (Model.IslandForm is { } isf)
+                {
+                    <form asp-action="SaveIsland" method="post" class="ui-inline-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Id" value="@isf.Id" />
+                        <div class="ui-inline-form-title">@(isf.Id.HasValue ? "Edit island" : "New island")</div>
+                        <div class="ui-grid-2">
+                            <div class="ui-field">
+                                <label for="iName" class="ui-label">Island name</label>
+                                <input id="iName" name="Name" class="ui-input" value="@isf.Name" required maxlength="100" />
+                            </div>
+                            <div class="ui-field">
+                                <label for="iAtoll" class="ui-label">Atoll code</label>
+                                <input id="iAtoll" name="Atoll" class="ui-input" value="@isf.Atoll" required maxlength="10" placeholder="e.g. K, HA, Sh" />
+                            </div>
+                            <div class="ui-field ui-full">
+                                <label for="iConstituency" class="ui-label">Constituency</label>
+                                <select id="iConstituency" name="ConstituencyId" class="ui-select" required>
+                                    <option value="">Select Constituency</option>
+                                    @foreach (var c in Model.Constituencies)
+                                    {
+                                        <option value="@c.Id" selected="@(c.Id == isf.ConstituencyId)">@c.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">Save</button>
+                            <a asp-action="Index" asp-route-tab="geography" asp-route-constituency="@Model.IslandConstituencyFilter" class="ui-btn ui-btn-ghost ui-btn-sm">Cancel</a>
+                        </div>
+                    </form>
+                }
+
+                <form method="get" asp-action="Index" style="display: flex; gap: 10px; margin-bottom: 12px;">
+                    <input type="hidden" name="tab" value="geography" />
+                    <label for="iFilterConstituency" class="visually-hidden">Show islands for</label>
+                    <select id="iFilterConstituency" name="constituency" class="ui-select" onchange="this.form.submit()">
+                        <option value="">All constituencies</option>
+                        @foreach (var c in Model.Constituencies)
+                        {
+                            <option value="@c.Id" selected="@(c.Id == Model.IslandConstituencyFilter)">@c.Name</option>
+                        }
+                    </select>
+                    <noscript><button type="submit" class="ui-btn ui-btn-secondary">Show</button></noscript>
+                </form>
+
+                @if (!Model.Islands.Any())
+                {
+                    <div class="ui-empty">No islands for this constituency yet.</div>
+                }
+                else
+                {
+                    <div class="ui-table-wrap" style="max-height: 520px; overflow-y: auto;">
+                        <table class="ui-table">
+                            <thead>
+                                <tr>
+                                    <th>Island</th>
+                                    <th>Atoll</th>
+                                    <th>Constituency</th>
+                                    <th><span class="visually-hidden">Actions</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var i in Model.Islands)
+                                {
+                                    <tr>
+                                        <td class="ui-strong">@i.Name</td>
+                                        <td><span class="ui-tag">@i.Atoll</span></td>
+                                        <td class="ui-muted">@i.ConstituencyName</td>
+                                        <td class="is-right">
+                                            <a asp-action="Index" asp-route-tab="geography" asp-route-editIsland="@i.Id" asp-route-constituency="@Model.IslandConstituencyFilter" class="ui-btn ui-btn-ghost ui-btn-sm" aria-label="Edit @i.Name">
+                                                <partial name="_Icon" model='"edit"' />
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+
+        </div>
+    }
+
+</div>
+
+@section Scripts
+{
+    <script>
+        (function () {
+            // Theme choice (appearance tab)
+            var radios = document.querySelectorAll('input[name="hr28Theme"]');
+            if (radios.length && window.hr28Theme) {
+                var current = window.hr28Theme.get();
+                radios.forEach(function (r) {
+                    r.checked = r.value === current;
+                    r.addEventListener('change', function () {
+                        if (r.checked) window.hr28Theme.set(r.value);
+                    });
+                });
+            }
+
+            // Client-side filter for long tables
+            document.querySelectorAll('[data-filter-table]').forEach(function (input) {
+                var table = document.getElementById(input.dataset.filterTable);
+                if (!table) return;
+                input.addEventListener('input', function () {
+                    var term = input.value.trim().toLowerCase();
+                    table.querySelectorAll('tbody tr').forEach(function (row) {
+                        row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+                    });
+                });
+            });
+        })();
+    </script>
+}

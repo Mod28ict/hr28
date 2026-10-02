@@ -1,4 +1,5 @@
 @model List<HR28.Web.Models.InfluencerDto>
+@using Microsoft.AspNetCore.Http
 
 @{
     ViewData["Title"] = "Influencers";
@@ -14,20 +15,45 @@
 
     var withContact = influencers.Count(x => !string.IsNullOrWhiteSpace(x.ContactNumber));
 
+    var role = Context.Session.GetString("UserRole");
+    var isAdministrator = HR28.Web.Services.Hr28Roles.IsAdministrator(role);
+    var canManage = HR28.Web.Services.Hr28Roles.CanManageRecords(role);
+
     string InitialsOf(string name) =>
         string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
 }
 
 <div class="ui-page">
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ui-alert is-green" role="status">
+            <partial name="_Icon" model='"check-circle"' />
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
     <header class="ui-head">
         <div class="ui-head-main">
             <span class="ui-head-icon is-violet"><partial name="_Icon" model='"star"' /></span>
             <div>
                 <h1 class="ui-title">Influencers</h1>
-                <p class="ui-sub">Community leaders and trusted contacts who influence voter decisions.</p>
+                <p class="ui-sub">
+                    Community leaders and trusted contacts
+                    @(isAdministrator ? "across all constituencies." : "within your assigned area.")
+                </p>
             </div>
         </div>
+
+        @if (canManage)
+        {
+            <div class="ui-head-actions">
+                <a asp-action="Create" class="ui-btn ui-btn-primary">
+                    <partial name="_Icon" model='"plus"' />
+                    Add Influencer
+                </a>
+            </div>
+        }
     </header>
 
     <section class="ui-stats">
@@ -79,7 +105,11 @@
         {
             <div class="ui-empty">
                 <partial name="_Icon" model='"star"' />
-                No influencers recorded yet.
+                No influencers recorded in your area yet.
+                @if (canManage)
+                {
+                    <a asp-action="Create" class="ui-btn ui-btn-secondary ui-btn-sm" style="margin-top: 6px;">Add the first influencer</a>
+                }
             </div>
         }
         else
@@ -95,7 +125,7 @@
 
                     <article class="ui-tile @(duplicate ? "is-flagged" : "")">
                         <div class="ui-person">
-                            <span class="ui-avatar" aria-hidden="true" style="background: var(--ui-violet-soft); color: #4b34b0;">@InitialsOf(name)</span>
+                            <span class="ui-avatar is-violet-soft" aria-hidden="true">@InitialsOf(name)</span>
                             <span>
                                 <strong>@name</strong>
                                 <small class="ui-num">@influencer.NationalId</small>
@@ -110,20 +140,26 @@
                             </a>
                         }
 
+                        <div class="ui-muted" style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
+                            <partial name="_Icon" model='"map-pin"' />
+                            @(string.IsNullOrWhiteSpace(influencer.IslandName)
+                                ? influencer.ConstituencyName
+                                : $"{influencer.IslandName}, {influencer.ConstituencyName}")
+                        </div>
+
                         @if (!string.IsNullOrWhiteSpace(influencer.Remarks))
                         {
                             <p class="ui-muted" style="margin: 0; font-size: 13px;">@influencer.Remarks</p>
                         }
 
-                        <div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
                             @if (duplicate)
                             {
                                 <span class="ui-pill is-red">Duplicate National ID</span>
                             }
-                            else
-                            {
-                                <span class="ui-pill is-violet">Influencer</span>
-                            }
+                            <span class="ui-pill is-violet">
+                                @influencer.LinkedVoters linked @(influencer.LinkedVoters == 1 ? "voter" : "voters")
+                            </span>
                         </div>
                     </article>
                 }

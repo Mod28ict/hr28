@@ -1,17 +1,98 @@
-﻿using HR28.Web.Models;
+﻿using HR28.Web.Filters;
+using HR28.Web.Models;
 using HR28.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HR28.Web.Controllers;
 
-public class InfluencersController : Controller
+[SessionAuthorize]
+public class InfluencersController : AppController
 {
     private readonly DashboardService _dashboardService;
+    private readonly ApiClient _apiClient;
 
     public InfluencersController(
-        DashboardService dashboardService)
+        DashboardService dashboardService,
+        ApiClient apiClient)
     {
         _dashboardService = dashboardService;
+        _apiClient = apiClient;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Create()
+    {
+        var model = new CreateInfluencerViewModel();
+
+        var failure = await LoadConstituenciesAsync(model);
+
+        return failure ?? View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(CreateInfluencerViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return await LoadConstituenciesAsync(model) ?? View(model);
+        }
+
+        var result = await _apiClient.PostAsync<InfluencerDto>(
+            "Influencers",
+            model.Influencer,
+            Token);
+
+        if (!result.Success)
+        {
+            // Scope and duplicate errors belong on the form, not a redirect.
+            if (result.IsUnauthorized)
+                return HandleApiFailure(result)!;
+
+            ModelState.AddModelError(string.Empty, result.Message);
+
+            return await LoadConstituenciesAsync(model) ?? View(model);
+        }
+
+        TempData["SuccessMessage"] =
+            $"{result.Data?.FullName ?? "The influencer"} was added.";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    /// <summary>Islands of a constituency that the user may use (for the cascade).</summary>
+    [HttpGet]
+    public async Task<IActionResult> IslandsInScope(Guid constituencyId)
+    {
+        var result = await _apiClient.GetAsync<List<LookupDto>>(
+            $"Constituencies/{constituencyId}/islands/in-scope",
+            Token);
+
+        if (!result.Success)
+            return StatusCode((int)result.StatusCode);
+
+        return Json(result.Data ?? new());
+    }
+
+    private async Task<IActionResult?> LoadConstituenciesAsync(CreateInfluencerViewModel model)
+    {
+        var result = await _apiClient.GetAsync<List<LookupDto>>(
+            "Constituencies/in-scope",
+            Token);
+
+        if (!result.Success)
+        {
+            var redirect = HandleApiFailure(result);
+
+            if (redirect != null)
+                return redirect;
+
+            ModelState.AddModelError(string.Empty, result.Message);
+        }
+
+        model.Constituencies = result.Data ?? new();
+
+        return null;
     }
 
     public async Task<IActionResult> Index()

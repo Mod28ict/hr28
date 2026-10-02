@@ -12,10 +12,13 @@
         <div class="ui-head-main">
             <span class="ui-head-icon is-violet"><partial name="_Icon" model='"star"' /></span>
             <div>
-                <nav class="ui-crumb" aria-label="Breadcrumb"><span>Reports</span></nav>
+                <nav class="ui-crumb" aria-label="Breadcrumb"><a asp-action="Index">Reports</a> <span aria-hidden="true">/</span> <span>Influencers</span></nav>
                 <h1 class="ui-title">Top Influencers</h1>
                 <p class="ui-sub">Influencers ranked by the number of voters linked to them.</p>
             </div>
+        </div>
+        <div class="ui-head-actions">
+            <partial name="_ScopeChip" model="(bool)(ViewBag.IsAdministrator ?? false)" />
         </div>
     </header>
 

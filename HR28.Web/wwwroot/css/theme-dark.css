@@ -1,0 +1,298 @@
+/* =========================================================
+   HR28 DARK THEME
+   Applied when <html data-theme="dark">. Light theme is the default
+   and is defined by shell.css / ui.css; this file only overrides.
+   ========================================================= */
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+}
+
+    /* ---------- Tokens ---------- */
+
+    html[data-theme="dark"] .shell-body {
+        --shell-border: #24314a;
+        --ui-text: #e6ecf5;
+        --ui-text-2: #c3cede;
+        --ui-muted: #93a1b8;
+        --ui-faint: #66758f;
+        --ui-border: #24314a;
+        --ui-border-strong: #33415c;
+        --ui-surface: #131c2e;
+        --ui-subtle: #1a2539;
+        --ui-track: #243049;
+        --ui-navy: #2f6bf0;
+        --ui-navy-hover: #4a80f5;
+        --ui-blue: #5b8cff;
+        --ui-blue-soft: rgba(91, 140, 255, 0.16);
+        --ui-green: #34c38a;
+        --ui-green-soft: rgba(52, 195, 138, 0.15);
+        --ui-amber: #f5b53d;
+        --ui-amber-soft: rgba(245, 181, 61, 0.15);
+        --ui-red: #f06c7e;
+        --ui-red-soft: rgba(240, 108, 126, 0.15);
+        --ui-violet: #9a86f0;
+        --ui-violet-soft: rgba(154, 134, 240, 0.16);
+        --ui-cyan: #38bcd6;
+        --ui-cyan-soft: rgba(56, 188, 214, 0.15);
+        --ui-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        color: var(--ui-text);
+        background: #0b1220;
+    }
+
+    html[data-theme="dark"] .hd {
+        --hd-text: #e6ecf5;
+        --hd-muted: #93a1b8;
+        --hd-border: #24314a;
+        --hd-track: #243049;
+        --hd-blue: #5b8cff;
+        --hd-blue-soft: rgba(91, 140, 255, 0.16);
+        --hd-green: #34c38a;
+        --hd-green-soft: rgba(52, 195, 138, 0.15);
+        --hd-amber: #f5b53d;
+        --hd-amber-soft: rgba(245, 181, 61, 0.15);
+        --hd-red: #f06c7e;
+        --hd-red-soft: rgba(240, 108, 126, 0.15);
+        --hd-violet: #9a86f0;
+        --hd-violet-soft: rgba(154, 134, 240, 0.16);
+    }
+
+    html[data-theme="dark"] .is-muted {
+        --tone: #93a1b8;
+        --tone-soft: rgba(147, 161, 184, 0.14);
+    }
+
+    /* ---------- Shell ---------- */
+
+    html[data-theme="dark"] .shell-topbar {
+        background: rgba(15, 23, 39, 0.92);
+    }
+
+    html[data-theme="dark"] .shell-menu-toggle,
+    html[data-theme="dark"] .shell-user {
+        color: var(--ui-text);
+        background: transparent;
+    }
+
+        html[data-theme="dark"] .shell-user:hover {
+            background: var(--ui-subtle);
+        }
+
+    html[data-theme="dark"] .shell-user-text small {
+        color: var(--ui-muted);
+    }
+
+    html[data-theme="dark"] .shell-user-avatar {
+        background: #2f6bf0;
+    }
+
+    html[data-theme="dark"] .shell-search {
+        color: var(--ui-faint);
+        background: var(--ui-subtle);
+    }
+
+        html[data-theme="dark"] .shell-search:focus-within {
+            background: var(--ui-surface);
+        }
+
+        html[data-theme="dark"] .shell-search input {
+            color: var(--ui-text);
+        }
+
+    html[data-theme="dark"] .shell-kbd {
+        color: var(--ui-muted);
+        background: var(--ui-surface);
+    }
+
+    html[data-theme="dark"] .shell-footer {
+        color: var(--ui-faint);
+        background: #0f1727;
+    }
+
+    html[data-theme="dark"] .shell-sidebar {
+        background:
+            radial-gradient(120% 40% at 0% 100%, rgba(37, 99, 235, 0.22), transparent 70%),
+            linear-gradient(180deg, #060d1d 0%, #0a1630 100%);
+    }
+
+    /* ---------- Components (ui-) ---------- */
+
+    html[data-theme="dark"] .ui-stat {
+        background: linear-gradient(135deg, var(--ui-surface) 55%, var(--tone-soft) 160%);
+    }
+
+    html[data-theme="dark"] .ui-table td,
+    html[data-theme="dark"] .ui-section,
+    html[data-theme="dark"] .ui-form-actions,
+    html[data-theme="dark"] .ui-details > div {
+        border-color: var(--ui-border);
+    }
+
+    html[data-theme="dark"] .ui-table tbody tr:hover {
+        background: rgba(91, 140, 255, 0.06);
+    }
+
+    html[data-theme="dark"] .ui-btn-ghost:hover {
+        background: var(--ui-subtle);
+    }
+
+    html[data-theme="dark"] .ui-btn-primary,
+    html[data-theme="dark"] .hd-btn-primary {
+        box-shadow: 0 8px 18px rgba(47, 107, 240, 0.25);
+    }
+
+    html[data-theme="dark"] .ui-tag {
+        color: var(--ui-text-2);
+        background: var(--ui-subtle);
+    }
+
+    html[data-theme="dark"] .ui-avatar {
+        color: #b6caff;
+    }
+
+    html[data-theme="dark"] .ui-avatar-lg {
+        color: #ffffff;
+    }
+
+    html[data-theme="dark"] .ui-summary {
+        border-color: rgba(240, 108, 126, 0.4);
+        color: #ffb3bf;
+    }
+
+    html[data-theme="dark"] .ui-error {
+        color: #ff8f9f;
+    }
+
+    html[data-theme="dark"] .ui-pill.is-green,
+    html[data-theme="dark"] .hd-pill.is-green { color: #5fe0aa; }
+
+    html[data-theme="dark"] .ui-pill.is-amber,
+    html[data-theme="dark"] .hd-pill.is-amber { color: #ffc861; }
+
+    html[data-theme="dark"] .ui-pill.is-red,
+    html[data-theme="dark"] .hd-pill.is-red { color: #ff95a4; }
+
+    html[data-theme="dark"] .ui-pill.is-blue,
+    html[data-theme="dark"] .hd-pill.is-blue { color: #93b4ff; }
+
+    html[data-theme="dark"] .ui-pill.is-violet { color: #b9aaff; }
+
+    html[data-theme="dark"] .ui-pill.is-cyan { color: #6fd6ea; }
+
+    html[data-theme="dark"] .ui-pill.is-muted,
+    html[data-theme="dark"] .hd-pill.is-muted {
+        color: #b3bfd1;
+        background: var(--ui-subtle);
+    }
+
+    html[data-theme="dark"] .ui-code-box {
+        border-color: #33415c;
+        color: #b6caff;
+        background: var(--ui-subtle);
+    }
+
+    html[data-theme="dark"] .ui-avatar.is-violet-soft {
+        color: #c4b8ff;
+    }
+
+    /* ---------- Dashboard (hd-) ---------- */
+
+    html[data-theme="dark"] .hd-card,
+    html[data-theme="dark"] .hd-date-icon {
+        border-color: var(--hd-border);
+        color: var(--hd-text);
+        background: #131c2e;
+    }
+
+    html[data-theme="dark"] .hd-kpi {
+        border-color: var(--hd-border);
+        background: linear-gradient(135deg, #131c2e 55%, var(--tone-soft) 160%);
+    }
+
+    html[data-theme="dark"] .hd-kpi:hover,
+    html[data-theme="dark"] .ui-stat:hover {
+        box-shadow: 0 16px 34px rgba(0, 0, 0, 0.45);
+    }
+
+    html[data-theme="dark"] .hd-kpi-label {
+        color: #c3cede;
+    }
+
+    html[data-theme="dark"] .hd-kpi.is-amber .hd-kpi-foot b {
+        color: #ffc861;
+    }
+
+    html[data-theme="dark"] .hd-donut::before {
+        background: #131c2e;
+    }
+
+    html[data-theme="dark"] .hd-btn-primary {
+        background: #2f6bf0;
+    }
+
+        html[data-theme="dark"] .hd-btn-primary:hover {
+            background: #4a80f5;
+        }
+
+    html[data-theme="dark"] .hd-chip {
+        border-color: var(--hd-border);
+        color: #c3cede;
+    }
+
+    html[data-theme="dark"] .hd-quote {
+        border-color: var(--hd-border);
+    }
+
+    html[data-theme="dark"] .hd-list li {
+        border-color: var(--hd-border);
+    }
+
+    html[data-theme="dark"] .hd-avatar {
+        color: #b6caff;
+    }
+
+    html[data-theme="dark"] .hd-action {
+        border-color: var(--hd-border);
+        color: var(--hd-text);
+        background: var(--tone-soft);
+    }
+
+        html[data-theme="dark"] .hd-action:hover {
+            color: var(--hd-text);
+        }
+
+    /* ---------- Third-party: select2 + page loader ---------- */
+
+    html[data-theme="dark"] .select2-container--default .select2-selection--single,
+    html[data-theme="dark"] .select2-dropdown,
+    html[data-theme="dark"] .select2-search--dropdown .select2-search__field {
+        border-color: #33415c !important;
+        background: #131c2e;
+    }
+
+    html[data-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__rendered,
+    html[data-theme="dark"] .select2-results__option,
+    html[data-theme="dark"] .select2-search--dropdown .select2-search__field {
+        color: #e6ecf5;
+    }
+
+    html[data-theme="dark"] .select2-container--default .select2-results__option[aria-selected=true] {
+        background: #1a2539;
+    }
+
+    html[data-theme="dark"] .select2-container--default.select2-container--disabled .select2-selection--single {
+        background: #1a2539;
+    }
+
+    html[data-theme="dark"] .h28-loader {
+        background: rgba(11, 18, 32, 0.82);
+    }
+
+    html[data-theme="dark"] .h28-loader-text {
+        color: #e6ecf5;
+    }
+
+    /* Native date/number pickers follow color-scheme; keep the select arrow visible. */
+    html[data-theme="dark"] .ui-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2393a1b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    }

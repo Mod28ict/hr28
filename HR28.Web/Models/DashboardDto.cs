@@ -19,4 +19,6 @@ public class DashboardDto
 
     public int OpenPledges { get; set; }
     public int CompletedPledges { get; set; }
+
+    public bool IsAdministrator { get; set; }
 }

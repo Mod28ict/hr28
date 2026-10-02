@@ -10,12 +10,11 @@
     var constituencies = Model?.Constituencies ?? new();
 
     var role = Context.Session.GetString("UserRole");
-    var isReporter = role == "Reporter";
-    var isSuperAdmin = role == "Super Administrator";
-    var isNational =
-        role == "Super Administrator"
-        || role == "National Administrator"
-        || role == "Reporter";
+    var isReporter = !HR28.Web.Services.Hr28Roles.CanManageRecords(role);
+    var isSuperAdmin = HR28.Web.Services.Hr28Roles.IsSuperAdministrator(role);
+
+    // The API decides scope; administrators get national figures.
+    var isAdministrator = dashboard.IsAdministrator;
 
     var fullName = Context.Session.GetString("UserName") ?? "there";
     var firstName = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? fullName;
@@ -193,14 +192,28 @@
             </div>
         </div>
 
-        <div class="hd-kpi is-blue">
-            <span class="hd-kpi-icon"><partial name="_Icon" model='"user"' /></span>
-            <div>
-                <div class="hd-kpi-label">Users</div>
-                <div class="hd-kpi-value">@dashboard.TotalUsers.ToString("N0")</div>
-                <div class="hd-kpi-foot">@dashboard.TotalRoles.ToString("N0") access roles</div>
+        @if (isAdministrator)
+        {
+            <div class="hd-kpi is-blue">
+                <span class="hd-kpi-icon"><partial name="_Icon" model='"user"' /></span>
+                <div>
+                    <div class="hd-kpi-label">Users</div>
+                    <div class="hd-kpi-value">@dashboard.TotalUsers.ToString("N0")</div>
+                    <div class="hd-kpi-foot">@dashboard.TotalRoles.ToString("N0") access roles</div>
+                </div>
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="hd-kpi is-blue">
+                <span class="hd-kpi-icon"><partial name="_Icon" model='"map-pin"' /></span>
+                <div>
+                    <div class="hd-kpi-label">Your area</div>
+                    <div class="hd-kpi-value">@dashboard.TotalIslands.ToString("N0")</div>
+                    <div class="hd-kpi-foot">islands in @dashboard.TotalConstituencies.ToString("N0") @(dashboard.TotalConstituencies == 1 ? "constituency" : "constituencies")</div>
+                </div>
+            </div>
+        }
 
     </section>
 
@@ -211,7 +224,7 @@
         <div class="hd-card">
             <div class="hd-card-head">
                 <h2>Voter Distribution</h2>
-                <span class="hd-chip">@(isNational ? "All constituencies" : "Your scope")</span>
+                <span class="hd-chip">@(isAdministrator ? "All constituencies" : "Your assigned area")</span>
             </div>
 
             @if (classified == 0)
@@ -248,19 +261,12 @@
         <div class="hd-card">
             <div class="hd-card-head">
                 <h2>Constituency Performance</h2>
-                @if (isNational)
-                {
-                    <a class="hd-link" asp-controller="Reports" asp-action="ConstituencySummary">View all</a>
-                }
+                <a class="hd-link" asp-controller="Reports" asp-action="ConstituencySummary">View all</a>
             </div>
 
-            @if (!isNational)
+            @if (!topConstituencies.Any())
             {
-                <div class="hd-empty">Constituency comparisons are available to national roles.</div>
-            }
-            else if (!topConstituencies.Any())
-            {
-                <div class="hd-empty">No constituency has voters yet.</div>
+                <div class="hd-empty">No constituency in your area has voters yet.</div>
             }
             else
             {
@@ -298,7 +304,7 @@
                         <span>Islands</span>
                         <strong>@dashboard.TotalIslands.ToString("N0")</strong>
                     </div>
-                    @if (isNational && constituencies.Any())
+                    @if (constituencies.Any())
                     {
                         <div>
                             <span>With voters</span>
@@ -307,7 +313,7 @@
                     }
                 </div>
 
-                @if (isNational && constituencies.Any())
+                @if (constituencies.Any())
                 {
                     <div class="hd-progress" role="progressbar" aria-label="Constituencies with voters"
                          aria-valuenow="@coveragePct" aria-valuemin="0" aria-valuemax="100">
@@ -336,7 +342,8 @@
         <!-- Recent activity -->
         <div class="hd-card">
             <div class="hd-card-head">
-                <h2>Recent Activity</h2>
+                <h2>@(isAdministrator ? "Recent Activity" : "Your Recent Activity")</h2>
+                <a class="hd-link" asp-controller="Audit" asp-action="Index">View all</a>
             </div>
 
             @if (!activities.Any())
@@ -349,17 +356,21 @@
                     @foreach (var activity in activities.Take(5))
                     {
                         var style = ActivityStyle(activity.Action);
+                        var what = string.IsNullOrWhiteSpace(activity.EntityLabel)
+                            ? activity.EntityName
+                            : $"{activity.EntityName}: {activity.EntityLabel}";
+
                         <li>
                             <span class="hd-list-icon @style.Tone"><partial name="_Icon" model="@style.Icon" /></span>
                             <span class="hd-list-text">
-                                <strong>@activity.Action</strong>
-                                <small>
-                                    @if (!string.IsNullOrWhiteSpace(activity.EntityName))
+                                <strong title="@activity.Action">
+                                    @if (isAdministrator && !string.IsNullOrWhiteSpace(activity.ActorName))
                                     {
-                                        @activity.EntityName<text> · </text>
+                                        @activity.ActorName<text> · </text>
                                     }
-                                    @RelativeTime(activity.CreatedAt)
-                                </small>
+                                    @activity.Action
+                                </strong>
+                                <small title="@what">@what · @RelativeTime(activity.CreatedAt)</small>
                             </span>
                         </li>
                     }
@@ -431,9 +442,9 @@
                         <partial name="_Icon" model='"handshake"' />
                         <span>Add Pledge</span>
                     </a>
-                    <a class="hd-action is-violet" asp-controller="Influencers" asp-action="Index">
+                    <a class="hd-action is-violet" asp-controller="Influencers" asp-action="Create">
                         <partial name="_Icon" model='"star"' />
-                        <span>Influencers</span>
+                        <span>Add Influencer</span>
                     </a>
                 }
                 @if (isSuperAdmin)
@@ -443,17 +454,24 @@
                         <span>Manage Users</span>
                     </a>
                 }
-                @if (isNational)
+                else
                 {
-                    <a class="hd-action is-green" asp-controller="Reports" asp-action="ConstituencySummary">
-                        <partial name="_Icon" model='"chart"' />
-                        <span>Run Report</span>
+                    <a class="hd-action is-blue" asp-controller="Audit" asp-action="Index">
+                        <partial name="_Icon" model='"clipboard"' />
+                        <span>Audit Trail</span>
                     </a>
                 }
-                <a class="hd-action is-amber" asp-controller="Reports" asp-action="Pledges">
-                    <partial name="_Icon" model='"file"' />
-                    <span>Pledge Report</span>
+                <a class="hd-action is-green" asp-controller="Reports" asp-action="Index">
+                    <partial name="_Icon" model='"chart"' />
+                    <span>Reports</span>
                 </a>
+                @if (isReporter)
+                {
+                    <a class="hd-action is-amber" asp-controller="Reports" asp-action="Pledges">
+                        <partial name="_Icon" model='"file"' />
+                        <span>Pledge Report</span>
+                    </a>
+                }
             </div>
         </div>
 

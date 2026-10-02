@@ -1,4 +1,4 @@
-﻿namespace HR28.Web.Models;
+namespace HR28.Web.Models;
 
 public class InfluencerDto
 {
@@ -13,4 +13,14 @@ public class InfluencerDto
     public string ContactNumber { get; set; } = string.Empty;
 
     public string Remarks { get; set; } = string.Empty;
+
+    public Guid ConstituencyId { get; set; }
+
+    public Guid? IslandId { get; set; }
+
+    public string ConstituencyName { get; set; } = string.Empty;
+
+    public string? IslandName { get; set; }
+
+    public int LinkedVoters { get; set; }
 }
