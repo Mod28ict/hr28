@@ -2,6 +2,7 @@
    HR28 sign-in pages: frosted-glass card floating over the
    dark campaign background. Loaded after each page's own
    <style> block (Login, VerifyOtp) and overrides it.
+   The card is deliberately still (no floating motion).
    ========================================================= */
 
 /* One continuous dark background behind both columns */
@@ -93,9 +94,6 @@ body {
         0 0 0 1px rgba(255, 255, 255, 0.08);
     -webkit-backdrop-filter: blur(22px) saturate(160%);
     backdrop-filter: blur(22px) saturate(160%);
-    animation:
-        fadeInRight 0.9s ease,
-        authGlassFloat 7s ease-in-out 0.9s infinite;
 }
 
 .verification-wrapper {
@@ -114,16 +112,6 @@ body {
         background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
         pointer-events: none;
     }
-
-@keyframes authGlassFloat {
-    0%, 100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-8px);
-    }
-}
 
 /* Inner pieces sit on glass, so soften their own backgrounds */
 .security-notice {
