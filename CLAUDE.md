@@ -28,8 +28,8 @@ Solution file: `HR28.slnx` (.NET 10). Clean-architecture layering:
 - Data: Entity Framework Core + SQL Server, schema managed with migrations.
 - Scope filtering: `AccessScopeService` + `ScopeQueryExtensions.InScope(...)` in
   Infrastructure; use these for every query on voters, influencers, encounters and pledges.
-- Tests: **no test project exists yet.** Create one (e.g. `HR28.Tests`, xUnit) as part of
-  Phase 1 regression tests and add it to `HR28.slnx`; until then `dotnet test` runs nothing.
+- Tests: `HR28.Tests` (xUnit, in `HR28.slnx`). Web tests use a fake API handler
+  (`Web/FakeApi.cs`); no database is needed. Add API/Infrastructure tests here too.
 
 ## Commands
 
@@ -247,10 +247,12 @@ Status as of 2026-10-02 (update when an item changes):
 3. Permission matrix and API authorization policies — **mostly done.** Policies:
    default (active account), `Administrator`, `SuperAdministrator`, resolved live.
    Still to do: a written permission matrix; stop Reporters writing via the API.
-4. Central session / 401 handling — **partly done.** `ApiClient` + `AppController`
-   handle 401/403 for newer pages; `SessionRoleRefreshFilter` ends sessions of
-   deactivated users. Older pages still call `DashboardService` directly (raw errors
-   possible, including on 429).
+4. Central session / 401 handling — **done.** `ApiClient` + `AppController` handle
+   401/403 for newer pages. `DashboardService` (older pages) now goes through
+   `ApiClient` and throws `ApiCallException`; the global `ApiFailureExceptionFilter`
+   turns it into sign-in (401), dashboard + message (403) or the friendly error page
+   (429, outage); page scripts get JSON. `SessionRoleRefreshFilter` ends sessions of
+   deactivated users. All MVC POSTs validate anti-forgery (global filter).
 5. Authentication hardening — **partly done:** 6-digit secure OTP, hashed
    authorization codes, attempt limits, cooldown, lockout, per-IP rate limits,
    inactive users blocked, anti-forgery on login forms, SMS text with the
@@ -264,7 +266,9 @@ Status as of 2026-10-02 (update when an item changes):
    users (create, code reset, roles, areas), constituencies, islands, settings and
    report downloads are audited. Voter/influencer updates do not yet record which
    fields changed.
-8. Regression tests — **not started; there is no test project yet.**
+8. Regression tests — **started:** `HR28.Tests` covers the web API-failure handling
+   (`DashboardService`, `ApiFailureExceptionFilter`). Still to do: API authorization,
+   scope (cross-scope) and sign-in tests.
 
 Known open issues (fix or confirm with the owner):
 - No real SMS provider yet. `ISmsSender`: Development writes the message to the API

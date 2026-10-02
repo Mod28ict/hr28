@@ -64,7 +64,9 @@ public class PledgesController : Controller
         {
             ModelState.AddModelError(
                 string.Empty,
-                "The pledge could not be saved.");
+                string.IsNullOrWhiteSpace(_dashboardService.LastErrorMessage)
+                    ? "The pledge could not be saved."
+                    : _dashboardService.LastErrorMessage);
 
             return View(model);
         }

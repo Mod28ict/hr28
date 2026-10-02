@@ -64,7 +64,9 @@ public class EncountersController : Controller
         {
             ModelState.AddModelError(
                 string.Empty,
-                "The encounter could not be saved.");
+                string.IsNullOrWhiteSpace(_dashboardService.LastErrorMessage)
+                    ? "The encounter could not be saved."
+                    : _dashboardService.LastErrorMessage);
 
             return View(model);
         }

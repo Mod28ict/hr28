@@ -113,6 +113,7 @@ public class UsersController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(
         UserCreateViewModel model)
     {
@@ -135,6 +136,8 @@ public class UsersController : Controller
 
         if (createdUser == null)
         {
+            // e.g. "A user with this phone number already exists."
+            ModelState.AddModelError(string.Empty, _dashboardService.LastErrorMessage);
             return View(model);
         }
 

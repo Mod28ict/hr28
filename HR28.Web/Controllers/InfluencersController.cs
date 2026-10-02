@@ -270,8 +270,9 @@ public class InfluencersController : AppController
         {
             ModelState.AddModelError(
                 string.Empty,
-                "The influencer could not be linked. " +
-                "The relationship may already exist.");
+                string.IsNullOrWhiteSpace(_dashboardService.LastErrorMessage)
+                    ? "The influencer could not be linked. The relationship may already exist."
+                    : _dashboardService.LastErrorMessage);
 
             await ReloadInfluencersAsync(
                 model,
@@ -321,6 +322,7 @@ public class InfluencersController : AppController
         return View(model);
     }
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult>
         EditRelationship(
             UpdateInfluencerRelationshipDto model)
@@ -337,6 +339,7 @@ public class InfluencersController : AppController
 
         if (!success)
         {
+            ModelState.AddModelError(string.Empty, _dashboardService.LastErrorMessage);
             return View(model);
         }
 

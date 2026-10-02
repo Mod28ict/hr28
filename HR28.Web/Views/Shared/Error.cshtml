@@ -13,7 +13,14 @@
 
         <h1 class="ui-title">Something went wrong</h1>
         <p class="ui-sub">
-            We couldn't complete your request. Please try again in a moment.
+            @if (!string.IsNullOrWhiteSpace(Model?.Message))
+            {
+                @Model.Message
+            }
+            else
+            {
+                <text>We couldn't complete your request. Please try again in a moment.</text>
+            }
             If the problem continues, contact your system administrator.
         </p>
 

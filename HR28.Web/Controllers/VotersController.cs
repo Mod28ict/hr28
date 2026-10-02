@@ -102,24 +102,11 @@ public class VotersController : Controller
     }
 
 
+    /// <summary>Old search form target; the voter list now searches with paging.</summary>
     [HttpPost]
-    public async Task<IActionResult>
-        Search(string searchTerm)
-    {
-        var token =
-            HttpContext.Session.GetString(
-                "JwtToken");
-
-        var voters =
-            await _dashboardService
-                .SearchVotersAsync(
-                    searchTerm,
-                    token);
-
-        return View(
-            "Index",
-            voters ?? new());
-    }
+    [ValidateAntiForgeryToken]
+    public IActionResult Search(string? searchTerm) =>
+        RedirectToAction(nameof(Index), new { searchTerm });
     public async Task<IActionResult>
         Profile(Guid id)
     {
@@ -132,6 +119,12 @@ public class VotersController : Controller
                 .GetVoterProfileAsync(
                     id,
                     token);
+
+        if (profile?.Voter == null)
+        {
+            TempData["FlashError"] = "That voter was not found, or is outside your areas.";
+            return RedirectToAction(nameof(Index));
+        }
 
         return View(profile);
     }
@@ -171,10 +164,12 @@ public class VotersController : Controller
             model.Voter,
             token);
 
-        if (result.IsUnauthorized)
+        if (result.IsUnauthorized || result.IsForbidden ||
+            result.StatusCode is System.Net.HttpStatusCode.TooManyRequests
+                or System.Net.HttpStatusCode.ServiceUnavailable
+            || (int)result.StatusCode >= 500)
         {
-            HttpContext.Session.Clear();
-            return RedirectToAction("Login", "Auth");
+            throw new ApiCallException(result.StatusCode, result.Message);
         }
 
         if (!result.Success)
@@ -227,7 +222,8 @@ public class VotersController : Controller
 
         if (profile?.Voter == null)
         {
-            return RedirectToAction("Index");
+            TempData["FlashError"] = "That voter was not found, or is outside your areas.";
+            return RedirectToAction(nameof(Index));
         }
 
         var model =
@@ -268,12 +264,16 @@ public class VotersController : Controller
         return View(model);
     }
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(
         VoterCreateViewModel model)
     {
         var token =
             HttpContext.Session.GetString(
                 "JwtToken");
+
+        if (model.Voter.Id is null || model.Voter.Id == Guid.Empty)
+            return RedirectToAction(nameof(Index));
 
         model.Voter.Remarks ??= string.Empty;
         model.Voter.MobileNumber ??= string.Empty;
@@ -287,11 +287,25 @@ public class VotersController : Controller
 
         if (!success)
         {
+            // e.g. "A voter with National ID A123456 already exists."
+            ModelState.AddModelError(string.Empty, _dashboardService.LastErrorMessage);
+
+            // Reload the lists, or the dropdowns come back empty.
+            model.Constituencies =
+                await _dashboardService.GetConstituenciesAsync(token) ?? new();
+            model.Islands =
+                model.Voter.ConstituencyId != Guid.Empty
+                    ? await _dashboardService.GetIslandsByConstituencyAsync(
+                          model.Voter.ConstituencyId, token) ?? new()
+                    : new();
+
             ViewBag.IsSuperAdmin = Hr28Roles.IsAdministrator(
                 HttpContext.Session.GetString("UserRole"));
 
             return View(model);
         }
+
+        TempData["SuccessMessage"] = $"{model.Voter.FullName} was updated.";
 
         return RedirectToAction(
             "Profile",
