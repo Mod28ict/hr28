@@ -1,827 +1,461 @@
-﻿@model HR28.Web.Models.DashboardViewModel
+@model HR28.Web.Models.DashboardViewModel
+@using Microsoft.AspNetCore.Http
 
 @{
     ViewData["Title"] = "Dashboard";
 
-    var dashboard =
-        Model.Dashboard
-        ?? new HR28.Web.Models.DashboardDto();
+    var dashboard = Model?.Dashboard ?? new HR28.Web.Models.DashboardDto();
+    var activities = Model?.Activities ?? new();
+    var recentVoters = Model?.RecentVoters ?? new();
+    var constituencies = Model?.Constituencies ?? new();
 
-    var userName =
-        Context.Session.GetString("UserName")
-        ?? "HR28 User";
+    var role = Context.Session.GetString("UserRole");
+    var isReporter = role == "Reporter";
+    var isSuperAdmin = role == "Super Administrator";
+    var isNational =
+        role == "Super Administrator"
+        || role == "National Administrator"
+        || role == "Reporter";
 
-    var role =
-        Context.Session.GetString("UserRole")
-        ?? string.Empty;
+    var fullName = Context.Session.GetString("UserName") ?? "there";
+    var firstName = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? fullName;
 
-    var totalVoters =
-        dashboard.TotalVoters;
+    var hour = DateTime.Now.Hour;
+    var greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
-    var supporters =
-        dashboard.Supporters;
+    var totalVoters = dashboard.TotalVoters;
 
-    var opponents =
-        dashboard.Opponents;
+    // Voters whose status is set; the donut shares are of these, not of all voters.
+    var classified = dashboard.Supporters + dashboard.Undecided + dashboard.Neutral + dashboard.Opponents;
 
-    var undecided =
-        dashboard.Undecided;
+    decimal Share(int part, int whole) =>
+        whole == 0 ? 0 : Math.Round(part * 100m / whole, 1);
 
-    var neutral =
-        dashboard.Neutral;
+    var supporterPct = Share(dashboard.Supporters, classified);
+    var undecidedPct = Share(dashboard.Undecided, classified);
+    var neutralPct = Share(dashboard.Neutral, classified);
+    var opponentPct = Share(dashboard.Opponents, classified);
 
-    var statusTotal =
-        supporters
-        + opponents
-        + undecided
-        + neutral;
+    var stop1 = supporterPct;
+    var stop2 = stop1 + undecidedPct;
+    var stop3 = stop2 + neutralPct;
+    var donutStyle = classified == 0
+        ? "background: var(--hd-track);"
+        : FormattableString.Invariant(
+            $"background: conic-gradient(var(--hd-green) 0 {stop1}%, var(--hd-amber) {stop1}% {stop2}%, var(--hd-blue) {stop2}% {stop3}%, var(--hd-red) {stop3}% 100%);");
 
-    var supporterPercentage =
-        statusTotal > 0
-            ? Math.Round(
-                supporters * 100.0 / statusTotal,
-                1)
-            : 0;
+    var topConstituencies = constituencies
+        .Where(c => c.TotalVoters > 0)
+        .OrderByDescending(c => c.SupportPercentage)
+        .Take(6)
+        .ToList();
 
-    var opponentPercentage =
-        statusTotal > 0
-            ? Math.Round(
-                opponents * 100.0 / statusTotal,
-                1)
-            : 0;
+    string BandClass(decimal pct) => pct >= 65 ? "is-green" : pct >= 45 ? "is-amber" : "is-red";
 
-    var undecidedPercentage =
-        statusTotal > 0
-            ? Math.Round(
-                undecided * 100.0 / statusTotal,
-                1)
-            : 0;
+    var withVoters = constituencies.Count(c => c.TotalVoters > 0);
+    var highBand = constituencies.Count(c => c.TotalVoters > 0 && c.SupportPercentage >= 65);
+    var midBand = constituencies.Count(c => c.TotalVoters > 0 && c.SupportPercentage >= 45 && c.SupportPercentage < 65);
+    var lowBand = constituencies.Count(c => c.TotalVoters > 0 && c.SupportPercentage < 45);
+    var noData = constituencies.Count - withVoters;
+    var coveragePct = constituencies.Count == 0 ? 0 : (int)Math.Round(withVoters * 100m / constituencies.Count);
 
-    var neutralPercentage =
-        statusTotal > 0
-            ? Math.Round(
-                neutral * 100.0 / statusTotal,
-                1)
-            : 0;
+    string Pct(decimal value) => value.ToString("0.#") + "%";
 
-    var completedPledgePercentage =
-        dashboard.TotalPledges > 0
-            ? Math.Round(
-                dashboard.CompletedPledges
-                * 100.0
-                / dashboard.TotalPledges,
-                1)
-            : 0;
+    string RelativeTime(DateTime when)
+    {
+        var utc = when.Kind == DateTimeKind.Local ? when.ToUniversalTime() : when;
+        var span = DateTime.UtcNow - utc;
 
-    var openPledgePercentage =
-        dashboard.TotalPledges > 0
-            ? Math.Round(
-                dashboard.OpenPledges
-                * 100.0
-                / dashboard.TotalPledges,
-                1)
-            : 0;
+        if (span.TotalMinutes < 1) return "Just now";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} min ago";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours} hr ago";
+        if (span.TotalDays < 7) return $"{(int)span.TotalDays} day{((int)span.TotalDays == 1 ? "" : "s")} ago";
+        return utc.ToLocalTime().ToString("dd MMM yyyy");
+    }
 
-    var initials =
-        string.Join(
-            string.Empty,
-            userName
-                .Split(
-                    ' ',
-                    StringSplitOptions.RemoveEmptyEntries)
-                .Take(2)
-                .Select(name =>
-                    char.ToUpperInvariant(name[0])));
+    (string Tone, string Icon) ActivityStyle(string action)
+    {
+        var a = action.ToLowerInvariant();
+        if (a.Contains("delete") || a.Contains("remove")) return ("is-red", "trash");
+        if (a.Contains("create") || a.Contains("add") || a.Contains("link")) return ("is-green", "plus");
+        return ("is-blue", "edit");
+    }
+
+    string StatusClass(string status) => status switch
+    {
+        "Supporter" => "is-green",
+        "Undecided" => "is-amber",
+        "Opponent" or "Opposition" => "is-red",
+        "Neutral" => "is-blue",
+        _ => "is-muted"
+    };
+
+    string InitialsOf(string name) =>
+        string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
 }
 
-<div class="campaign-dashboard">
+<div class="hd">
 
-    <!-- Executive Header -->
-    <section class="campaign-hero">
-
-        <div class="campaign-hero-content">
-
-            <div class="campaign-user-badge">
-                @initials
-            </div>
-
-            <div>
-                <div class="campaign-eyebrow">
-                    HR28 CAMPAIGN OVERVIEW
-                </div>
-
-                <h1>
-                    Welcome, @userName
-                </h1>
-
-                <p>
-                    Live information from your authorized
-                    voter scope.
-                </p>
-
-                <div class="campaign-role-pill">
-                    @role
-                </div>
-            </div>
-
+    <!-- HEADER -->
+    <section class="hd-header">
+        <div>
+            <h1 class="hd-greeting">@greeting, @firstName <span aria-hidden="true">👋</span></h1>
+            <p class="hd-sub">Here's what's happening across your campaign today.</p>
         </div>
 
-        <div class="campaign-hero-actions">
+        <div class="hd-header-side">
+            <div class="hd-date">
+                <span class="hd-date-icon"><partial name="_Icon" model='"calendar"' /></span>
+                <span>
+                    <strong>@DateTime.Now.ToString("dddd, dd MMMM yyyy")</strong>
+                    <small>Let's make progress.</small>
+                </span>
+            </div>
 
-            @if (role != "Reporter")
+            @if (!isReporter)
             {
-                <a asp-controller="Voters"
-                   asp-action="Create"
-                   class="campaign-primary-button">
-                    <span class="button-plus">+</span>
+                <a class="hd-btn-primary" asp-controller="Voters" asp-action="Create">
+                    <partial name="_Icon" model='"plus"' />
                     Add Voter
                 </a>
             }
 
-            <a asp-controller="Voters"
-               asp-action="Index"
-               class="campaign-secondary-button">
-                Search Voters
-            </a>
+            <blockquote class="hd-quote">
+                <p>“Better insights.<br />Stronger connections.”</p>
+                <cite>— HR28</cite>
+            </blockquote>
+        </div>
+    </section>
 
+    <!-- KPI CARDS -->
+    <section class="hd-kpis" aria-label="Key figures">
+
+        <div class="hd-kpi is-blue">
+            <span class="hd-kpi-icon"><partial name="_Icon" model='"users"' /></span>
+            <div>
+                <div class="hd-kpi-label">Total Voters</div>
+                <div class="hd-kpi-value">@totalVoters.ToString("N0")</div>
+                <div class="hd-kpi-foot">In your scope</div>
+            </div>
         </div>
 
-        <div class="campaign-hero-decoration decoration-one">
+        <div class="hd-kpi is-green">
+            <span class="hd-kpi-icon"><partial name="_Icon" model='"user-check"' /></span>
+            <div>
+                <div class="hd-kpi-label">Supporters</div>
+                <div class="hd-kpi-value">@dashboard.Supporters.ToString("N0")</div>
+                <div class="hd-kpi-foot"><b>@Pct(Share(dashboard.Supporters, totalVoters))</b> of voters</div>
+            </div>
         </div>
 
-        <div class="campaign-hero-decoration decoration-two">
+        <div class="hd-kpi is-amber">
+            <span class="hd-kpi-icon"><partial name="_Icon" model='"help"' /></span>
+            <div>
+                <div class="hd-kpi-label">Undecided</div>
+                <div class="hd-kpi-value">@dashboard.Undecided.ToString("N0")</div>
+                <div class="hd-kpi-foot"><b>@Pct(Share(dashboard.Undecided, totalVoters))</b> of voters</div>
+            </div>
+        </div>
+
+        <div class="hd-kpi is-red">
+            <span class="hd-kpi-icon"><partial name="_Icon" model='"user-x"' /></span>
+            <div>
+                <div class="hd-kpi-label">Opposition</div>
+                <div class="hd-kpi-value">@dashboard.Opponents.ToString("N0")</div>
+                <div class="hd-kpi-foot"><b>@Pct(Share(dashboard.Opponents, totalVoters))</b> of voters</div>
+            </div>
+        </div>
+
+        <div class="hd-kpi is-violet">
+            <span class="hd-kpi-icon"><partial name="_Icon" model='"calendar"' /></span>
+            <div>
+                <div class="hd-kpi-label">Encounters</div>
+                <div class="hd-kpi-value">@dashboard.TotalEncounters.ToString("N0")</div>
+                <div class="hd-kpi-foot">Recorded to date</div>
+            </div>
+        </div>
+
+        <div class="hd-kpi is-green">
+            <span class="hd-kpi-icon"><partial name="_Icon" model='"handshake"' /></span>
+            <div>
+                <div class="hd-kpi-label">Pledges</div>
+                <div class="hd-kpi-value">@dashboard.TotalPledges.ToString("N0")</div>
+                <div class="hd-kpi-foot"><b>@dashboard.OpenPledges.ToString("N0")</b> open · @dashboard.CompletedPledges.ToString("N0") completed</div>
+            </div>
+        </div>
+
+        <div class="hd-kpi is-violet">
+            <span class="hd-kpi-icon"><partial name="_Icon" model='"star"' /></span>
+            <div>
+                <div class="hd-kpi-label">Influencers</div>
+                <div class="hd-kpi-value">@dashboard.TotalInfluencers.ToString("N0")</div>
+                <div class="hd-kpi-foot">Community connectors</div>
+            </div>
+        </div>
+
+        <div class="hd-kpi is-blue">
+            <span class="hd-kpi-icon"><partial name="_Icon" model='"user"' /></span>
+            <div>
+                <div class="hd-kpi-label">Users</div>
+                <div class="hd-kpi-value">@dashboard.TotalUsers.ToString("N0")</div>
+                <div class="hd-kpi-foot">@dashboard.TotalRoles.ToString("N0") access roles</div>
+            </div>
         </div>
 
     </section>
 
-    <!-- Main KPI Cards -->
-    <section class="campaign-kpi-grid">
+    <!-- ANALYTICS ROW -->
+    <section class="hd-row hd-row-analytics">
 
-        <a asp-controller="Voters"
-           asp-action="Index"
-           class="campaign-kpi-card">
+        <!-- Voter distribution -->
+        <div class="hd-card">
+            <div class="hd-card-head">
+                <h2>Voter Distribution</h2>
+                <span class="hd-chip">@(isNational ? "All constituencies" : "Your scope")</span>
+            </div>
 
-            <div class="kpi-top-row">
-                <div class="kpi-icon kpi-icon-blue">
-                    VT
+            @if (classified == 0)
+            {
+                <div class="hd-empty">No voters have a support status yet.</div>
+            }
+            else
+            {
+                <div class="hd-dist">
+                    <div class="hd-donut" style="@donutStyle" role="img"
+                         aria-label="@($"Supporters {Pct(supporterPct)}, Undecided {Pct(undecidedPct)}, Neutral {Pct(neutralPct)}, Opposition {Pct(opponentPct)}")">
+                        <div class="hd-donut-center">
+                            <strong>@classified.ToString("N0")</strong>
+                            <span>Voters with status</span>
+                        </div>
+                    </div>
+
+                    <ul class="hd-legend">
+                        <li><i class="is-green"></i><span>Supporters</span><b>@Pct(supporterPct)</b><em>@dashboard.Supporters.ToString("N0")</em></li>
+                        <li><i class="is-amber"></i><span>Undecided</span><b>@Pct(undecidedPct)</b><em>@dashboard.Undecided.ToString("N0")</em></li>
+                        <li><i class="is-blue"></i><span>Neutral</span><b>@Pct(neutralPct)</b><em>@dashboard.Neutral.ToString("N0")</em></li>
+                        <li><i class="is-red"></i><span>Opposition</span><b>@Pct(opponentPct)</b><em>@dashboard.Opponents.ToString("N0")</em></li>
+                    </ul>
                 </div>
 
-                <span class="kpi-badge">
-                    Authorized scope
-                </span>
-            </div>
-
-            <div class="kpi-label">
-                Total Voters
-            </div>
-
-            <div class="kpi-number">
-                @totalVoters.ToString("N0")
-            </div>
-
-            <div class="kpi-footer">
-                View voter register
-                <span>→</span>
-            </div>
-
-        </a>
-
-        <div class="campaign-kpi-card">
-
-            <div class="kpi-top-row">
-                <div class="kpi-icon kpi-icon-green">
-                    SP
-                </div>
-
-                <span class="kpi-badge kpi-badge-green">
-                    @supporterPercentage%
-                </span>
-            </div>
-
-            <div class="kpi-label">
-                Supporters
-            </div>
-
-            <div class="kpi-number">
-                @supporters.ToString("N0")
-            </div>
-
-            <div class="kpi-progress-track">
-                <div class="kpi-progress-fill supporter-fill"
-                     style="width:@supporterPercentage%">
-                </div>
-            </div>
-
+                @if (classified < totalVoters)
+                {
+                    <p class="hd-note">@((totalVoters - classified).ToString("N0")) voters have no support status recorded.</p>
+                }
+            }
         </div>
 
-        <a asp-controller="Influencers"
-           asp-action="Index"
-           class="campaign-kpi-card">
-
-            <div class="kpi-top-row">
-                <div class="kpi-icon kpi-icon-violet">
-                    IN
-                </div>
-
-                <span class="kpi-badge kpi-badge-violet">
-                    Network
-                </span>
+        <!-- Constituency performance -->
+        <div class="hd-card">
+            <div class="hd-card-head">
+                <h2>Constituency Performance</h2>
+                @if (isNational)
+                {
+                    <a class="hd-link" asp-controller="Reports" asp-action="ConstituencySummary">View all</a>
+                }
             </div>
 
-            <div class="kpi-label">
-                Influencers
-            </div>
-
-            <div class="kpi-number">
-                @dashboard.TotalInfluencers.ToString("N0")
-            </div>
-
-            <div class="kpi-footer">
-                Manage relationships
-                <span>→</span>
-            </div>
-
-        </a>
-
-        <div class="campaign-kpi-card">
-
-            <div class="kpi-top-row">
-                <div class="kpi-icon kpi-icon-cyan">
-                    EN
-                </div>
-
-                <span class="kpi-badge kpi-badge-cyan">
-                    Interactions
-                </span>
-            </div>
-
-            <div class="kpi-label">
-                Encounters
-            </div>
-
-            <div class="kpi-number">
-                @dashboard.TotalEncounters.ToString("N0")
-            </div>
-
-            <div class="kpi-footer kpi-footer-muted">
-                Recorded voter interactions
-            </div>
-
-        </div>
-
-    </section>
-
-    <!-- Main Analytics Row -->
-    <section class="campaign-analytics-grid">
-
-        <!-- Status Distribution -->
-        <article class="campaign-panel distribution-panel">
-
-            <div class="campaign-panel-header">
-
-                <div>
-                    <span class="panel-eyebrow">
-                        VOTER INSIGHTS
-                    </span>
-
-                    <h2>
-                        Status Distribution
-                    </h2>
-                </div>
-
-                <span class="panel-total">
-                    @statusTotal.ToString("N0") classified
-                </span>
-
-            </div>
-
-            <div class="distribution-layout">
-
-                <div class="distribution-donut-wrapper">
-
-                    <div class="distribution-donut"
-                         style="
-                            --supporter:@supporterPercentage;
-                            --opponent:@opponentPercentage;
-                            --undecided:@undecidedPercentage;
-                            --neutral:@neutralPercentage;">
-
-                        <div class="distribution-donut-center">
-
-                            <strong>
-                                @statusTotal.ToString("N0")
-                            </strong>
-
-                            <span>
-                                Status records
+            @if (!isNational)
+            {
+                <div class="hd-empty">Constituency comparisons are available to national roles.</div>
+            }
+            else if (!topConstituencies.Any())
+            {
+                <div class="hd-empty">No constituency has voters yet.</div>
+            }
+            else
+            {
+                <p class="hd-caption">Share of voters who are supporters</p>
+                <ul class="hd-bars">
+                    @foreach (var c in topConstituencies)
+                    {
+                        var pct = Math.Clamp(c.SupportPercentage, 0, 100);
+                        <li>
+                            <span class="hd-bar-name" title="@c.ConstituencyName">@c.ConstituencyName</span>
+                            <span class="hd-bar-track">
+                                <span class="hd-bar-fill @BandClass(pct)" style="width: @(pct.ToString(System.Globalization.CultureInfo.InvariantCulture))%"></span>
                             </span>
+                            <b>@Pct(pct)</b>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
 
+        <!-- Coverage -->
+        <div class="hd-card">
+            <div class="hd-card-head">
+                <h2>Coverage</h2>
+                <span class="hd-chip">Support level</span>
+            </div>
+
+            <div class="hd-coverage">
+                <div class="hd-coverage-stats">
+                    <div>
+                        <span>Constituencies</span>
+                        <strong>@dashboard.TotalConstituencies.ToString("N0")</strong>
+                    </div>
+                    <div>
+                        <span>Islands</span>
+                        <strong>@dashboard.TotalIslands.ToString("N0")</strong>
+                    </div>
+                    @if (isNational && constituencies.Any())
+                    {
+                        <div>
+                            <span>With voters</span>
+                            <strong>@coveragePct%</strong>
                         </div>
-
-                    </div>
-
+                    }
                 </div>
 
-                <div class="distribution-list">
-
-                    <div class="distribution-item">
-
-                        <span class="distribution-dot
-                                     distribution-supporter">
-                        </span>
-
-                        <div class="distribution-item-body">
-                            <span>Supporters</span>
-
-                            <strong>
-                                @supporters.ToString("N0")
-                            </strong>
-                        </div>
-
-                        <span class="distribution-percent">
-                            @supporterPercentage%
-                        </span>
-
-                    </div>
-
-                    <div class="distribution-item">
-
-                        <span class="distribution-dot
-                                     distribution-opponent">
-                        </span>
-
-                        <div class="distribution-item-body">
-                            <span>Opponents</span>
-
-                            <strong>
-                                @opponents.ToString("N0")
-                            </strong>
-                        </div>
-
-                        <span class="distribution-percent">
-                            @opponentPercentage%
-                        </span>
-
-                    </div>
-
-                    <div class="distribution-item">
-
-                        <span class="distribution-dot
-                                     distribution-undecided">
-                        </span>
-
-                        <div class="distribution-item-body">
-                            <span>Undecided</span>
-
-                            <strong>
-                                @undecided.ToString("N0")
-                            </strong>
-                        </div>
-
-                        <span class="distribution-percent">
-                            @undecidedPercentage%
-                        </span>
-
-                    </div>
-
-                    <div class="distribution-item">
-
-                        <span class="distribution-dot
-                                     distribution-neutral">
-                        </span>
-
-                        <div class="distribution-item-body">
-                            <span>Neutral</span>
-
-                            <strong>
-                                @neutral.ToString("N0")
-                            </strong>
-                        </div>
-
-                        <span class="distribution-percent">
-                            @neutralPercentage%
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </article>
-
-        <!-- Pledge Progress -->
-        <article class="campaign-panel pledge-panel">
-
-            <div class="campaign-panel-header">
-
-                <div>
-                    <span class="panel-eyebrow">
-                        COMMITMENTS
-                    </span>
-
-                    <h2>
-                        Pledge Progress
-                    </h2>
-                </div>
-
-                <a asp-controller="Reports"
-                   asp-action="Pledges"
-                   class="panel-link">
-                    View all
-                </a>
-
-            </div>
-
-            <div class="pledge-total-row">
-
-                <div>
-                    <span>Total Pledges</span>
-
-                    <strong>
-                        @dashboard.TotalPledges.ToString("N0")
-                    </strong>
-                </div>
-
-                <div class="pledge-completion-circle">
-                    <strong>
-                        @completedPledgePercentage%
-                    </strong>
-
-                    <span>
-                        completed
-                    </span>
-                </div>
-
-            </div>
-
-            <div class="pledge-progress-group">
-
-                <div class="pledge-progress-heading">
-                    <span>Completed</span>
-
-                    <strong>
-                        @dashboard.CompletedPledges.ToString("N0")
-                    </strong>
-                </div>
-
-                <div class="pledge-progress-track">
-                    <div class="pledge-progress-fill
-                                pledge-completed-fill"
-                         style="width:@completedPledgePercentage%">
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="pledge-progress-group">
-
-                <div class="pledge-progress-heading">
-                    <span>Open</span>
-
-                    <strong>
-                        @dashboard.OpenPledges.ToString("N0")
-                    </strong>
-                </div>
-
-                <div class="pledge-progress-track">
-                    <div class="pledge-progress-fill
-                                pledge-open-fill"
-                         style="width:@openPledgePercentage%">
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="pledge-summary-grid">
-
-                <div class="pledge-summary-item">
-                    <span>Completed</span>
-
-                    <strong>
-                        @dashboard.CompletedPledges
-                    </strong>
-                </div>
-
-                <div class="pledge-summary-item">
-                    <span>Open</span>
-
-                    <strong>
-                        @dashboard.OpenPledges
-                    </strong>
-                </div>
-
-                <div class="pledge-summary-item">
-                    <span>Total</span>
-
-                    <strong>
-                        @dashboard.TotalPledges
-                    </strong>
-                </div>
-
-            </div>
-
-        </article>
-
-        <!-- Quick Actions -->
-        <article class="campaign-panel actions-panel">
-
-            <div class="campaign-panel-header">
-
-                <div>
-                    <span class="panel-eyebrow">
-                        OPERATIONS
-                    </span>
-
-                    <h2>
-                        Quick Actions
-                    </h2>
-                </div>
-
-            </div>
-
-            <div class="quick-action-grid">
-
-                @if (role != "Reporter")
+                @if (isNational && constituencies.Any())
                 {
-                    <a asp-controller="Voters"
-                       asp-action="Create"
-                       class="quick-action-item">
+                    <div class="hd-progress" role="progressbar" aria-label="Constituencies with voters"
+                         aria-valuenow="@coveragePct" aria-valuemin="0" aria-valuemax="100">
+                        <span style="width: @coveragePct%"></span>
+                    </div>
 
-                        <span class="quick-action-icon
-                                     quick-action-blue">
-                            +
-                        </span>
-
-                        <span class="quick-action-content">
-                            <strong>Add Voter</strong>
-                            <small>Create a voter record</small>
-                        </span>
-
-                        <span class="quick-action-arrow">
-                            →
-                        </span>
-
-                    </a>
-
-                    <a asp-controller="Voters"
-                       asp-action="Index"
-                       class="quick-action-item">
-
-                        <span class="quick-action-icon
-                                     quick-action-green">
-                            S
-                        </span>
-
-                        <span class="quick-action-content">
-                            <strong>Search Voters</strong>
-                            <small>Find a voter profile</small>
-                        </span>
-
-                        <span class="quick-action-arrow">
-                            →
-                        </span>
-
-                    </a>
-
-                    <a asp-controller="Influencers"
-                       asp-action="Index"
-                       class="quick-action-item">
-
-                        <span class="quick-action-icon
-                                     quick-action-violet">
-                            I
-                        </span>
-
-                        <span class="quick-action-content">
-                            <strong>Influencers</strong>
-                            <small>Manage the network</small>
-                        </span>
-
-                        <span class="quick-action-arrow">
-                            →
-                        </span>
-
-                    </a>
+                    <ul class="hd-bands">
+                        <li><i class="is-green"></i>High support <small>65%+</small><b>@highBand</b></li>
+                        <li><i class="is-amber"></i>Medium <small>45–64%</small><b>@midBand</b></li>
+                        <li><i class="is-red"></i>Low support <small>under 45%</small><b>@lowBand</b></li>
+                        <li><i class="is-muted"></i>No data<b>@noData</b></li>
+                    </ul>
                 }
-
-                <a asp-controller="Reports"
-                   asp-action="Pledges"
-                   class="quick-action-item">
-
-                    <span class="quick-action-icon
-                                 quick-action-orange">
-                        P
-                    </span>
-
-                    <span class="quick-action-content">
-                        <strong>Pledges</strong>
-                        <small>Review commitments</small>
-                    </span>
-
-                    <span class="quick-action-arrow">
-                        →
-                    </span>
-
-                </a>
-
-                @if (role == "Super Administrator")
+                else
                 {
-                    <a asp-controller="Users"
-                       asp-action="Index"
-                       class="quick-action-item">
-
-                        <span class="quick-action-icon
-                                     quick-action-dark">
-                            U
-                        </span>
-
-                        <span class="quick-action-content">
-                            <strong>Manage Users</strong>
-                            <small>Roles and scopes</small>
-                        </span>
-
-                        <span class="quick-action-arrow">
-                            →
-                        </span>
-
-                    </a>
+                    <p class="hd-note">Constituencies and islands in your assigned scope.</p>
                 }
-
             </div>
-
-        </article>
+        </div>
 
     </section>
 
-    <!-- Activity and Recent Voters -->
-    <section class="campaign-lists-grid">
+    <!-- LISTS ROW -->
+    <section class="hd-row hd-row-lists">
 
-        <article class="campaign-panel activity-panel">
-
-            <div class="campaign-panel-header">
-
-                <div>
-                    <span class="panel-eyebrow">
-                        AUDIT TRAIL
-                    </span>
-
-                    <h2>
-                        Recent Activity
-                    </h2>
-                </div>
-
-                <span class="panel-total">
-                    Latest @Model.Activities.Take(8).Count()
-                </span>
-
+        <!-- Recent activity -->
+        <div class="hd-card">
+            <div class="hd-card-head">
+                <h2>Recent Activity</h2>
             </div>
 
-            @if (Model.Activities.Any())
+            @if (!activities.Any())
             {
-                <div class="activity-feed">
-
-                    @foreach (
-                        var activity
-                        in Model.Activities.Take(8))
-                    {
-                        var activityClass =
-                            activity.Action
-                                .Equals(
-                                    "Create",
-                                    StringComparison
-                                        .OrdinalIgnoreCase)
-                                ? "activity-create"
-                                : activity.Action
-                                    .Equals(
-                                        "Delete",
-                                        StringComparison
-                                            .OrdinalIgnoreCase)
-                                    ? "activity-delete"
-                                    : "activity-update";
-
-                        <div class="activity-item">
-
-                            <div class="activity-marker
-                                        @activityClass">
-                            </div>
-
-                            <div class="activity-content">
-
-                                <div class="activity-description">
-
-                                    <strong>
-                                        @activity.Action
-                                    </strong>
-
-                                    <span>
-                                        @activity.EntityName
-                                    </span>
-
-                                </div>
-
-                                <div class="activity-meta">
-                                    @activity.CreatedAt.ToString(
-                                        "dd MMM yyyy, HH:mm")
-                                </div>
-
-                            </div>
-
-                        </div>
-                    }
-
-                </div>
+                <div class="hd-empty">No recent activity yet.</div>
             }
             else
             {
-                <div class="dashboard-empty-state">
-                    No recent activity is available.
-                </div>
+                <ul class="hd-list">
+                    @foreach (var activity in activities.Take(5))
+                    {
+                        var style = ActivityStyle(activity.Action);
+                        <li>
+                            <span class="hd-list-icon @style.Tone"><partial name="_Icon" model="@style.Icon" /></span>
+                            <span class="hd-list-text">
+                                <strong>@activity.Action</strong>
+                                <small>
+                                    @if (!string.IsNullOrWhiteSpace(activity.EntityName))
+                                    {
+                                        @activity.EntityName<text> · </text>
+                                    }
+                                    @RelativeTime(activity.CreatedAt)
+                                </small>
+                            </span>
+                        </li>
+                    }
+                </ul>
             }
+        </div>
 
-        </article>
+        <!-- Recently added voters -->
+        <div class="hd-card">
+            <div class="hd-card-head">
+                <h2>Recently Added Voters</h2>
+                @if (!isReporter)
+                {
+                    <a class="hd-link" asp-controller="Voters" asp-action="Index">View all</a>
+                }
+            </div>
 
-        <article class="campaign-panel recent-voters-panel">
+            @if (!recentVoters.Any())
+            {
+                <div class="hd-empty">No voters added yet.</div>
+            }
+            else
+            {
+                <ul class="hd-list">
+                    @foreach (var voter in recentVoters.Take(5))
+                    {
+                        var name = string.IsNullOrWhiteSpace(voter.FullName) ? "Unnamed voter" : voter.FullName;
+                        var place = string.Join(" · ", new[] { voter.IslandName, voter.ConstituencyName }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                        var status = string.IsNullOrWhiteSpace(voter.SupportStatus) ? "Not set" : voter.SupportStatus;
 
-            <div class="campaign-panel-header">
+                        <li>
+                            <span class="hd-avatar" aria-hidden="true">@InitialsOf(name)</span>
+                            <span class="hd-list-text">
+                                @if (!isReporter)
+                                {
+                                    <a asp-controller="Voters" asp-action="Profile" asp-route-id="@voter.Id"><strong>@name</strong></a>
+                                }
+                                else
+                                {
+                                    <strong>@name</strong>
+                                }
+                                <small>@(string.IsNullOrEmpty(place) ? "No location set" : place)</small>
+                            </span>
+                            <span class="hd-pill @StatusClass(voter.SupportStatus)">@status</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
 
-                <div>
-                    <span class="panel-eyebrow">
-                        LATEST RECORDS
-                    </span>
+        <!-- Quick actions -->
+        <div class="hd-card">
+            <div class="hd-card-head">
+                <h2>Quick Actions</h2>
+            </div>
 
-                    <h2>
-                        Recent Voters
-                    </h2>
-                </div>
-
-                <a asp-controller="Voters"
-                   asp-action="Index"
-                   class="panel-link">
-                    View all
+            <div class="hd-actions">
+                @if (!isReporter)
+                {
+                    <a class="hd-action is-blue" asp-controller="Voters" asp-action="Create">
+                        <partial name="_Icon" model='"user-plus"' />
+                        <span>Add Voter</span>
+                    </a>
+                    <a class="hd-action is-blue" asp-controller="Voters" asp-action="Index" title="Choose a voter, then record an encounter">
+                        <partial name="_Icon" model='"calendar"' />
+                        <span>Record Encounter</span>
+                    </a>
+                    <a class="hd-action is-green" asp-controller="Voters" asp-action="Index" title="Choose a voter, then add a pledge">
+                        <partial name="_Icon" model='"handshake"' />
+                        <span>Add Pledge</span>
+                    </a>
+                    <a class="hd-action is-violet" asp-controller="Influencers" asp-action="Index">
+                        <partial name="_Icon" model='"star"' />
+                        <span>Influencers</span>
+                    </a>
+                }
+                @if (isSuperAdmin)
+                {
+                    <a class="hd-action is-blue" asp-controller="Users" asp-action="Index">
+                        <partial name="_Icon" model='"users"' />
+                        <span>Manage Users</span>
+                    </a>
+                }
+                @if (isNational)
+                {
+                    <a class="hd-action is-green" asp-controller="Reports" asp-action="ConstituencySummary">
+                        <partial name="_Icon" model='"chart"' />
+                        <span>Run Report</span>
+                    </a>
+                }
+                <a class="hd-action is-amber" asp-controller="Reports" asp-action="Pledges">
+                    <partial name="_Icon" model='"file"' />
+                    <span>Pledge Report</span>
                 </a>
-
             </div>
-
-            @if (Model.RecentVoters.Any())
-            {
-                <div class="recent-voter-list">
-
-                    @foreach (
-                        var voter
-                        in Model.RecentVoters.Take(7))
-                    {
-                        var voterInitials =
-                            string.Join(
-                                string.Empty,
-                                voter.FullName
-                                    .Split(
-                                        ' ',
-                                        StringSplitOptions
-                                            .RemoveEmptyEntries)
-                                    .Take(2)
-                                    .Select(name =>
-                                        char.ToUpperInvariant(
-                                            name[0])));
-
-                        <div class="recent-voter-item">
-
-                            <div class="recent-voter-avatar">
-                                @voterInitials
-                            </div>
-
-                            <div class="recent-voter-details">
-
-                                <strong>
-                                    @voter.FullName
-                                </strong>
-
-                                <span>
-                                    @voter.NationalId
-                                </span>
-
-                            </div>
-
-                            <a asp-controller="Voters"
-                               asp-action="Profile"
-                               asp-route-id="@voter.Id"
-                               class="recent-voter-button">
-                                View
-                            </a>
-
-                        </div>
-                    }
-
-                </div>
-            }
-            else
-            {
-                <div class="dashboard-empty-state">
-                    No recent voter records are available.
-                </div>
-            }
-
-        </article>
+        </div>
 
     </section>
 

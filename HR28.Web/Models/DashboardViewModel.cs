@@ -8,4 +8,8 @@ public class DashboardViewModel
         = new();
     public List<VoterSearchDto> RecentVoters { get; set; }
         = new();
+
+    // Only populated for national roles; the summary endpoint is not scope-filtered.
+    public List<ConstituencySummaryDto> Constituencies { get; set; }
+        = new();
 }

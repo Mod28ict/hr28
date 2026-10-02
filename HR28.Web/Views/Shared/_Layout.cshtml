@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 
@@ -7,127 +7,413 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0" />
 
-    <title>@ViewData["Title"] - HR28.Web</title>
+    <title>@ViewData["Title"] | HR28</title>
 
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/shell.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/HR28.Web.styles.css" asp-append-version="true" />
 
-    <link rel="stylesheet"
-          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        @@import url("https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css");
+        .select2-container--default .select2-selection--single {
+    height: 46px !important;
+    border: 1px solid #dbe4ef !important;
+    border-radius: 12px !important;
+    background: #ffffff;
+}
 
-    <link rel="stylesheet"
-          href="~/css/site.css" asp-append-version="true" />
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding-left: 14px !important;
+    padding-right: 50px !important;
+    line-height: 44px !important;
+    color: #0f172a;
+    font-size: 15px;
+}
 
-    <link rel="stylesheet"
-          href="~/HR28.Web.styles.css" asp-append-version="true" />
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 44px !important;
+    right: 10px !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    height: 44px;
+    margin-right: 22px;
+    color: #94a3b8;
+    font-size: 18px;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+}
+
+.select2-dropdown {
+    border: 1px solid #dbe4ef !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.10);
+}
+
+.select2-search--dropdown .select2-search__field {
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid #dbe4ef !important;
+    border-radius: 8px;
+    outline: none;
+}
+
+.select2-results__option {
+    padding: 9px 14px;
+    font-size: 14px;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected],
+.select2-results__option--highlighted {
+    background: #2563eb !important;
+    color: #ffffff !important;
+}
+.h28-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 18px;
+    background: rgba(248, 250, 252, 0.82);
+    backdrop-filter: blur(6px);
+}
+
+.h28-loader.show {
+    display: flex;
+}
+
+.h28-loader-ring {
+    position: relative;
+    width: 64px;
+    height: 64px;
+}
+
+.h28-loader-ring::before,
+.h28-loader-ring::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 4px solid transparent;
+}
+
+.h28-loader-ring::before {
+    border-color: #dbeafe;
+}
+
+.h28-loader-ring::after {
+    border-top-color: #2563eb;
+    border-right-color: #60a5fa;
+    animation: h28Spin 0.8s linear infinite;
+}
+
+.h28-loader-mark {
+    position: absolute;
+    inset: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #2563eb, #60a5fa);
+}
+
+.h28-loader-text {
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.h28-loader-sub {
+    margin-top: -12px;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+@@keyframes h28Spin {
+    to { transform: rotate(360deg); }
+}
+    </style>
 
 </head>
 
-<body>
-    @{
+<body class="shell-body">
+<div class="h28-loader" id="h28Loader">
+    <div class="h28-loader-ring">
+        <div class="h28-loader-mark">H28</div>
+    </div>
+    <div class="h28-loader-text">Loading campaign data…</div>
+    <div class="h28-loader-sub">This may take a few seconds</div>
+</div>
+@{
     var role = Context.Session.GetString("UserRole");
-}
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HR28.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-<li class="nav-item">
-    <a class="nav-link text-dark"
-       asp-controller="Home"
-       asp-action="Privacy">
-        Privacy
-    </a>
-</li>
-@if (role == "Super Administrator"
-    || role == "National Administrator"
-    || role == "Reporter")
-{
-    <li class="nav-item">
-        <a class="nav-link text-dark"
-           asp-controller="Reports"
-           asp-action="ConstituencySummary">
-            Constituencies
-        </a>
-    </li>
-}
-@if (role != "Reporter")
-{
-    <li class="nav-item">
-        <a class="nav-link text-dark"
-           asp-controller="Voters"
-           asp-action="Index">
-            Voters
-        </a>
-    </li>
-}
-@if (role != "Reporter")
-{
-    <li class="nav-item">
-        <a class="nav-link text-dark"
-           asp-controller="Influencers"
-           asp-action="Index">
-            Influencers
-        </a>
-    </li>
-}
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-controller="Reports"
-                               asp-action="Pledges">
-                                Pledges
-                            </a>
-                        </li>
-@if (role != "Reporter")
-{
-    <li class="nav-item">
-        <a class="nav-link text-dark"
-           asp-controller="Voters"
-           asp-action="Create">
-            Add Voter
-        </a>
-    </li>
-}
-@if (role == "Super Administrator")
-{
-    <li class="nav-item">
-        <a class="nav-link"
-           asp-controller="Users"
-           asp-action="Index">
-            Users
-        </a>
-    </li>
+
+    var userName =
+        Context.Session.GetString("UserName")
+        ?? "User";
+
+    var initials = string.Concat(
+        userName
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2)
+            .Select(part => char.ToUpperInvariant(part[0])));
+
+    if (string.IsNullOrEmpty(initials))
+    {
+        initials = "U";
+    }
+
+    var isReporter = role == "Reporter";
+
+    var isNational =
+        role == "Super Administrator"
+        || role == "National Administrator"
+        || role == "Reporter";
+
+    var isSuperAdmin = role == "Super Administrator";
+
+    var currentController =
+        ViewContext.RouteData.Values["controller"]?.ToString()
+        ?? "";
+
+    var currentAction =
+        ViewContext.RouteData.Values["action"]?.ToString()
+        ?? "";
+
+    string NavClass(bool active) =>
+        active ? "shell-nav-link is-active" : "shell-nav-link";
 }
 
-                    </ul>
-                </div>
-            </div>
+<div class="shell">
+
+    <aside class="shell-sidebar" id="shellSidebar" aria-label="Main navigation">
+
+        <a class="shell-brand" asp-controller="Dashboard" asp-action="Index">
+            <span class="shell-brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5zm0 2.3 6.8 3.8L12 11.9 5.2 8.1 12 4.3zM5 9.8l6 3.4v6.6l-6-3.4V9.8zm8 10v-6.6l6-3.4v6.6l-6 3.4z" /></svg>
+            </span>
+            <span>HR28</span>
+        </a>
+
+        <nav class="shell-nav">
+
+            <a class="@NavClass(currentController == "Dashboard")"
+               asp-controller="Dashboard" asp-action="Index">
+                <partial name="_Icon" model='"dashboard"' />
+                <span>Dashboard</span>
+            </a>
+
+            @if (!isReporter)
+            {
+                <a class="@NavClass(currentController == "Voters")"
+                   asp-controller="Voters" asp-action="Index">
+                    <partial name="_Icon" model='"users"' />
+                    <span>Voters</span>
+                </a>
+
+                <a class="@NavClass(currentController == "Influencers")"
+                   asp-controller="Influencers" asp-action="Index">
+                    <partial name="_Icon" model='"star"' />
+                    <span>Influencers</span>
+                </a>
+            }
+
+            <a class="@NavClass(currentController == "Reports" && currentAction == "Pledges")"
+               asp-controller="Reports" asp-action="Pledges">
+                <partial name="_Icon" model='"handshake"' />
+                <span>Pledges</span>
+            </a>
+
+            @if (isNational)
+            {
+                <a class="@NavClass(currentController == "Reports" && currentAction == "ConstituencySummary")"
+                   asp-controller="Reports" asp-action="ConstituencySummary">
+                    <partial name="_Icon" model='"map-pin"' />
+                    <span>Constituencies</span>
+                </a>
+            }
+
+            @if (isSuperAdmin)
+            {
+                <div class="shell-nav-section">Administration</div>
+
+                <a class="@NavClass(currentController == "Users")"
+                   asp-controller="Users" asp-action="Index">
+                    <partial name="_Icon" model='"user"' />
+                    <span>Users</span>
+                </a>
+            }
+
         </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+        <div class="shell-sidebar-tagline" aria-hidden="true">
+            People<br />Insights<br />Progress
+        </div>
+
+    </aside>
+
+    <div class="shell-backdrop" id="shellBackdrop" hidden></div>
+
+    <div class="shell-main">
+
+        <header class="shell-topbar">
+
+            <button type="button"
+                    class="shell-menu-toggle"
+                    id="shellMenuToggle"
+                    aria-controls="shellSidebar"
+                    aria-expanded="false"
+                    aria-label="Open navigation">
+                <partial name="_Icon" model='"menu"' />
+            </button>
+
+            @if (!isReporter)
+            {
+                <form class="shell-search"
+                      role="search"
+                      method="get"
+                      asp-controller="Voters"
+                      asp-action="Index">
+                    <label for="shellSearch" class="visually-hidden">Search voters</label>
+                    <partial name="_Icon" model='"search"' />
+                    <input id="shellSearch"
+                           name="searchTerm"
+                           type="search"
+                           autocomplete="off"
+                           placeholder="Search voters by name, National ID or mobile…" />
+                    <kbd class="shell-kbd" aria-hidden="true">Ctrl + K</kbd>
+                </form>
+            }
+            else
+            {
+                <div class="shell-search-spacer"></div>
+            }
+
+            <div class="dropdown">
+                <button type="button"
+                        class="shell-user"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                    <span class="shell-user-avatar" aria-hidden="true">@initials</span>
+                    <span class="shell-user-text">
+                        <strong>@userName</strong>
+                        <small>@(role ?? "User")</small>
+                    </span>
+                    <partial name="_Icon" model='"chevron-down"' />
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end shell-user-menu">
+                    <li>
+                        <a class="dropdown-item text-danger" asp-controller="Auth" asp-action="Logout">
+                            <partial name="_Icon" model='"logout"' />
+                            Sign out
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </header>
+
+        <main role="main" class="shell-content">
             @RenderBody()
         </main>
+
+        <footer class="shell-footer">
+            &copy; @DateTime.Now.Year HR28 &middot; Campaign Intelligence Platform | Designed and Developed by: Ahmed Rasheed
+        </footer>
+
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - HR28.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+</div>
 
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    (function () {
+        const loader = document.getElementById("h28Loader");
+
+        function showLoader() {
+            loader.classList.add("show");
+        }
+
+        function hideLoader() {
+            loader.classList.remove("show");
+        }
+
+        document.addEventListener("click", function (e) {
+            const link = e.target.closest("a");
+
+            if (!link) return;
+
+            const href = link.getAttribute("href");
+
+            if (!href ||
+                href.startsWith("#") ||
+                href.startsWith("javascript") ||
+                link.target === "_blank" ||
+                link.hasAttribute("download") ||
+                e.ctrlKey || e.metaKey || e.shiftKey) {
+                return;
+            }
+
+            if (link.origin !== window.location.origin) return;
+
+            showLoader();
+        });
+
+        document.addEventListener("submit", function () {
+            showLoader();
+        });
+
+        // Hide the loader again if the user presses Back
+        window.addEventListener("pageshow", hideLoader);
+    })();
+
+    (function () {
+        const sidebar = document.getElementById("shellSidebar");
+        const backdrop = document.getElementById("shellBackdrop");
+        const toggle = document.getElementById("shellMenuToggle");
+        const search = document.getElementById("shellSearch");
+
+        function setSidebar(open) {
+            sidebar.classList.toggle("is-open", open);
+            backdrop.hidden = !open;
+            toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        }
+
+        toggle.addEventListener("click", function () {
+            setSidebar(!sidebar.classList.contains("is-open"));
+        });
+
+        backdrop.addEventListener("click", function () {
+            setSidebar(false);
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && sidebar.classList.contains("is-open")) {
+                setSidebar(false);
+                toggle.focus();
+            }
+
+            if (search && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+                e.preventDefault();
+                search.focus();
+            }
+        });
+    })();
+</script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
