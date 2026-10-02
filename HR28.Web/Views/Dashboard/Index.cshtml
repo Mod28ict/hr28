@@ -27,21 +27,80 @@
     // Voters whose status is set; the donut shares are of these, not of all voters.
     var classified = dashboard.Supporters + dashboard.Undecided + dashboard.Neutral + dashboard.Opponents;
 
-    decimal Share(int part, int whole) =>
-        whole == 0 ? 0 : Math.Round(part * 100m / whole, 1);
+    // Honest percentage text: small but real numbers never show as "0%",
+    // and a near-total share never shows as "100%" while others exist.
+    string PctText(int part, int whole)
+    {
+        if (whole == 0 || part == 0) return "0%";
+        if (part == whole) return "100%";
 
-    var supporterPct = Share(dashboard.Supporters, classified);
-    var undecidedPct = Share(dashboard.Undecided, classified);
-    var neutralPct = Share(dashboard.Neutral, classified);
-    var opponentPct = Share(dashboard.Opponents, classified);
+        var pct = part * 100m / whole;
 
-    var stop1 = supporterPct;
-    var stop2 = stop1 + undecidedPct;
-    var stop3 = stop2 + neutralPct;
-    var donutStyle = classified == 0
-        ? "background: var(--hd-track);"
-        : FormattableString.Invariant(
-            $"background: conic-gradient(var(--hd-green) 0 {stop1}%, var(--hd-amber) {stop1}% {stop2}%, var(--hd-blue) {stop2}% {stop3}%, var(--hd-red) {stop3}% 100%);");
+        if (pct < 0.1m) return "<0.1%";
+        if (pct > 99.9m) return ">99.9%";
+
+        return Math.Round(pct, 1).ToString("0.#") + "%";
+    }
+
+    // Donut slices: real shares, but every non-zero group gets at least a visible
+    // sliver (purely visual; the legend shows the true numbers).
+    string DonutStyle(int supporters, int undecided, int neutral, int opponents)
+    {
+        var counts = new[] { supporters, undecided, neutral, opponents };
+        var total = counts.Sum();
+
+        if (total == 0)
+            return "background: var(--hd-track);";
+
+        const decimal minSlice = 1.5m;
+        var shares = counts.Select(c => c == 0 ? 0m : Math.Max(minSlice, c * 100m / total)).ToArray();
+        var scale = 100m / shares.Sum();
+        var colors = new[] { "var(--hd-green)", "var(--hd-amber)", "var(--hd-blue)", "var(--hd-red)" };
+
+        var stops = new List<string>();
+        var at = 0m;
+
+        for (var i = 0; i < shares.Length; i++)
+        {
+            if (shares[i] == 0) continue;
+
+            var end = Math.Min(100m, at + shares[i] * scale);
+            stops.Add(FormattableString.Invariant($"{colors[i]} {at:0.###}% {end:0.###}%"));
+            at = end;
+        }
+
+        return $"background: conic-gradient({string.Join(", ", stops)});";
+    }
+
+    var donutStyle = DonutStyle(dashboard.Supporters, dashboard.Undecided, dashboard.Neutral, dashboard.Opponents);
+
+    // Data for the constituency picker (same scoped figures the page already has).
+    var distributionOptions = constituencies
+        .OrderBy(c => c.ConstituencyName)
+        .Select(c => new
+        {
+            id = c.ConstituencyId,
+            name = c.ConstituencyName,
+            total = c.TotalVoters,
+            supporters = c.Supporters,
+            undecided = c.Undecided,
+            neutral = c.Neutral,
+            opponents = c.Opponents
+        })
+        .ToList();
+
+    var distributionJson = System.Text.Json.JsonSerializer.Serialize(new
+    {
+        all = new
+        {
+            total = totalVoters,
+            supporters = dashboard.Supporters,
+            undecided = dashboard.Undecided,
+            neutral = dashboard.Neutral,
+            opponents = dashboard.Opponents
+        },
+        constituencies = distributionOptions
+    });
 
     var topConstituencies = constituencies
         .Where(c => c.TotalVoters > 0)
@@ -143,7 +202,7 @@
             <div>
                 <div class="hd-kpi-label">Supporters</div>
                 <div class="hd-kpi-value">@dashboard.Supporters.ToString("N0")</div>
-                <div class="hd-kpi-foot"><b>@Pct(Share(dashboard.Supporters, totalVoters))</b> of voters</div>
+                <div class="hd-kpi-foot"><b>@PctText(dashboard.Supporters, totalVoters)</b> of voters</div>
             </div>
         </div>
 
@@ -152,7 +211,7 @@
             <div>
                 <div class="hd-kpi-label">Undecided</div>
                 <div class="hd-kpi-value">@dashboard.Undecided.ToString("N0")</div>
-                <div class="hd-kpi-foot"><b>@Pct(Share(dashboard.Undecided, totalVoters))</b> of voters</div>
+                <div class="hd-kpi-foot"><b>@PctText(dashboard.Undecided, totalVoters)</b> of voters</div>
             </div>
         </div>
 
@@ -161,7 +220,7 @@
             <div>
                 <div class="hd-kpi-label">Opposition</div>
                 <div class="hd-kpi-value">@dashboard.Opponents.ToString("N0")</div>
-                <div class="hd-kpi-foot"><b>@Pct(Share(dashboard.Opponents, totalVoters))</b> of voters</div>
+                <div class="hd-kpi-foot"><b>@PctText(dashboard.Opponents, totalVoters)</b> of voters</div>
             </div>
         </div>
 
@@ -224,37 +283,50 @@
         <div class="hd-card">
             <div class="hd-card-head">
                 <h2>Voter Distribution</h2>
-                <span class="hd-chip">@(isAdministrator ? "All constituencies" : "Your assigned area")</span>
+
+                @if (distributionOptions.Count > 1)
+                {
+                    <label for="hdDistScope" class="visually-hidden">Show distribution for</label>
+                    <select id="hdDistScope" class="hd-select">
+                        <option value="all">@(isAdministrator ? "All constituencies" : "All my areas")</option>
+                        @foreach (var c in distributionOptions)
+                        {
+                            <option value="@c.id">@c.name</option>
+                        }
+                    </select>
+                }
+                else
+                {
+                    <span class="hd-chip">@(isAdministrator ? "All constituencies" : distributionOptions.FirstOrDefault()?.name ?? "Your assigned area")</span>
+                }
             </div>
 
-            @if (classified == 0)
-            {
-                <div class="hd-empty">No voters have a support status yet.</div>
-            }
-            else
-            {
+            <div id="hdDistEmpty" class="hd-empty" @(classified == 0 ? "" : "hidden")>No voters with a support status here yet.</div>
+
+            <div id="hdDistBody" @(classified == 0 ? "hidden" : "")>
                 <div class="hd-dist">
-                    <div class="hd-donut" style="@donutStyle" role="img"
-                         aria-label="@($"Supporters {Pct(supporterPct)}, Undecided {Pct(undecidedPct)}, Neutral {Pct(neutralPct)}, Opposition {Pct(opponentPct)}")">
+                    <div class="hd-donut" id="hdDonut" style="@donutStyle" role="img"
+                         aria-label="@($"Supporters {PctText(dashboard.Supporters, classified)}, Undecided {PctText(dashboard.Undecided, classified)}, Neutral {PctText(dashboard.Neutral, classified)}, Opposition {PctText(dashboard.Opponents, classified)}")">
                         <div class="hd-donut-center">
-                            <strong>@classified.ToString("N0")</strong>
-                            <span>Voters with status</span>
+                            <strong id="hdDistTotal">@classified.ToString("N0")</strong>
+                            <span>Voters</span>
                         </div>
                     </div>
 
                     <ul class="hd-legend">
-                        <li><i class="is-green"></i><span>Supporters</span><b>@Pct(supporterPct)</b><em>@dashboard.Supporters.ToString("N0")</em></li>
-                        <li><i class="is-amber"></i><span>Undecided</span><b>@Pct(undecidedPct)</b><em>@dashboard.Undecided.ToString("N0")</em></li>
-                        <li><i class="is-blue"></i><span>Neutral</span><b>@Pct(neutralPct)</b><em>@dashboard.Neutral.ToString("N0")</em></li>
-                        <li><i class="is-red"></i><span>Opposition</span><b>@Pct(opponentPct)</b><em>@dashboard.Opponents.ToString("N0")</em></li>
+                        <li><i class="is-green"></i><span>Supporters</span><b data-pct="supporters">@PctText(dashboard.Supporters, classified)</b><em data-count="supporters">@dashboard.Supporters.ToString("N0")</em></li>
+                        <li><i class="is-amber"></i><span>Undecided</span><b data-pct="undecided">@PctText(dashboard.Undecided, classified)</b><em data-count="undecided">@dashboard.Undecided.ToString("N0")</em></li>
+                        <li><i class="is-blue"></i><span>Neutral</span><b data-pct="neutral">@PctText(dashboard.Neutral, classified)</b><em data-count="neutral">@dashboard.Neutral.ToString("N0")</em></li>
+                        <li><i class="is-red"></i><span>Opposition</span><b data-pct="opponents">@PctText(dashboard.Opponents, classified)</b><em data-count="opponents">@dashboard.Opponents.ToString("N0")</em></li>
                     </ul>
                 </div>
 
-                @if (classified < totalVoters)
-                {
-                    <p class="hd-note">@((totalVoters - classified).ToString("N0")) voters have no support status recorded.</p>
-                }
-            }
+                <p class="hd-note" id="hdDistNote" @(classified < totalVoters ? "" : "hidden")>
+                    @((totalVoters - classified).ToString("N0")) voters have no support status recorded.
+                </p>
+            </div>
+
+            <script type="application/json" id="hdDistData">@Html.Raw(distributionJson)</script>
         </div>
 
         <!-- Constituency performance -->
@@ -478,3 +550,85 @@
     </section>
 
 </div>
+
+@section Scripts
+{
+    <script>
+        // Voter Distribution: switch between all areas and one constituency.
+        // Uses the figures already on the page; same rounding rules as the server.
+        (function () {
+            var select = document.getElementById('hdDistScope');
+            var dataEl = document.getElementById('hdDistData');
+
+            if (!select || !dataEl) return;
+
+            var data = JSON.parse(dataEl.textContent);
+            var keys = ['supporters', 'undecided', 'neutral', 'opponents'];
+            var labels = { supporters: 'Supporters', undecided: 'Undecided', neutral: 'Neutral', opponents: 'Opposition' };
+            var colors = ['var(--hd-green)', 'var(--hd-amber)', 'var(--hd-blue)', 'var(--hd-red)'];
+            var number = new Intl.NumberFormat();
+
+            function pctText(part, whole) {
+                if (!whole || !part) return '0%';
+                if (part === whole) return '100%';
+                var pct = part * 100 / whole;
+                if (pct < 0.1) return '<0.1%';
+                if (pct > 99.9) return '>99.9%';
+                return (Math.round(pct * 10) / 10) + '%';
+            }
+
+            function donutStyle(counts) {
+                var total = counts.reduce(function (a, b) { return a + b; }, 0);
+                if (!total) return 'var(--hd-track)';
+
+                var minSlice = 1.5;
+                var shares = counts.map(function (c) { return c === 0 ? 0 : Math.max(minSlice, c * 100 / total); });
+                var scale = 100 / shares.reduce(function (a, b) { return a + b; }, 0);
+                var at = 0, stops = [];
+
+                shares.forEach(function (s, i) {
+                    if (!s) return;
+                    var end = Math.min(100, at + s * scale);
+                    stops.push(colors[i] + ' ' + at.toFixed(3) + '% ' + end.toFixed(3) + '%');
+                    at = end;
+                });
+
+                return 'conic-gradient(' + stops.join(', ') + ')';
+            }
+
+            function render(item) {
+                var counts = keys.map(function (k) { return item[k] || 0; });
+                var classified = counts.reduce(function (a, b) { return a + b; }, 0);
+
+                document.getElementById('hdDistEmpty').hidden = classified > 0;
+                document.getElementById('hdDistBody').hidden = classified === 0;
+
+                var donut = document.getElementById('hdDonut');
+                donut.style.background = donutStyle(counts);
+                donut.setAttribute('aria-label', keys.map(function (k) {
+                    return labels[k] + ' ' + pctText(item[k] || 0, classified);
+                }).join(', '));
+
+                document.getElementById('hdDistTotal').textContent = number.format(classified);
+
+                keys.forEach(function (k) {
+                    document.querySelector('[data-pct="' + k + '"]').textContent = pctText(item[k] || 0, classified);
+                    document.querySelector('[data-count="' + k + '"]').textContent = number.format(item[k] || 0);
+                });
+
+                var unstated = (item.total || 0) - classified;
+                var note = document.getElementById('hdDistNote');
+                note.hidden = unstated <= 0;
+                note.textContent = number.format(unstated) + ' voters have no support status recorded.';
+            }
+
+            select.addEventListener('change', function () {
+                var item = select.value === 'all'
+                    ? data.all
+                    : data.constituencies.find(function (c) { return c.id === select.value; });
+
+                if (item) render(item);
+            });
+        })();
+    </script>
+}

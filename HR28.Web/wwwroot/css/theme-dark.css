@@ -235,6 +235,12 @@ html[data-theme="dark"] {
             background: #4a80f5;
         }
 
+    html[data-theme="dark"] .hd-select {
+        border-color: var(--hd-border);
+        color: var(--hd-text);
+        background-color: #131c2e;
+    }
+
     html[data-theme="dark"] .hd-chip {
         border-color: var(--hd-border);
         color: #c3cede;
