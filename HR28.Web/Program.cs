@@ -9,6 +9,7 @@ builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSet
 
 
 builder.Services.AddHttpClient();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ApiClient>();

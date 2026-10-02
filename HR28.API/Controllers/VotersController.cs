@@ -4,6 +4,7 @@ using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace HR28.API.Controllers;
@@ -31,6 +32,7 @@ public class VotersController : ControllerBase
     }
 
     [HttpGet]
+    [EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> GetVoters(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
@@ -85,6 +87,7 @@ await _voterService.GetVoterByIdAsync(
     }
     //[Authorize]
     [HttpGet("search")]
+    [EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> Search(
         [FromQuery] string searchTerm)
     {

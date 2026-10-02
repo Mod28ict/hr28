@@ -40,6 +40,7 @@ builder.Services.AddSingleton<IAuthorizationCodeHasher>(
     new HR28.Infrastructure.Helpers.AuthorizationCodeHasher(
         builder.Configuration["Security:AuthorizationCodeKey"] ?? string.Empty));
 builder.Services.AddHr28AuthorizationPolicies();
+builder.Services.AddHr28RateLimiting(builder.Configuration);
 builder.Services
     .AddAuthentication(
         JwtBearerDefaults.AuthenticationScheme)
@@ -111,11 +112,18 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// Must run first so rate limits see the real client IP, not the web server's.
+app.UseForwardedHeaders();
+
 app.UseHttpsRedirection();
 
 app.UseMiddleware<ApiExceptionMiddleware>();
 
 app.UseAuthentication();
+
+// After authentication so per-user limits know who is calling.
+app.UseRateLimiter();
+
 app.UseAuthorization();
 
 app.MapControllers();

@@ -3,6 +3,7 @@ using HR28.Application.Interfaces;
 using HR28.Infrastructure.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace HR28.API.Controllers;
 
@@ -72,6 +73,7 @@ public class ReportsController : ControllerBase
     // --------------------------------------------------
 
     [HttpGet("constituency-summary/export")]
+    [EnableRateLimiting(RateLimitPolicies.Export)]
     public async Task<IActionResult> ExportConstituencySummary()
     {
         var userId = User.GetUserId();
@@ -109,6 +111,7 @@ public class ReportsController : ControllerBase
     }
 
     [HttpGet("pledge-status-summary/export")]
+    [EnableRateLimiting(RateLimitPolicies.Export)]
     public async Task<IActionResult> ExportPledgeStatusSummary()
     {
         var userId = User.GetUserId();
@@ -134,6 +137,7 @@ public class ReportsController : ControllerBase
     }
 
     [HttpGet("top-influencers/export")]
+    [EnableRateLimiting(RateLimitPolicies.Export)]
     public async Task<IActionResult> ExportTopInfluencers([FromQuery] int top = 50)
     {
         var userId = User.GetUserId();

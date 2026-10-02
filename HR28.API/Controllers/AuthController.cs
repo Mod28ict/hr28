@@ -1,6 +1,8 @@
-﻿using HR28.Application.DTOs.Auth;
+using HR28.API.Extensions;
+using HR28.Application.DTOs.Auth;
 using HR28.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace HR28.API.Controllers;
 
@@ -16,14 +18,24 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("generate-otp")]
+    [EnableRateLimiting(RateLimitPolicies.OtpRequest)]
     public async Task<IActionResult> GenerateOtp(
         GenerateOtpRequestDto request)
     {
         var result =
             await _authService.GenerateOtpAsync(request);
 
+        if (result.IsThrottled)
+        {
+            Response.Headers.RetryAfter = result.RetryAfterSeconds.ToString();
+
+            return StatusCode(
+                StatusCodes.Status429TooManyRequests,
+                new { message = result.Message });
+        }
+
         if (!result.Success)
-            return BadRequest("Invalid Authorization Code.");
+            return BadRequest(new { message = result.Message });
 
         return Ok(new
         {
@@ -33,6 +45,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("verify-otp")]
+    [EnableRateLimiting(RateLimitPolicies.OtpVerify)]
     public async Task<IActionResult> VerifyOtp(
         VerifyOtpRequestDto request)
     {

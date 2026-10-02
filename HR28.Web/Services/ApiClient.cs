@@ -46,15 +46,35 @@ public class ApiClient
     private readonly HttpClient _httpClient;
     private readonly ApiSettings _settings;
     private readonly ILogger<ApiClient> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public ApiClient(
         HttpClient httpClient,
         IOptions<ApiSettings> settings,
-        ILogger<ApiClient> logger)
+        ILogger<ApiClient> logger,
+        IHttpContextAccessor httpContextAccessor)
     {
         _httpClient = httpClient;
         _settings = settings.Value;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    /// <summary>
+    /// Passes the visitor's IP to the API (which trusts it only from known
+    /// proxies) so rate limits apply per person, not per web server.
+    /// </summary>
+    public static void AddClientIp(HttpRequestMessage request, HttpContext? context)
+    {
+        var ip = context?.Connection.RemoteIpAddress;
+
+        if (ip == null)
+            return;
+
+        if (ip.IsIPv4MappedToIPv6)
+            ip = ip.MapToIPv4();
+
+        request.Headers.TryAddWithoutValidation("X-Forwarded-For", ip.ToString());
     }
 
     public Task<ApiResult<T>> GetAsync<T>(string path, string? token) =>
@@ -76,6 +96,7 @@ public class ApiClient
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, _settings.BaseUrl + path);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            AddClientIp(request, _httpContextAccessor.HttpContext);
 
             using var response = await _httpClient.SendAsync(request);
 
@@ -140,6 +161,7 @@ public class ApiClient
             using var request = new HttpRequestMessage(method, _settings.BaseUrl + path);
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            AddClientIp(request, _httpContextAccessor.HttpContext);
 
             if (body != null)
                 request.Content = JsonContent.Create(body, options: JsonOptions);
@@ -207,8 +229,11 @@ public class ApiClient
             // Not JSON; fall through to a generic message.
         }
 
-        return response.StatusCode == HttpStatusCode.Forbidden
-            ? "You don't have permission to do that."
-            : "Something went wrong. Please try again.";
+        return response.StatusCode switch
+        {
+            HttpStatusCode.Forbidden => "You don't have permission to do that.",
+            HttpStatusCode.TooManyRequests => "Too many requests. Please wait a few minutes and try again.",
+            _ => "Something went wrong. Please try again."
+        };
     }
 }

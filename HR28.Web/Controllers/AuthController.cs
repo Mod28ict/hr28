@@ -29,16 +29,17 @@ public class AuthController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(
         GenerateOtpRequest request)
     {
-        var expiresInSeconds =
+        var result =
             await _authService.GenerateOtpAsync(request);
 
-        if (expiresInSeconds == null)
+        if (!result.Success)
         {
-            ViewBag.Error =
-                "Failed to generate OTP.";
+            // Plain-language reason from the API, e.g. "Please wait 45 seconds..."
+            ViewBag.Error = result.Message;
 
             return View();
         }
@@ -49,7 +50,7 @@ public class AuthController : Controller
         // Absolute expiry so the countdown stays correct if the page is re-shown after a wrong code.
         TempData["OtpExpiresAtMs"] =
             DateTimeOffset.UtcNow
-                .AddSeconds(expiresInSeconds.Value)
+                .AddSeconds(result.ExpiresInSeconds)
                 .ToUnixTimeMilliseconds()
                 .ToString();
 
@@ -64,6 +65,7 @@ public class AuthController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> VerifyOtp(
         VerifyOtpRequest request)
     {
@@ -74,7 +76,9 @@ public class AuthController : Controller
             !response.Success)
         {
             ViewBag.Error =
-                "OTP verification failed.";
+                string.IsNullOrWhiteSpace(response?.Message)
+                    ? "That code didn't work. Please try again."
+                    : response.Message;
 
             // Keep the authorization code so the user can retry the same code.
             return View(request);

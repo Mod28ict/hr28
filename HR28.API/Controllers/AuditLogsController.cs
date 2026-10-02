@@ -4,6 +4,7 @@ using HR28.Application.Interfaces;
 using HR28.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace HR28.API.Controllers;
@@ -28,6 +29,7 @@ public class AuditLogsController : ControllerBase
     /// Paged audit trail. Administrators see every entry; other users see their own actions.
     /// </summary>
     [HttpGet]
+    [EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> Get([FromQuery] AuditQueryDto query)
     {
         var userId = User.GetUserId();
