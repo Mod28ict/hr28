@@ -101,8 +101,27 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
     Deactivated accounts get 401 on their next request.
   - Assigning or removing a role or scope is audited, and assignment screens must be
     simple for non-technical administrators.
-- Non-administrators cannot edit protected voter fields or access records outside
-  their effective scope.
+- **Granted rights (owner decision, 2026-10-02).** Some actions are not part of any
+  role by default; the Administrator grants them as named rights, either to a role
+  (Settings → Permissions grid: everyone with the role gets it) or to one user
+  (Users → Roles → "Extra rights"). Effective rights = rights of all the user's roles
+  + the user's extra rights; the Administrator always has every right.
+  - Catalog: `PermissionCatalog` (Application/Common). Current rights:
+    `Influencers.Edit`, `Influencers.Delete`. Add new rights there; the screens list
+    them automatically. Mirror the keys in web `Hr28Permissions`.
+  - Stored in `RolePermissions` (RoleId, Permission) and `UserPermissions`
+    (UserId, Permission) — migration `AddPermissions`; rollback:
+    `dotnet ef database update HashAuthorizationCodes`.
+  - Enforced on the server via `AccessScope.HasPermission(...)` (resolved live in
+    `AccessScopeService`; a role's rights change calls `InvalidateAll()`), **and** the
+    record must be inside the user's areas. The web app only hides buttons
+    (`Hr28Permissions.Has`, refreshed in the session about once a minute).
+  - Granting/removing rights is audited ("Rights for role …", "Extra rights: …").
+  - Influencer **delete is permanent** (owner decision): removes the influencer and
+    their voter links, asks for confirmation showing the link count, and the audit
+    entry stores the name and National ID. Influencer edits audit which fields changed.
+- Non-administrators cannot edit protected voter fields (constituency, island) or
+  access records outside their effective scope — enforced in the API and the UI.
 - National ID (and other chosen keys) must be duplicate-checked with friendly messages.
 - Influencer–voter links must prevent accidental duplicates but allow legitimate updates.
 - Every create, update and delete on critical records is audited: actor, timestamp,
@@ -246,7 +265,10 @@ Status as of 2026-10-02 (update when an item changes):
    add/remove.
 3. Permission matrix and API authorization policies — **mostly done.** Policies:
    default (active account), `Administrator`, `SuperAdministrator`, resolved live.
-   Still to do: a written permission matrix; stop Reporters writing via the API.
+   Granted rights (`PermissionCatalog`) cover influencer edit/delete, managed in
+   Settings → Permissions and per user. Still to do: a written matrix of what each
+   role may do by default; stop Reporters writing via the API; consider moving other
+   sensitive actions (voter delete, exports) to granted rights.
 4. Central session / 401 handling — **partly done.** `ApiClient` + `AppController`
    handle 401/403 for newer pages; `SessionRoleRefreshFilter` ends sessions of
    deactivated users. Older pages still call `DashboardService` directly (raw errors
@@ -276,6 +298,8 @@ Known open issues (fix or confirm with the owner):
   remove it. Other security headers and Secure/HttpOnly/SameSite cookies are in place.
 - `GET /Auth/Logout` can be triggered by a link (low risk; consider POST).
 - Report downloads are scoped, rate-limited and audited but have no step-up code.
+- Influencer edit/delete with granted rights is built but not yet tested end to end
+  with a signed-in non-Administrator. No right is granted to any role yet.
 - `Users.AuthorizationCode` (plain, now always empty) can be dropped in a migration.
 - Dev data to tidy: "Collector Demo" holds three roles incl. National Administrator;
   Mariyam Waheed's area pairs Henveiru West with Galolhu.
