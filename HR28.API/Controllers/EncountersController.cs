@@ -44,4 +44,19 @@ public class EncountersController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        return Ok(await _encounterService.GetByIdAsync(id));
+    }
+
+    /// <summary>Needs the granted right "Edit encounters" (checked in the service with the voter's area).</summary>
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] UpdateEncounterDto request)
+    {
+        return Ok(await _encounterService.UpdateAsync(id, request));
+    }
 }

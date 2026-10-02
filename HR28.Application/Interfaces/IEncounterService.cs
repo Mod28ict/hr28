@@ -10,4 +10,10 @@ public interface IEncounterService
 
     Task<List<EncounterDto>>
         GetByVoterIdAsync(Guid voterId);
+
+    /// <summary>One encounter, if its voter is in the current user's areas.</summary>
+    Task<EncounterDto> GetByIdAsync(Guid id);
+
+    /// <summary>Needs the Encounters.Edit right and the voter in the user's areas. Audited.</summary>
+    Task<EncounterDto> UpdateAsync(Guid id, UpdateEncounterDto request);
 }

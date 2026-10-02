@@ -11,6 +11,7 @@ public static class Hr28Permissions
 
     public const string InfluencersEdit = "Influencers.Edit";
     public const string InfluencersDelete = "Influencers.Delete";
+    public const string EncountersEdit = "Encounters.Edit";
 
     public static string ToSession(IEnumerable<string>? permissions) =>
         string.Join('|', (permissions ?? Array.Empty<string>()).Distinct());

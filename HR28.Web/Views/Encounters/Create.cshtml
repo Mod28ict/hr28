@@ -1,7 +1,15 @@
 @model HR28.Web.Models.CreateEncounterDto
 
 @{
-    ViewData["Title"] = "Add Encounter";
+    var isEdit = Model.EncounterId.HasValue;
+
+    // Older encounters may hold a value no longer offered; show it so editing keeps it.
+    var types = new[] { "Door Visit", "Phone Call", "Meeting", "Campaign Event", "Office Visit", "Other" };
+    var legacyType = !string.IsNullOrWhiteSpace(Model.EncounterType) && !types.Contains(Model.EncounterType)
+        ? Model.EncounterType
+        : null;
+
+    ViewData["Title"] = isEdit ? "Edit Encounter" : "Add Encounter";
 }
 
 <div class="ui-page is-narrow">
@@ -12,17 +20,21 @@
             <div>
                 <nav class="ui-crumb" aria-label="Breadcrumb">
                     <a asp-controller="Voters" asp-action="Profile" asp-route-id="@Model.VoterId">Voter profile</a>
-                    <span aria-hidden="true">/</span> <span>Add encounter</span>
+                    <span aria-hidden="true">/</span> <span>@(isEdit ? "Edit encounter" : "Add encounter")</span>
                 </nav>
-                <h1 class="ui-title">Add Encounter</h1>
-                <p class="ui-sub">Record a concise, factual interaction with this voter.</p>
+                <h1 class="ui-title">@(isEdit ? "Edit Encounter" : "Add Encounter")</h1>
+                <p class="ui-sub">
+                    @(isEdit
+                        ? "Correct this encounter. The change is recorded in the Audit Trail."
+                        : "Record a concise, factual interaction with this voter.")
+                </p>
             </div>
         </div>
     </header>
 
     <section class="ui-card ui-card-lg">
 
-        <form asp-action="Create" method="post">
+        <form asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@Model.EncounterId" method="post">
 
             @Html.AntiForgeryToken()
 
@@ -47,6 +59,10 @@
 
                     <select asp-for="EncounterType" class="ui-select">
                         <option value="">Select Encounter Type</option>
+                        @if (legacyType != null)
+                        {
+                            <option value="@legacyType">@legacyType</option>
+                        }
                         <option value="Door Visit">Door Visit</option>
                         <option value="Phone Call">Phone Call</option>
                         <option value="Meeting">Meeting</option>
@@ -104,7 +120,7 @@
             <div class="ui-form-actions">
                 <button type="submit" class="ui-btn ui-btn-primary">
                     <partial name="_Icon" model='"check"' />
-                    Save encounter
+                    @(isEdit ? "Save changes" : "Save encounter")
                 </button>
 
                 <a asp-controller="Voters"

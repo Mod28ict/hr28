@@ -4,6 +4,10 @@ namespace HR28.Web.Models;
 
 public class CreateEncounterDto
 {
+    /// <summary>Set when editing an existing encounter (the same form is used for both).</summary>
+    public Guid? EncounterId { get; set; }
+
+
     [Required]
     public Guid VoterId { get; set; }
 

@@ -113,7 +113,8 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   (Users → Roles → "Extra rights"). Effective rights = rights of all the user's roles
   + the user's extra rights; the Administrator always has every right.
   - Catalog: `PermissionCatalog` (Application/Common). Current rights:
-    `Influencers.Edit`, `Influencers.Delete`. Add new rights there; the screens list
+    `Influencers.Edit`, `Influencers.Delete`, `Encounters.Edit` (voter profile → Edit
+    on an encounter; changed fields audited, notes only as "notes"). Add new rights there; the screens list
     them automatically. Mirror the keys in web `Hr28Permissions`.
   - Stored in `RolePermissions` (RoleId, Permission) and `UserPermissions`
     (UserId, Permission) — migration `AddPermissions`; rollback:

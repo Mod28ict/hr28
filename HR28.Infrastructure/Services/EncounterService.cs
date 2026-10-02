@@ -1,4 +1,5 @@
-﻿using HR28.Application.DTOs.Encounters;
+﻿using HR28.Application.DTOs.Access;
+using HR28.Application.DTOs.Encounters;
 using HR28.Application.Common;
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
@@ -105,5 +106,101 @@ public class EncounterService : IEncounterService
                 Notes = e.Notes
             })
             .ToListAsync();
+    }
+
+    public static readonly string[] EncounterTypes =
+        { "Door Visit", "Phone Call", "Meeting", "Campaign Event", "Office Visit", "Other" };
+
+    public static readonly string[] Outcomes =
+        { "Positive", "Undecided", "Negative", "Follow-up Required", "No Contact" };
+
+    public const int MaxNotesLength = 1000;
+
+    private static EncounterDto ToDto(Encounter e) => new()
+    {
+        Id = e.Id,
+        VoterId = e.VoterId,
+        RecordedByUserId = e.RecordedByUserId,
+        EncounterDate = e.EncounterDate,
+        EncounterType = e.EncounterType,
+        Outcome = e.Outcome,
+        Notes = e.Notes
+    };
+
+    /// <summary>The encounter, only if its voter is inside the user's areas (404 otherwise).</summary>
+    private async Task<Encounter> FindInScopeAsync(AccessScope scope, Guid id)
+    {
+        // Outside the user's areas gives the same answer as "not found", so nothing is revealed.
+        return await _dbContext.Encounters
+            .InScope(scope, _dbContext.Voters)
+            .FirstOrDefaultAsync(e => e.Id == id)
+            ?? throw new KeyNotFoundException("Encounter not found.");
+    }
+
+    public async Task<EncounterDto> GetByIdAsync(Guid id)
+    {
+        var userId = GetCurrentUserId()
+            ?? throw new AccessDeniedException("You must be signed in.");
+
+        var scope = await _accessScopeService.GetAsync(userId);
+
+        return ToDto(await FindInScopeAsync(scope, id));
+    }
+
+    public async Task<EncounterDto> UpdateAsync(Guid id, UpdateEncounterDto request)
+    {
+        var userId = GetCurrentUserId()
+            ?? throw new AccessDeniedException("You must be signed in.");
+
+        var scope = await _accessScopeService.GetAsync(userId);
+
+        if (!scope.HasPermission(PermissionCatalog.EncountersEdit))
+            throw new AccessDeniedException("You don't have permission to edit encounters. Ask your Administrator.");
+
+        var encounter = await FindInScopeAsync(scope, id);
+
+        var type = request.EncounterType?.Trim() ?? string.Empty;
+        var outcome = request.Outcome?.Trim() ?? string.Empty;
+        var notes = request.Notes?.Trim() ?? string.Empty;
+
+        // Older records may hold a value no longer offered; keeping it unchanged is allowed.
+        if (type != encounter.EncounterType && !EncounterTypes.Contains(type))
+            throw new BusinessRuleException("Choose an encounter type from the list.");
+
+        if (outcome != encounter.Outcome && !Outcomes.Contains(outcome))
+            throw new BusinessRuleException("Choose an outcome from the list.");
+
+        if (notes.Length > MaxNotesLength)
+            throw new BusinessRuleException($"Notes can be at most {MaxNotesLength} characters.");
+
+        if (request.EncounterDate == default || request.EncounterDate > DateTime.Now.AddDays(1))
+            throw new BusinessRuleException("Enter the date the encounter happened (not in the future).");
+
+        // Record which fields changed; notes are free text, so only that they changed.
+        var changes = new List<string>();
+
+        if (encounter.EncounterDate != request.EncounterDate)
+            changes.Add($"date {encounter.EncounterDate:dd MMM yyyy HH:mm} → {request.EncounterDate:dd MMM yyyy HH:mm}");
+        if (encounter.EncounterType != type) changes.Add($"type \"{encounter.EncounterType}\" → \"{type}\"");
+        if (encounter.Outcome != outcome) changes.Add($"outcome \"{encounter.Outcome}\" → \"{outcome}\"");
+        if (encounter.Notes != notes) changes.Add("notes");
+
+        if (changes.Count == 0)
+            return ToDto(encounter);
+
+        encounter.EncounterDate = request.EncounterDate;
+        encounter.EncounterType = type;
+        encounter.Outcome = outcome;
+        encounter.Notes = notes;
+
+        await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(
+            userId,
+            "Update: " + string.Join(", ", changes),
+            "Encounter",
+            id.ToString());
+
+        return ToDto(encounter);
     }
 }

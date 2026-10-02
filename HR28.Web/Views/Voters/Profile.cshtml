@@ -18,6 +18,10 @@
     // Reporters only read; the API refuses their changes too.
     var canWrite = HR28.Web.Services.Hr28Roles.CanManageRecords(Context.Session.GetString("UserRole"));
 
+    // Granted right; the API checks it again together with the voter's area.
+    var canEditEncounters = HR28.Web.Services.Hr28Permissions.Has(
+        Context.Session, HR28.Web.Services.Hr28Permissions.EncountersEdit);
+
     string OrDash(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
 }
 
@@ -218,6 +222,10 @@
                             <th>Type</th>
                             <th>Outcome</th>
                             <th>Notes</th>
+                            @if (canEditEncounters)
+                            {
+                                <th><span class="visually-hidden">Actions</span></th>
+                            }
                         </tr>
                     </thead>
                     <tbody>
@@ -228,6 +236,18 @@
                                 <td><span class="ui-tag">@encounter.EncounterType</span></td>
                                 <td>@encounter.Outcome</td>
                                 <td class="ui-muted">@encounter.Notes</td>
+                                @if (canEditEncounters)
+                                {
+                                    <td class="is-right">
+                                        <a asp-controller="Encounters"
+                                           asp-action="Edit"
+                                           asp-route-id="@encounter.Id"
+                                           class="ui-btn ui-btn-secondary ui-btn-sm">
+                                            <partial name="_Icon" model='"edit"' />
+                                            Edit
+                                        </a>
+                                    </td>
+                                }
                             </tr>
                         }
                     </tbody>
