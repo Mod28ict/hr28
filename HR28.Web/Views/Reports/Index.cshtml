@@ -1,4 +1,4 @@
-@model List<HR28.Web.Models.ConstituencySummaryDto>
+﻿@model List<HR28.Web.Models.ConstituencySummaryDto>
 @using System.Globalization
 
 @{
@@ -82,7 +82,10 @@
         <section class="ui-card">
             <div class="ui-card-head">
                 <h2>Constituency support</h2>
-                <a asp-action="ConstituencySummary" class="ui-link" style="font-size: 13px;">Full report →</a>
+                <span class="ui-card-links">
+                    <a asp-action="Download" asp-route-report="constituencies" class="ui-icon-btn no-print" download title="Download CSV" aria-label="Download constituency summary as CSV"><partial name="_Icon" model='"download"' /></a>
+                    <a asp-action="ConstituencySummary" class="ui-link" style="font-size: 13px;">Full report →</a>
+                </span>
             </div>
 
             @if (!topConstituencies.Any())
@@ -112,7 +115,10 @@
         <section class="ui-card">
             <div class="ui-card-head">
                 <h2>Pledge pipeline</h2>
-                <a asp-action="Pledges" class="ui-link" style="font-size: 13px;">Full report →</a>
+                <span class="ui-card-links">
+                    <a asp-action="Download" asp-route-report="pledges" class="ui-icon-btn no-print" download title="Download CSV" aria-label="Download pledge summary as CSV"><partial name="_Icon" model='"download"' /></a>
+                    <a asp-action="Pledges" class="ui-link" style="font-size: 13px;">Full report →</a>
+                </span>
             </div>
 
             @if (pledgeTotal == 0)
@@ -152,7 +158,10 @@
         <section class="ui-card">
             <div class="ui-card-head">
                 <h2>Top influencers</h2>
-                <a asp-action="TopInfluencers" class="ui-link" style="font-size: 13px;">Full report →</a>
+                <span class="ui-card-links">
+                    <a asp-action="Download" asp-route-report="influencers" class="ui-icon-btn no-print" download title="Download CSV" aria-label="Download top influencers as CSV"><partial name="_Icon" model='"download"' /></a>
+                    <a asp-action="TopInfluencers" class="ui-link" style="font-size: 13px;">Full report →</a>
+                </span>
             </div>
 
             @if (!topInfluencers.Any())

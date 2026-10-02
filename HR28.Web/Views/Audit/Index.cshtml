@@ -106,7 +106,7 @@
             <div class="ui-audit-dates">
                 <label for="auditFrom" class="visually-hidden">From date</label>
                 <input type="date" id="auditFrom" name="from" class="ui-input" value="@filter.From?.ToString("yyyy-MM-dd")" title="From" />
-                <span class="ui-muted" aria-hidden="true">â€“</span>
+                <span class="ui-muted" aria-hidden="true">–</span>
                 <label for="auditTo" class="visually-hidden">To date</label>
                 <input type="date" id="auditTo" name="to" class="ui-input" value="@filter.To?.ToString("yyyy-MM-dd")" title="To" />
             </div>
@@ -211,11 +211,11 @@
                 <nav class="ui-pager" aria-label="Audit trail pagination">
                     @if (result.HasPreviousPage)
                     {
-                        <a class="ui-page-btn" asp-action="Index" asp-all-route-data="@ToRoute(RouteFor(result.Page - 1))">â€¹ Previous</a>
+                        <a class="ui-page-btn" asp-action="Index" asp-all-route-data="@ToRoute(RouteFor(result.Page - 1))">‹ Previous</a>
                     }
                     else
                     {
-                        <span class="ui-page-btn is-disabled">â€¹ Previous</span>
+                        <span class="ui-page-btn is-disabled">‹ Previous</span>
                     }
 
                     @for (var p = firstVisiblePage; p <= lastVisiblePage; p++)
@@ -232,11 +232,11 @@
 
                     @if (result.HasNextPage)
                     {
-                        <a class="ui-page-btn" asp-action="Index" asp-all-route-data="@ToRoute(RouteFor(result.Page + 1))">Next â€º</a>
+                        <a class="ui-page-btn" asp-action="Index" asp-all-route-data="@ToRoute(RouteFor(result.Page + 1))">Next ›</a>
                     }
                     else
                     {
-                        <span class="ui-page-btn is-disabled">Next â€º</span>
+                        <span class="ui-page-btn is-disabled">Next ›</span>
                     }
                 </nav>
             }

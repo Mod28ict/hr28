@@ -1,0 +1,21 @@
+@model string
+@*
+    Download / print buttons for a report. Model = report key used by
+    ReportsController.Download (constituencies | pledges | influencers).
+    The "download" attribute stops the page loader from waiting on navigation.
+*@
+<div class="ui-report-actions no-print">
+    <a asp-controller="Reports"
+       asp-action="Download"
+       asp-route-report="@Model"
+       class="ui-btn ui-btn-secondary"
+       download>
+        <partial name="_Icon" model='"download"' />
+        Download CSV
+    </a>
+
+    <button type="button" class="ui-btn ui-btn-ghost" onclick="window.print()">
+        <partial name="_Icon" model='"printer"' />
+        Print / PDF
+    </button>
+</div>

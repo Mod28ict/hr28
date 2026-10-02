@@ -26,6 +26,15 @@ public class ApiResult<T>
     public bool IsForbidden => StatusCode == HttpStatusCode.Forbidden;
 }
 
+public class ApiFile
+{
+    public byte[] Content { get; init; } = Array.Empty<byte>();
+
+    public string ContentType { get; init; } = "application/octet-stream";
+
+    public string FileName { get; init; } = string.Empty;
+}
+
 /// <summary>
 /// Thin JSON client for the HR28 API. Never throws for HTTP errors:
 /// failures come back as <see cref="ApiResult{T}"/> with a safe message.
@@ -50,6 +59,60 @@ public class ApiClient
 
     public Task<ApiResult<T>> GetAsync<T>(string path, string? token) =>
         SendAsync<T>(HttpMethod.Get, path, null, token);
+
+    /// <summary>Downloads a file (e.g. a CSV export) as raw bytes with its name and type.</summary>
+    public async Task<ApiResult<ApiFile>> GetFileAsync(string path, string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return new ApiResult<ApiFile>
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Message = "Your session has ended. Please sign in again."
+            };
+        }
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, _settings.BaseUrl + path);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var response = await _httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new ApiResult<ApiFile>
+                {
+                    StatusCode = response.StatusCode,
+                    Message = await ReadMessageAsync(response)
+                };
+            }
+
+            return new ApiResult<ApiFile>
+            {
+                Success = true,
+                StatusCode = response.StatusCode,
+                Data = new ApiFile
+                {
+                    Content = await response.Content.ReadAsByteArrayAsync(),
+                    ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream",
+                    FileName = response.Content.Headers.ContentDisposition?.FileNameStar
+                               ?? response.Content.Headers.ContentDisposition?.FileName?.Trim('"')
+                               ?? "hr28-report"
+                }
+            };
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            _logger.LogWarning(ex, "File download {Path} failed", path);
+
+            return new ApiResult<ApiFile>
+            {
+                StatusCode = HttpStatusCode.ServiceUnavailable,
+                Message = "The service is not responding. Please try again shortly."
+            };
+        }
+    }
 
     public Task<ApiResult<T>> PostAsync<T>(string path, object body, string? token) =>
         SendAsync<T>(HttpMethod.Post, path, body, token);

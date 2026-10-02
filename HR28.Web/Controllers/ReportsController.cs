@@ -64,6 +64,34 @@ public class ReportsController : AppController
         return View(result.Data ?? new List<TopInfluencerDto>());
     }
 
+    // Report key → API export path. Only these reports can be downloaded.
+    private static readonly Dictionary<string, (string Path, string ReturnAction)> Exports = new()
+    {
+        ["constituencies"] = ("Reports/constituency-summary/export", nameof(ConstituencySummary)),
+        ["pledges"] = ("Reports/pledge-status-summary/export", nameof(Pledges)),
+        ["influencers"] = ("Reports/top-influencers/export?top=50", nameof(TopInfluencers))
+    };
+
+    /// <summary>Downloads a report as CSV. Scope and auditing are handled by the API.</summary>
+    public async Task<IActionResult> Download(string report)
+    {
+        if (!Exports.TryGetValue(report ?? string.Empty, out var export))
+            return RedirectToAction(nameof(Index));
+
+        var result = await _apiClient.GetFileAsync(export.Path, Token);
+
+        if (HandleApiFailure(result) is { } redirect)
+            return redirect;
+
+        if (!result.Success || result.Data == null)
+        {
+            TempData["FlashError"] = "The report could not be downloaded. Please try again.";
+            return RedirectToAction(export.ReturnAction);
+        }
+
+        return File(result.Data.Content, result.Data.ContentType, result.Data.FileName);
+    }
+
     public async Task<IActionResult> Pledges()
     {
         var result = await _apiClient.GetAsync<PledgeStatusSummaryDto>(

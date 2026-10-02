@@ -1295,6 +1295,79 @@ a.ui-page-btn:hover {
     }
 }
 
+/* ---------- Report actions + print ---------- */
+
+.ui-report-actions,
+.ui-card-links {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Print / Save as PDF: just the report content, light colours, no app chrome. */
+@media print {
+    @page {
+        margin: 14mm;
+    }
+
+    html,
+    html[data-theme="dark"] {
+        color-scheme: light;
+    }
+
+    .shell-sidebar,
+    .shell-topbar,
+    .shell-footer,
+    .shell-backdrop,
+    .h28-loader,
+    .no-print,
+    .ui-search,
+    .ui-tabs {
+        display: none !important;
+    }
+
+    .shell-body,
+    html[data-theme="dark"] .shell-body {
+        --ui-text: #17233a;
+        --ui-text-2: #3c4a63;
+        --ui-muted: #5b6a82;
+        --ui-surface: #ffffff;
+        --ui-subtle: #f4f6fa;
+        --ui-border: #d9e1ec;
+        background: #ffffff !important;
+    }
+
+    .shell-main,
+    .shell-content {
+        max-width: none;
+        padding: 0 !important;
+    }
+
+    .ui-card,
+    .ui-stat,
+    html[data-theme="dark"] .ui-stat {
+        background: #ffffff !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+
+    .ui-table-wrap {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .ui-table tr {
+        break-inside: avoid;
+    }
+
+    /* Keep coloured bars and pills when printing. */
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
 /* ---------- Report hub grid ---------- */
 
 .ui-report-grid {
