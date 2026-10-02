@@ -7,10 +7,11 @@ obj/
 *.user
 *.suo
 
-# Build output*TestResults/
+# Build output
+TestResults/
 
 # VS Code
 .vscode/
 
-* Rider
+# Rider
 .idea/
