@@ -1,47 +1,107 @@
-﻿@model HR28.Web.Models.PledgeStatusSummaryDto
+@model HR28.Web.Models.PledgeStatusSummaryDto
+@using System.Globalization
 
-<div class="container mt-4">
+@{
+    ViewData["Title"] = "Pledge Summary";
 
-    <h2>Pledge Summary</h2>
+    int open       = Model?.Pending ?? 0;
+    int inProgress = Model?.InProgress ?? 0;
+    int completed  = Model?.Completed ?? 0;
+    int cancelled  = Model?.Cancelled ?? 0;
 
-    <div class="row">
+    int total = open + inProgress + completed + cancelled;
+    int active = open + inProgress;
 
-        <div class="col-md-3">
-            <div class="card bg-warning">
-                <div class="card-body">
-                    <h5>Open</h5>
-                    <h2>@Model.Pending</h2>
-                </div>
+    double Pct(int value) => total > 0 ? value * 100.0 / total : 0;
+
+    // CSS needs a dot decimal separator whatever the server culture is.
+    string CssPct(double value) => value.ToString("0.##", CultureInfo.InvariantCulture) + "%";
+
+    var completionRate = Pct(completed);
+
+    var statuses = new[]
+    {
+        new { Label = "Open",        Value = open,       Tone = "is-amber", Icon = "clock",        Note = "Awaiting action" },
+        new { Label = "In progress", Value = inProgress, Tone = "is-cyan",  Icon = "arrow-right",  Note = "Being worked on" },
+        new { Label = "Completed",   Value = completed,  Tone = "is-green", Icon = "check-circle", Note = "Delivered to voter" },
+        new { Label = "Cancelled",   Value = cancelled,  Tone = "is-red",   Icon = "user-x",       Note = "No longer pursued" }
+    };
+}
+
+<div class="ui-page">
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-amber"><partial name="_Icon" model='"handshake"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb"><span>Reports</span></nav>
+                <h1 class="ui-title">Pledge Summary</h1>
+                <p class="ui-sub">Track campaign commitments from first promise to delivery.</p>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h5>In Progress</h5>
-                    <h2>@Model.InProgress</h2>
+        <div class="ui-head-actions">
+            <div class="ui-card" style="margin: 0; padding: 10px 16px; display: flex; gap: 22px;">
+                <div>
+                    <div class="ui-stat-label">Total</div>
+                    <div class="ui-strong" style="font-size: 20px;">@total.ToString("N0")</div>
+                </div>
+                <div>
+                    <div class="ui-stat-label">Still active</div>
+                    <div class="ui-strong" style="font-size: 20px;">@active.ToString("N0")</div>
+                </div>
+                <div>
+                    <div class="ui-stat-label">Completion</div>
+                    <div class="ui-strong" style="font-size: 20px;">@completionRate.ToString("0")%</div>
                 </div>
             </div>
         </div>
+    </header>
 
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5>Completed</h5>
-                    <h2>@Model.Completed</h2>
+    <section class="ui-stats">
+        @foreach (var s in statuses)
+        {
+            <div class="ui-stat @s.Tone">
+                <span class="ui-stat-icon"><partial name="_Icon" model="@s.Icon" /></span>
+                <div style="flex: 1; min-width: 0;">
+                    <div class="ui-stat-label">@s.Label</div>
+                    <div class="ui-stat-value">@s.Value.ToString("N0")</div>
+                    <div class="ui-stat-foot">@Pct(s.Value).ToString("0")% · @s.Note</div>
                 </div>
             </div>
+        }
+    </section>
+
+    <section class="ui-card">
+        <div class="ui-card-head">
+            <h2>Pledge pipeline</h2>
+            <span class="ui-muted" style="font-size: 13px;">How all recorded pledges are distributed across statuses</span>
         </div>
 
-        <div class="col-md-3">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <h5>Cancelled</h5>
-                    <h2>@Model.Cancelled</h2>
-                </div>
+        @if (total == 0)
+        {
+            <div class="ui-empty">
+                <partial name="_Icon" model='"handshake"' />
+                No pledges recorded yet. Add one from a voter's profile.
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="ui-stack" role="img"
+                 aria-label="@string.Join(", ", statuses.Select(s => $"{s.Label} {s.Value}"))">
+                @foreach (var s in statuses.Where(x => x.Value > 0))
+                {
+                    <span class="@s.Tone" style="width: @CssPct(Pct(s.Value));" title="@s.Label: @s.Value"></span>
+                }
+            </div>
 
-    </div>
+            <ul class="ui-legend">
+                @foreach (var s in statuses)
+                {
+                    <li class="@s.Tone"><i></i>@s.Label <b>@s.Value.ToString("N0")</b></li>
+                }
+            </ul>
+        }
+    </section>
 
 </div>

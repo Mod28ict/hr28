@@ -1,78 +1,201 @@
-﻿@model HR28.Web.Models.UserCreateViewModel
+@model HR28.Web.Models.UserCreateViewModel
 
-<div class="container mt-4">
+@{
+    ViewData["Title"] = "Create User";
+}
 
-    <h2>Create User</h2>
+<div class="ui-page is-narrow">
 
-    <form asp-action="Create"
-          method="post">
-
-        <div class="mb-3">
-            <label class="form-label">
-                National ID
-            </label>
-            <input asp-for="User.NationalId"
-                   class="form-control" />
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-blue"><partial name="_Icon" model='"user-plus"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a asp-action="Index">Users</a> <span aria-hidden="true">/</span> <span>Create user</span>
+                </nav>
+                <h1 class="ui-title">Create User</h1>
+                <p class="ui-sub">Create a secure platform account before assigning its role and geographic access scope.</p>
+            </div>
         </div>
+    </header>
 
-        <div class="mb-3">
-            <label class="form-label">
-                Full Name
-            </label>
-            <input asp-for="User.FullName"
-                   class="form-control" />
-        </div>
+    <section class="ui-card ui-card-lg">
 
-        <div class="mb-3">
-            <label class="form-label">
-                Mobile Number
-            </label>
-            <input asp-for="User.MobileNumber"
-                   class="form-control" />
-        </div>
+        <form asp-action="Create" method="post" id="h28CreateUserForm">
 
-        <div class="mb-3">
-            <label class="form-label">
-                Email
-            </label>
-            <input asp-for="User.Email"
-                   class="form-control" />
-        </div>
+            @Html.AntiForgeryToken()
 
-        <div class="mb-3">
-            <label class="form-label">
-                Designation
-            </label>
-            <input asp-for="User.Designation"
-                   class="form-control" />
-        </div>
+            <div asp-validation-summary="ModelOnly" class="ui-summary"></div>
 
-        <div class="mb-3">
-            <label class="form-label">
-                Address
-            </label>
-            <textarea asp-for="User.Address"
-                      class="form-control"></textarea>
-        </div>
+            <!-- 1. IDENTITY -->
+            <div class="ui-section">
+                <div class="ui-section-head">
+                    <span class="ui-step">1</span>
+                    <div>
+                        <div class="ui-section-title">Identity</div>
+                        <div class="ui-section-sub">Official identification and the user's full name</div>
+                    </div>
+                </div>
 
-        <div class="mb-3">
-            <label class="form-label">
-                Remarks
-            </label>
-            <textarea asp-for="User.Remarks"
-                      class="form-control"></textarea>
-        </div>
+                <div class="ui-grid-2">
+                    <div class="ui-field">
+                        <label asp-for="User.NationalId" class="ui-label">National ID</label>
+                        <input asp-for="User.NationalId"
+                               id="h28UserNationalId"
+                               class="ui-input ui-upper"
+                               placeholder="A123456"
+                               autocomplete="off" />
+                        <span asp-validation-for="User.NationalId" class="ui-error"></span>
+                    </div>
 
-        <button type="submit"
-                class="btn btn-primary">
-            Create User
-        </button>
+                    <div class="ui-field">
+                        <label asp-for="User.Designation" class="ui-label">
+                            Designation <span class="ui-optional">(optional)</span>
+                        </label>
+                        <input asp-for="User.Designation"
+                               class="ui-input"
+                               placeholder="Example: Constituency Coordinator" />
+                        <span asp-validation-for="User.Designation" class="ui-error"></span>
+                    </div>
 
-        <a asp-action="Index"
-           class="btn btn-secondary">
-            Cancel
-        </a>
+                    <div class="ui-field ui-full">
+                        <label asp-for="User.FullName" class="ui-label">Full name</label>
+                        <input asp-for="User.FullName"
+                               class="ui-input"
+                               placeholder="Enter the user's full name" />
+                        <span asp-validation-for="User.FullName" class="ui-error"></span>
+                    </div>
+                </div>
+            </div>
 
-    </form>
+            <!-- 2. CONTACT -->
+            <div class="ui-section">
+                <div class="ui-section-head">
+                    <span class="ui-step">2</span>
+                    <div>
+                        <div class="ui-section-title">Contact information</div>
+                        <div class="ui-section-sub">Contact details used for account communication</div>
+                    </div>
+                </div>
+
+                <div class="ui-grid-2">
+                    <div class="ui-field">
+                        <label asp-for="User.MobileNumber" class="ui-label">Mobile number</label>
+                        <input asp-for="User.MobileNumber"
+                               class="ui-input"
+                               inputmode="tel"
+                               autocomplete="tel"
+                               placeholder="7XXXXXX" />
+                        <span asp-validation-for="User.MobileNumber" class="ui-error"></span>
+                    </div>
+
+                    <div class="ui-field">
+                        <label asp-for="User.Email" class="ui-label">
+                            Email <span class="ui-optional">(optional)</span>
+                        </label>
+                        <input asp-for="User.Email"
+                               class="ui-input"
+                               type="email"
+                               inputmode="email"
+                               autocomplete="email"
+                               placeholder="name@example.com" />
+                        <span asp-validation-for="User.Email" class="ui-error"></span>
+                    </div>
+
+                    <div class="ui-field ui-full">
+                        <label asp-for="User.Address" class="ui-label">
+                            Address <span class="ui-optional">(optional)</span>
+                        </label>
+                        <textarea asp-for="User.Address"
+                                  id="h28UserAddress"
+                                  class="ui-textarea"
+                                  maxlength="500"
+                                  placeholder="House name, street and island"></textarea>
+                        <div class="ui-counter"><span id="h28AddressCount">0</span> / 500</div>
+                        <span asp-validation-for="User.Address" class="ui-error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. ADMINISTRATION -->
+            <div class="ui-section">
+                <div class="ui-section-head">
+                    <span class="ui-step">3</span>
+                    <div>
+                        <div class="ui-section-title">Administration</div>
+                        <div class="ui-section-sub">Internal notes and the next access-control steps</div>
+                    </div>
+                </div>
+
+                <div class="ui-field">
+                    <label asp-for="User.Remarks" class="ui-label">
+                        Remarks <span class="ui-optional">(optional)</span>
+                    </label>
+                    <textarea asp-for="User.Remarks"
+                              id="h28UserRemarks"
+                              class="ui-textarea"
+                              maxlength="1000"
+                              placeholder="Add relevant administrative notes"></textarea>
+                    <div class="ui-counter"><span id="h28RemarksCount">0</span> / 1000</div>
+                    <span asp-validation-for="User.Remarks" class="ui-error"></span>
+                </div>
+
+                <div class="ui-note">
+                    <partial name="_Icon" model='"shield"' />
+                    <div>
+                        <strong>Role and scope are assigned separately</strong>
+                        After creating the account, return to the Users page and assign both a role and a
+                        geographic scope. The generated authorization code will be displayed on the next screen.
+                    </div>
+                </div>
+            </div>
+
+            <div class="ui-form-actions">
+                <button type="submit" class="ui-btn ui-btn-primary">
+                    <partial name="_Icon" model='"check"' />
+                    Create user
+                </button>
+
+                <a asp-action="Index" class="ui-btn ui-btn-secondary">Cancel</a>
+            </div>
+
+        </form>
+
+    </section>
 
 </div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (function () {
+            const nationalId = document.getElementById("h28UserNationalId");
+
+            if (nationalId) {
+                nationalId.addEventListener("input", function () {
+                    const position = nationalId.selectionStart;
+                    nationalId.value = nationalId.value.toUpperCase();
+                    nationalId.setSelectionRange(position, position);
+                });
+            }
+
+            function configureCounter(field, counter) {
+                if (!field || !counter) {
+                    return;
+                }
+
+                function updateCounter() {
+                    counter.textContent = field.value.length;
+                }
+
+                field.addEventListener("input", updateCounter);
+                updateCounter();
+            }
+
+            configureCounter(document.getElementById("h28UserAddress"), document.getElementById("h28AddressCount"));
+            configureCounter(document.getElementById("h28UserRemarks"), document.getElementById("h28RemarksCount"));
+        })();
+    </script>
+}

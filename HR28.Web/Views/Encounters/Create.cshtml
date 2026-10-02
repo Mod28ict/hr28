@@ -1,171 +1,171 @@
-﻿@model HR28.Web.Models.CreateEncounterDto
+@model HR28.Web.Models.CreateEncounterDto
 
 @{
     ViewData["Title"] = "Add Encounter";
 }
 
-<div class="container mt-4">
+<div class="ui-page is-narrow">
 
-    <h2>Add Encounter</h2>
-
-    <p class="text-muted">
-        Record a concise, factual interaction with this voter.
-    </p>
-
-    <form asp-action="Create"
-          method="post">
-
-        @Html.AntiForgeryToken()
-
-        <input asp-for="VoterId"
-               type="hidden" />
-
-        <div asp-validation-summary="ModelOnly"
-             class="alert alert-danger">
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-green"><partial name="_Icon" model='"message"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a asp-controller="Voters" asp-action="Profile" asp-route-id="@Model.VoterId">Voter profile</a>
+                    <span aria-hidden="true">/</span> <span>Add encounter</span>
+                </nav>
+                <h1 class="ui-title">Add Encounter</h1>
+                <p class="ui-sub">Record a concise, factual interaction with this voter.</p>
+            </div>
         </div>
+    </header>
 
-        <div class="mb-3">
+    <section class="ui-card ui-card-lg">
 
-            <label asp-for="EncounterDate"
-                   class="form-label">
-            </label>
+        <form asp-action="Create" method="post">
 
-            <input asp-for="EncounterDate"
-                   type="datetime-local"
-                   class="form-control" />
+            @Html.AntiForgeryToken()
 
-            <span asp-validation-for="EncounterDate"
-                  class="text-danger">
-            </span>
+            <input asp-for="VoterId" type="hidden" />
 
-        </div>
+            <div asp-validation-summary="ModelOnly" class="ui-summary"></div>
 
-        <div class="mb-3">
+            <div class="ui-grid-2">
 
-            <label asp-for="EncounterType"
-                   class="form-label">
-            </label>
+                <div class="ui-field">
+                    <label asp-for="EncounterDate" class="ui-label">Date and time</label>
 
-            <select asp-for="EncounterType"
-                    class="form-select">
+                    <input asp-for="EncounterDate"
+                           type="datetime-local"
+                           class="ui-input" />
 
-                <option value="">
-                    Select Encounter Type
-                </option>
+                    <span asp-validation-for="EncounterDate" class="ui-error"></span>
+                </div>
 
-                <option value="Door Visit">
-                    Door Visit
-                </option>
+                <div class="ui-field">
+                    <label asp-for="EncounterType" class="ui-label">Encounter type</label>
 
-                <option value="Phone Call">
-                    Phone Call
-                </option>
+                    <select asp-for="EncounterType" class="ui-select">
+                        <option value="">Select Encounter Type</option>
+                        <option value="Door Visit">Door Visit</option>
+                        <option value="Phone Call">Phone Call</option>
+                        <option value="Meeting">Meeting</option>
+                        <option value="Campaign Event">Campaign Event</option>
+                        <option value="Office Visit">Office Visit</option>
+                        <option value="Other">Other</option>
+                    </select>
 
-                <option value="Meeting">
-                    Meeting
-                </option>
+                    <span asp-validation-for="EncounterType" class="ui-error"></span>
+                </div>
 
-                <option value="Campaign Event">
-                    Campaign Event
-                </option>
+            </div>
 
-                <option value="Office Visit">
-                    Office Visit
-                </option>
+            <div class="ui-field">
+                <span class="ui-label" id="h28OutcomeLabel">Outcome</span>
 
-                <option value="Other">
-                    Other
-                </option>
+                <div class="ui-chips" id="h28OutcomeChips" role="radiogroup" aria-labelledby="h28OutcomeLabel">
+                    <span class="ui-chip is-green" data-v="Positive" role="radio" tabindex="0">Positive</span>
+                    <span class="ui-chip is-amber" data-v="Undecided" role="radio" tabindex="0">Undecided</span>
+                    <span class="ui-chip is-red" data-v="Negative" role="radio" tabindex="0">Negative</span>
+                    <span class="ui-chip is-blue" data-v="Follow-up Required" role="radio" tabindex="0">Follow-up Required</span>
+                    <span class="ui-chip is-muted" data-v="No Contact" role="radio" tabindex="0">No Contact</span>
+                </div>
 
-            </select>
+                <!-- The real field that gets posted; the chips just set it -->
+                <select asp-for="Outcome" id="h28OutcomeSelect" class="ui-hidden" aria-hidden="true" tabindex="-1">
+                    <option value="">Select Outcome</option>
+                    <option value="Positive">Positive</option>
+                    <option value="Undecided">Undecided</option>
+                    <option value="Negative">Negative</option>
+                    <option value="Follow-up Required">Follow-up Required</option>
+                    <option value="No Contact">No Contact</option>
+                </select>
 
-            <span asp-validation-for="EncounterType"
-                  class="text-danger">
-            </span>
+                <span asp-validation-for="Outcome" class="ui-error"></span>
+            </div>
 
-        </div>
+            <div class="ui-field">
+                <label asp-for="Notes" class="ui-label">Notes</label>
 
-        <div class="mb-3">
+                <textarea asp-for="Notes"
+                          id="h28EncounterNotes"
+                          class="ui-textarea"
+                          rows="5"
+                          maxlength="1000"
+                          placeholder="Enter concise, factual notes only."></textarea>
 
-            <label asp-for="Outcome"
-                   class="form-label">
-            </label>
+                <div class="ui-counter">
+                    <span id="h28EncounterCount">0</span> / 1000
+                </div>
 
-            <select asp-for="Outcome"
-                    class="form-select">
+                <span asp-validation-for="Notes" class="ui-error"></span>
+            </div>
 
-                <option value="">
-                    Select Outcome
-                </option>
+            <div class="ui-form-actions">
+                <button type="submit" class="ui-btn ui-btn-primary">
+                    <partial name="_Icon" model='"check"' />
+                    Save encounter
+                </button>
 
-                <option value="Positive">
-                    Positive
-                </option>
+                <a asp-controller="Voters"
+                   asp-action="Profile"
+                   asp-route-id="@Model.VoterId"
+                   class="ui-btn ui-btn-secondary">
+                    Cancel
+                </a>
+            </div>
 
-                <option value="Undecided">
-                    Undecided
-                </option>
+        </form>
 
-                <option value="Negative">
-                    Negative
-                </option>
-
-                <option value="Follow-up Required">
-                    Follow-up Required
-                </option>
-
-                <option value="No Contact">
-                    No Contact
-                </option>
-
-            </select>
-
-            <span asp-validation-for="Outcome"
-                  class="text-danger">
-            </span>
-
-        </div>
-
-        <div class="mb-3">
-
-            <label asp-for="Notes"
-                   class="form-label">
-            </label>
-
-            <textarea asp-for="Notes"
-                      class="form-control"
-                      rows="5"
-                      maxlength="1000"
-                      placeholder="Enter concise, factual notes only.">
-            </textarea>
-
-            <span asp-validation-for="Notes"
-                  class="text-danger">
-            </span>
-
-        </div>
-
-        <button type="submit"
-                class="btn btn-success">
-
-            Save Encounter
-
-        </button>
-
-        <a asp-controller="Voters"
-           asp-action="Profile"
-           asp-route-id="@Model.VoterId"
-           class="btn btn-secondary">
-
-            Cancel
-
-        </a>
-
-    </form>
+    </section>
 
 </div>
 
 @section Scripts
 {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (function () {
+            // Outcome chips drive the hidden select
+            var select = document.getElementById("h28OutcomeSelect");
+            var chips = document.querySelectorAll("#h28OutcomeChips .ui-chip");
+
+            function syncChips() {
+                chips.forEach(function (chip) {
+                    var selected = chip.dataset.v === select.value;
+                    chip.classList.toggle("active", selected);
+                    chip.setAttribute("aria-checked", selected ? "true" : "false");
+                });
+            }
+
+            chips.forEach(function (chip) {
+                chip.addEventListener("click", function () {
+                    select.value = chip.dataset.v;
+                    syncChips();
+                    if (window.jQuery && jQuery(select).valid) {
+                        jQuery(select).valid();
+                    }
+                });
+
+                chip.addEventListener("keydown", function (e) {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        chip.click();
+                    }
+                });
+            });
+
+            syncChips(); // keeps the chip selected after a failed validation post-back
+
+            // Notes character counter
+            var box = document.getElementById("h28EncounterNotes");
+            var count = document.getElementById("h28EncounterCount");
+
+            function update() { count.textContent = box.value.length; }
+
+            box.addEventListener("input", update);
+            update();
+        })();
+    </script>
 }

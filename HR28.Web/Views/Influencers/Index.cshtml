@@ -1,34 +1,163 @@
-﻿@model List<HR28.Web.Models.InfluencerDto>
+@model List<HR28.Web.Models.InfluencerDto>
 
-<div class="container mt-4">
+@{
+    ViewData["Title"] = "Influencers";
 
-    <h2>Influencers</h2>
+    var influencers = Model ?? new();
 
-    <table class="table table-striped">
+    var totalInfluencers = influencers.Count;
 
-        <thead>
-            <tr>
-                <th>National ID</th>
-                <th>Name</th>
-                <th>Contact Number</th>
-                <th>Remarks</th>
-            </tr>
-        </thead>
+    var duplicateIds =
+        influencers
+            .GroupBy(x => x.NationalId)
+            .Count(x => x.Count() > 1);
 
-        <tbody>
+    var withContact = influencers.Count(x => !string.IsNullOrWhiteSpace(x.ContactNumber));
 
-        @foreach(var item in Model)
+    string InitialsOf(string name) =>
+        string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
+}
+
+<div class="ui-page">
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-violet"><partial name="_Icon" model='"star"' /></span>
+            <div>
+                <h1 class="ui-title">Influencers</h1>
+                <p class="ui-sub">Community leaders and trusted contacts who influence voter decisions.</p>
+            </div>
+        </div>
+    </header>
+
+    <section class="ui-stats">
+        <div class="ui-stat is-violet">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"star"' /></span>
+            <div>
+                <div class="ui-stat-label">Total influencers</div>
+                <div class="ui-stat-value">@totalInfluencers.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="ui-stat is-blue">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"user-check"' /></span>
+            <div>
+                <div class="ui-stat-label">Unique IDs</div>
+                <div class="ui-stat-value">@((totalInfluencers - duplicateIds).ToString("N0"))</div>
+            </div>
+        </div>
+        <div class="ui-stat is-red">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"alert"' /></span>
+            <div>
+                <div class="ui-stat-label">Duplicate IDs</div>
+                <div class="ui-stat-value">@duplicateIds.ToString("N0")</div>
+                <div class="ui-stat-foot">Highlighted below</div>
+            </div>
+        </div>
+        <div class="ui-stat is-green">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"phone"' /></span>
+            <div>
+                <div class="ui-stat-label">With contact number</div>
+                <div class="ui-stat-value">@withContact.ToString("N0")</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="ui-card">
+
+        <div class="ui-toolbar">
+            <div class="ui-search">
+                <partial name="_Icon" model='"search"' />
+                <label for="influencerSearch" class="visually-hidden">Filter influencers</label>
+                <input id="influencerSearch"
+                       type="search"
+                       class="ui-input"
+                       placeholder="Filter by name, National ID or phone" />
+            </div>
+        </div>
+
+        @if (!influencers.Any())
         {
-            <tr>
-                <td>@item.NationalId</td>
-                <td>@item.FullName</td>
-                <td>@item.ContactNumber</td>
-                <td>@item.Remarks</td>
-            </tr>
+            <div class="ui-empty">
+                <partial name="_Icon" model='"star"' />
+                No influencers recorded yet.
+            </div>
+        }
+        else
+        {
+            <div class="ui-card-grid" id="influencerGrid">
+
+                @foreach (var influencer in influencers)
+                {
+                    var duplicate =
+                        influencers.Count(x => x.NationalId == influencer.NationalId) > 1;
+
+                    var name = string.IsNullOrWhiteSpace(influencer.FullName) ? "Unnamed influencer" : influencer.FullName;
+
+                    <article class="ui-tile @(duplicate ? "is-flagged" : "")">
+                        <div class="ui-person">
+                            <span class="ui-avatar" aria-hidden="true" style="background: var(--ui-violet-soft); color: #4b34b0;">@InitialsOf(name)</span>
+                            <span>
+                                <strong>@name</strong>
+                                <small class="ui-num">@influencer.NationalId</small>
+                            </span>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(influencer.ContactNumber))
+                        {
+                            <a href="tel:@influencer.ContactNumber" class="ui-link ui-num" style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px;">
+                                <partial name="_Icon" model='"phone"' />
+                                @influencer.ContactNumber
+                            </a>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(influencer.Remarks))
+                        {
+                            <p class="ui-muted" style="margin: 0; font-size: 13px;">@influencer.Remarks</p>
+                        }
+
+                        <div>
+                            @if (duplicate)
+                            {
+                                <span class="ui-pill is-red">Duplicate National ID</span>
+                            }
+                            else
+                            {
+                                <span class="ui-pill is-violet">Influencer</span>
+                            }
+                        </div>
+                    </article>
+                }
+
+            </div>
+
+            <div class="ui-empty" id="influencerNoMatch" hidden>No influencers match your filter.</div>
         }
 
-        </tbody>
-
-    </table>
+    </section>
 
 </div>
+
+@section Scripts
+{
+    <script>
+        (function () {
+            var input = document.getElementById('influencerSearch');
+            var noMatch = document.getElementById('influencerNoMatch');
+
+            if (!input) return;
+
+            input.addEventListener('input', function () {
+                var term = this.value.trim().toLowerCase();
+                var shown = 0;
+
+                document.querySelectorAll('#influencerGrid .ui-tile').forEach(function (card) {
+                    var match = card.innerText.toLowerCase().includes(term);
+                    card.style.display = match ? '' : 'none';
+                    if (match) shown++;
+                });
+
+                if (noMatch) noMatch.hidden = shown > 0;
+            });
+        })();
+    </script>
+}

@@ -1,0 +1,16 @@
+@model string
+@*
+    Voter support status pill. Usage: <partial name="_StatusPill" model="voter.SupportStatus" />
+*@
+@{
+    var status = string.IsNullOrWhiteSpace(Model) ? "Not set" : Model.Trim();
+    var key = status.ToLowerInvariant();
+
+    var tone =
+        key.StartsWith("support") ? "is-green" :
+        key.StartsWith("undecided") ? "is-amber" :
+        key.StartsWith("oppo") ? "is-red" :
+        key.StartsWith("neutral") ? "is-blue" :
+        "is-muted";
+}
+<span class="ui-pill @tone">@status</span>

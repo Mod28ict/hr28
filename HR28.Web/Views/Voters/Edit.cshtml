@@ -1,217 +1,271 @@
-﻿@model HR28.Web.Models.VoterCreateViewModel
+@model HR28.Web.Models.VoterCreateViewModel
 
 @{
-bool isSuperAdmin = false;
+    ViewData["Title"] = "Edit Voter";
 
-if (ViewBag.IsSuperAdmin != null)
-{
-    isSuperAdmin = (bool)ViewBag.IsSuperAdmin;
-}
+    bool isSuperAdmin = false;
 
-}
-
-<div class="container mt-4">
-
-    <h2>Edit Voter</h2>
-
-    <form asp-action="Edit" method="post">
-<input asp-for="Voter.Id"
-       type="hidden" />
-
-
-        <div class="mb-3">
-            <label class="form-label">National ID</label>
-            <input asp-for="Voter.NationalId" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Full Name</label>
-            <input asp-for="Voter.FullName" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Mobile Number</label>
-            <input asp-for="Voter.MobileNumber" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Address</label>
-            <textarea asp-for="Voter.Address" class="form-control"></textarea>
-        </div>
-
-<div class="mb-3">
-    <label class="form-label">Constituency</label>
-
-    <select asp-for="Voter.ConstituencyId"
-            id="ConstituencyDropdown"
-            class="form-select"
-            disabled="@(!isSuperAdmin)">
-
-        <option value="">
-            Select Constituency
-        </option>
-
-        @foreach (var item in Model.Constituencies)
-        {
-            if (item.Id == Model.Voter.ConstituencyId)
-            {
-                <option value="@item.Id" selected>
-                    @item.Name
-                </option>
-            }
-            else
-            {
-                <option value="@item.Id">
-                    @item.Name
-                </option>
-            }
-        }
-
-    </select>
-
-    @if (!isSuperAdmin)
+    if (ViewBag.IsSuperAdmin != null)
     {
-        <input type="hidden"
-               asp-for="Voter.ConstituencyId" />
-    }
-</div>
-<div class="mb-3">
-    <label class="form-label">Island</label>
-
-    <select asp-for="Voter.IslandId"
-            id="IslandDropdown"
-            class="form-select"
-            disabled="@(!isSuperAdmin)">
-
-        <option value="">
-            Select Island
-        </option>
-
-        @foreach (var item in Model.Islands)
-        {
-            if (item.Id == Model.Voter.IslandId)
-            {
-                <option value="@item.Id" selected>
-                    @item.Name
-                </option>
-            }
-            else
-            {
-                <option value="@item.Id">
-                    @item.Name
-                </option>
-            }
-        }
-
-    </select>
-
-    @if (!isSuperAdmin)
-    {
-        <input type="hidden"
-               asp-for="Voter.IslandId" />
+        isSuperAdmin = (bool)ViewBag.IsSuperAdmin;
     }
 
-    <span id="islandDebug"></span>
+    var voterName = string.IsNullOrWhiteSpace(Model.Voter.FullName) ? "Voter" : Model.Voter.FullName;
+}
+
+<div class="ui-page is-narrow">
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-blue"><partial name="_Icon" model='"edit"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a asp-action="Index">Voters</a> <span aria-hidden="true">/</span>
+                    <a asp-action="Profile" asp-route-id="@Model.Voter.Id">@voterName</a> <span aria-hidden="true">/</span>
+                    <span>Edit</span>
+                </nav>
+                <h1 class="ui-title">Edit Voter</h1>
+                <p class="ui-sub">Update this voter's details and current support status.</p>
+            </div>
+        </div>
+    </header>
+
+    <section class="ui-card ui-card-lg">
+
+        <form asp-action="Edit" method="post">
+
+            <input asp-for="Voter.Id" type="hidden" />
+
+            <div asp-validation-summary="ModelOnly" class="ui-summary"></div>
+
+            <!-- 1. IDENTITY -->
+            <div class="ui-section">
+                <div class="ui-section-head">
+                    <span class="ui-step">1</span>
+                    <div>
+                        <div class="ui-section-title">Identity</div>
+                        <div class="ui-section-sub">Who the voter is and how to reach them</div>
+                    </div>
+                </div>
+
+                <div class="ui-grid-2">
+                    <div class="ui-field">
+                        <label asp-for="Voter.NationalId" class="ui-label">National ID</label>
+                        <input asp-for="Voter.NationalId" class="ui-input ui-upper" autocomplete="off" />
+                        <span asp-validation-for="Voter.NationalId" class="ui-error"></span>
+                    </div>
+
+                    <div class="ui-field">
+                        <label asp-for="Voter.MobileNumber" class="ui-label">
+                            Mobile number <span class="ui-optional">(optional)</span>
+                        </label>
+                        <input asp-for="Voter.MobileNumber" class="ui-input" inputmode="tel" />
+                        <span asp-validation-for="Voter.MobileNumber" class="ui-error"></span>
+                    </div>
+
+                    <div class="ui-field ui-full">
+                        <label asp-for="Voter.FullName" class="ui-label">Full name</label>
+                        <input asp-for="Voter.FullName" class="ui-input" />
+                        <span asp-validation-for="Voter.FullName" class="ui-error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. LOCATION -->
+            <div class="ui-section">
+                <div class="ui-section-head">
+                    <span class="ui-step">2</span>
+                    <div>
+                        <div class="ui-section-title">Location</div>
+                        <div class="ui-section-sub">
+                            @(isSuperAdmin
+                                ? "Choose the constituency first; islands load automatically"
+                                : "Only a Super Administrator can move a voter to another constituency or island")
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui-grid-2">
+                    <div class="ui-field">
+                        <label for="ConstituencyDropdown" class="ui-label">Constituency</label>
+
+                        <select asp-for="Voter.ConstituencyId"
+                                id="ConstituencyDropdown"
+                                class="ui-select"
+                                disabled="@(!isSuperAdmin)">
+
+                            <option value="">Select Constituency</option>
+
+                            @foreach (var item in Model.Constituencies)
+                            {
+                                if (item.Id == Model.Voter.ConstituencyId)
+                                {
+                                    <option value="@item.Id" selected>@item.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Id">@item.Name</option>
+                                }
+                            }
+                        </select>
+
+                        @if (!isSuperAdmin)
+                        {
+                            <input type="hidden" asp-for="Voter.ConstituencyId" />
+                        }
+
+                        <span asp-validation-for="Voter.ConstituencyId" class="ui-error"></span>
+                    </div>
+
+                    <div class="ui-field">
+                        <label for="IslandDropdown" class="ui-label">Island</label>
+
+                        <select asp-for="Voter.IslandId"
+                                id="IslandDropdown"
+                                class="ui-select"
+                                disabled="@(!isSuperAdmin)">
+
+                            <option value="">Select Island</option>
+
+                            @foreach (var item in Model.Islands)
+                            {
+                                if (item.Id == Model.Voter.IslandId)
+                                {
+                                    <option value="@item.Id" selected>@item.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Id">@item.Name</option>
+                                }
+                            }
+                        </select>
+
+                        @if (!isSuperAdmin)
+                        {
+                            <input type="hidden" asp-for="Voter.IslandId" />
+                        }
+
+                        <span asp-validation-for="Voter.IslandId" class="ui-error"></span>
+                    </div>
+
+                    <div class="ui-field ui-full">
+                        <label asp-for="Voter.Address" class="ui-label">Address</label>
+                        <textarea asp-for="Voter.Address" class="ui-textarea"></textarea>
+                        <span asp-validation-for="Voter.Address" class="ui-error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. CAMPAIGN -->
+            <div class="ui-section">
+                <div class="ui-section-head">
+                    <span class="ui-step">3</span>
+                    <div>
+                        <div class="ui-section-title">Campaign</div>
+                        <div class="ui-section-sub">Current support status and any notes</div>
+                    </div>
+                </div>
+
+                <div class="ui-field">
+                    <span class="ui-label" id="h28StatusLabel">Support status</span>
+
+                    <div class="ui-chips" id="h28StatusChips" role="radiogroup" aria-labelledby="h28StatusLabel">
+                        <span class="ui-chip is-amber" data-v="Undecided" role="radio" tabindex="0">Undecided</span>
+                        <span class="ui-chip is-green" data-v="Supporter" role="radio" tabindex="0">Supporter</span>
+                        <span class="ui-chip is-red" data-v="Opponent" role="radio" tabindex="0">Opponent</span>
+                        <span class="ui-chip is-blue" data-v="Neutral" role="radio" tabindex="0">Neutral</span>
+                    </div>
+
+                    <!-- The real field that gets posted; the chips just set it -->
+                    <select asp-for="Voter.SupportStatus" id="h28StatusSelect" class="ui-hidden" aria-hidden="true" tabindex="-1">
+                        <option value="Undecided">Undecided</option>
+                        <option value="Supporter">Supporter</option>
+                        <option value="Opponent">Opponent</option>
+                        <option value="Neutral">Neutral</option>
+                    </select>
+
+                    <span asp-validation-for="Voter.SupportStatus" class="ui-error"></span>
+                </div>
+
+                <div class="ui-field">
+                    <label asp-for="Voter.Remarks" class="ui-label">
+                        Remarks <span class="ui-optional">(optional)</span>
+                    </label>
+                    <textarea asp-for="Voter.Remarks" class="ui-textarea"></textarea>
+                    <span asp-validation-for="Voter.Remarks" class="ui-error"></span>
+                </div>
+            </div>
+
+            <div class="ui-form-actions">
+                <button type="submit" class="ui-btn ui-btn-primary">
+                    <partial name="_Icon" model='"check"' />
+                    Update voter
+                </button>
+
+                <a asp-action="Profile"
+                   asp-route-id="@Model.Voter.Id"
+                   class="ui-btn ui-btn-secondary">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+
+    </section>
+
 </div>
-
-
-
-        <div class="mb-3">
-            <label class="form-label">Support Status</label>
-            <select asp-for="Voter.SupportStatus" class="form-select">
-                <option value="Undecided">Undecided</option>
-                <option value="Supporter">Supporter</option>
-                <option value="Opponent">Opponent</option>
-                <option value="Neutral">Neutral</option>
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Remarks</label>
-            <textarea asp-for="Voter.Remarks" class="form-control"></textarea>
-        </div>
-
-        <button type="submit"
-                class="btn btn-primary">
-            Update Voter
-        </button>
-
-    </form>
-
-
 
 @section Scripts
 {
     <script>
+        $(function () {
+            var $constituency = $('#ConstituencyDropdown');
+            var $island = $('#IslandDropdown');
 
-        $(document).ready(function () {
-if ($('#IslandDropdown option').length <= 1)
-{
-    $('#IslandDropdown').empty();
+            if ($island.find('option').length <= 1) {
+                $island.empty().append($('<option>').text('Select Island').val(''));
+            }
 
-    $('#IslandDropdown')
-        .append(
-            $('<option>')
-                .text('Select Island')
-                .val('')
-        );
-}
+            $constituency.on('change', function () {
+                var constituencyId = $(this).val();
 
-$('#IslandDropdown').change(function () {
-    $('#islandDebug').text(
-        'Selected Island ID = ' +
-        $(this).val()
-    );
-});
+                $island.empty();
 
+                $.getJSON('/Voters/GetIslands?constituencyId=' + encodeURIComponent(constituencyId), function (data) {
+                    $island.append($('<option>').text('Select Island').val(''));
 
-
-            $('#ConstituencyDropdown').change(function () {
-
-                var constituencyId =
-                    $(this).val();
-
-                $('#IslandDropdown')
-                    .empty();
-
-                $.getJSON(
-                    '/Voters/GetIslands?constituencyId=' +
-                    constituencyId,
-
-                    function (data) {
-
-                        $('#IslandDropdown')
-                            .append(
-                                $('<option>')
-                                    .text('Select Island')
-                                    .val('')
-                            );
-
-                        $.each(
-                            data,
-                            function (i, item) {
-
-                                $('#IslandDropdown')
-                                    .append(
-                                        $('<option>')
-                                            .text(item.name)
-                                            .val(item.id)
-                                    );
-                            });
-                       if (!$('#IslandDropdown').is(':disabled'))
-{
-    $('#IslandDropdown').prop('disabled', false);
-}
-
-                        $('#IslandDropdown')
-                            .trigger('change');
-
+                    $.each(data, function (i, item) {
+                        $island.append($('<option>').text(item.name).val(item.id));
                     });
+
+                    $island.trigger('change');
+                });
             });
 
-        });
+            // ---- Support status chips ----
+            var $status = $('#h28StatusSelect');
+            var $chips = $('#h28StatusChips .ui-chip');
 
+            function syncChips() {
+                $chips.each(function () {
+                    var selected = $(this).data('v') === $status.val();
+                    $(this).toggleClass('active', selected).attr('aria-checked', selected);
+                });
+            }
+
+            $chips.on('click', function () {
+                $status.val($(this).data('v'));
+                syncChips();
+            });
+
+            $chips.on('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    $(this).trigger('click');
+                }
+            });
+
+            syncChips();
+        });
     </script>
 }
-
-</div>

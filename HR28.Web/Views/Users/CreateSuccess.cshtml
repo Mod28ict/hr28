@@ -1,24 +1,78 @@
-﻿@model HR28.Web.Models.UserCreateViewModel
+@model HR28.Web.Models.UserCreateViewModel
 
-<div class="container mt-4">
+@{
+    ViewData["Title"] = "User Created";
 
-    <div class="alert alert-success">
+    var code =
+        Model?.GeneratedAuthorizationCode
+        ?? string.Empty;
+}
 
-        <h4>User Created Successfully</h4>
+<div class="ui-page is-narrow" style="max-width: 640px;">
 
-        <p>
-            Authorization Code:
-        </p>
+    <section class="ui-card ui-card-lg" style="text-align: center;">
 
-        <h2>
-            @Model.GeneratedAuthorizationCode
-        </h2>
+        <span class="ui-head-icon is-green" style="width: 64px; height: 64px; margin: 4px auto 16px; border-radius: 50%;">
+            <partial name="_Icon" model='"check"' />
+        </span>
 
-    </div>
+        <h1 class="ui-title">User created</h1>
+        <p class="ui-sub">The account is ready. Share the authorization code with the user securely.</p>
 
-    <a asp-action="Index"
-       class="btn btn-primary">
-        Back to Users
-    </a>
+        <div style="margin: 26px 0 8px;" class="ui-label">Authorization code</div>
+
+        <div id="authCode"
+             class="ui-mono"
+             style="padding: 22px; border: 2px dashed #b9cdf7; border-radius: 14px; color: var(--ui-navy); background: #f6f9ff; font-size: clamp(26px, 6vw, 38px); font-weight: 800; letter-spacing: 4px; word-break: break-all;">@code</div>
+
+        <button type="button" id="copyBtn" class="ui-btn ui-btn-secondary" style="margin-top: 14px;">
+            <partial name="_Icon" model='"copy"' />
+            <span>Copy code</span>
+        </button>
+
+        <div class="ui-note is-amber" style="margin: 22px 0; text-align: left;">
+            <partial name="_Icon" model='"alert"' />
+            <div>
+                <strong>Save this code now</strong>
+                The user needs it for first login and OTP verification.
+            </div>
+        </div>
+
+        <div class="ui-form-actions" style="justify-content: center;">
+            <a asp-action="Index" class="ui-btn ui-btn-primary">
+                <partial name="_Icon" model='"arrow-left"' />
+                Back to Users
+            </a>
+
+            <a asp-action="Create" class="ui-btn ui-btn-secondary">
+                <partial name="_Icon" model='"user-plus"' />
+                Create another
+            </a>
+        </div>
+
+    </section>
 
 </div>
+
+@section Scripts
+{
+    <script>
+        (function () {
+            const btn = document.getElementById("copyBtn");
+            const label = btn.querySelector("span");
+            const code = document.getElementById("authCode");
+
+            btn.addEventListener("click", function () {
+                if (!navigator.clipboard) return;
+
+                navigator.clipboard.writeText(code.innerText.trim()).then(function () {
+                    label.textContent = "Copied";
+
+                    setTimeout(function () {
+                        label.textContent = "Copy code";
+                    }, 2000);
+                });
+            });
+        })();
+    </script>
+}

@@ -1,34 +1,158 @@
-﻿@model List<HR28.Web.Models.ConstituencySummaryDto>
+@model List<HR28.Web.Models.ConstituencySummaryDto>
+@using System.Globalization
 
-<h2>Constituency Summary</h2>
+@{
+    ViewData["Title"] = "Constituency Summary";
 
-<table class="table table-bordered table-striped">
+    var rows = Model ?? new List<HR28.Web.Models.ConstituencySummaryDto>();
 
-    <thead>
-        <tr>
-            <th>Constituency</th>
-            <th>Voters</th>
-            <th>Supporters</th>
-            <th>Undecided</th>
-            <th>Support %</th>
-            <th>Engagement</th>
-        </tr>
-    </thead>
+    var totalVoters = rows.Sum(x => x.TotalVoters);
+    var totalSupporters = rows.Sum(x => x.Supporters);
+    var totalUndecided = rows.Sum(x => x.Undecided);
+    var constituencyCount = rows.Count;
 
-    <tbody>
+    var overallSupport = totalVoters > 0
+        ? totalSupporters * 100.0 / totalVoters
+        : 0;
 
-        @foreach (var item in Model)
+    // Same bands as the dashboard's constituency performance panel.
+    string BandTone(double pct) => pct >= 65 ? "is-green" : pct >= 45 ? "is-amber" : "is-red";
+}
+
+<div class="ui-page">
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-blue"><partial name="_Icon" model='"map-pin"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb"><span>Reports</span></nav>
+                <h1 class="ui-title">Constituency Summary</h1>
+                <p class="ui-sub">Voter support and engagement across @constituencyCount.ToString("N0") constituencies.</p>
+            </div>
+        </div>
+    </header>
+
+    <section class="ui-stats">
+        <div class="ui-stat is-blue">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"users"' /></span>
+            <div>
+                <div class="ui-stat-label">Total voters</div>
+                <div class="ui-stat-value">@totalVoters.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="ui-stat is-green">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"user-check"' /></span>
+            <div>
+                <div class="ui-stat-label">Supporters</div>
+                <div class="ui-stat-value">@totalSupporters.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="ui-stat is-amber">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"help"' /></span>
+            <div>
+                <div class="ui-stat-label">Undecided</div>
+                <div class="ui-stat-value">@totalUndecided.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="ui-stat is-violet">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"chart"' /></span>
+            <div>
+                <div class="ui-stat-label">Overall support</div>
+                <div class="ui-stat-value">@overallSupport.ToString("0.#")%</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="ui-card">
+
+        <div class="ui-card-head">
+            <h2>All constituencies</h2>
+
+            <div class="ui-search" style="flex: 0 1 300px;">
+                <partial name="_Icon" model='"search"' />
+                <label for="h28CsSearch" class="visually-hidden">Filter constituencies</label>
+                <input type="search"
+                       id="h28CsSearch"
+                       class="ui-input"
+                       placeholder="Filter constituencies" />
+            </div>
+        </div>
+
+        @if (!rows.Any())
         {
-            <tr>
-                <td>@item.ConstituencyName</td>
-                <td>@item.TotalVoters</td>
-                <td>@item.Supporters</td>
-                <td>@item.Undecided</td>
-                <td>@item.SupportPercentage %</td>
-                <td>@item.EngagementScore</td>
-            </tr>
+            <div class="ui-empty">
+                <partial name="_Icon" model='"map-pin"' />
+                No constituency data available.
+            </div>
+        }
+        else
+        {
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th>Constituency</th>
+                            <th class="is-right">Voters</th>
+                            <th class="is-right">Supporters</th>
+                            <th class="is-right">Undecided</th>
+                            <th>Support</th>
+                            <th class="is-right">Engagement</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="h28CsBody">
+                        @foreach (var item in rows)
+                        {
+                            var pct = Convert.ToDouble(item.SupportPercentage);
+                            var barWidth = pct > 0 ? Math.Min(100, Math.Max(3, pct)) : 0;
+
+                            <tr>
+                                <td class="ui-strong">@item.ConstituencyName</td>
+                                <td class="ui-num is-right">@item.TotalVoters.ToString("N0")</td>
+                                <td class="ui-num is-right">@item.Supporters.ToString("N0")</td>
+                                <td class="ui-num is-right">@item.Undecided.ToString("N0")</td>
+                                <td>
+                                    <div class="ui-bar @BandTone(pct)">
+                                        <div class="ui-bar-track">
+                                            <span class="ui-bar-fill"
+                                                  style="width: @barWidth.ToString("0.##", CultureInfo.InvariantCulture)%;"></span>
+                                        </div>
+                                        <span class="ui-bar-value">@pct.ToString("0.#")%</span>
+                                    </div>
+                                </td>
+                                <td class="ui-num is-right">@item.EngagementScore</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="ui-empty" id="h28CsNoMatch" hidden>No constituencies match your filter.</div>
         }
 
-    </tbody>
+    </section>
 
-</table>
+</div>
+
+<script>
+    (function () {
+        const search = document.getElementById("h28CsSearch");
+        const body = document.getElementById("h28CsBody");
+        const noMatch = document.getElementById("h28CsNoMatch");
+
+        if (!search || !body) return;
+
+        search.addEventListener("input", function () {
+            const term = search.value.trim().toLowerCase();
+            let shown = 0;
+
+            body.querySelectorAll("tr").forEach(function (row) {
+                const match = row.cells[0].textContent.toLowerCase().includes(term);
+                row.style.display = match ? "" : "none";
+                if (match) shown++;
+            });
+
+            if (noMatch) noMatch.hidden = shown > 0;
+        });
+    })();
+</script>

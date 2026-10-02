@@ -1,117 +1,130 @@
-﻿@model HR28.Web.Models.CreatePledgeDto
+@model HR28.Web.Models.CreatePledgeDto
 
 @{
     ViewData["Title"] = "Add Pledge";
 }
 
-<div class="container mt-4">
+<div class="ui-page is-narrow">
 
-    <h2>Add Pledge</h2>
-
-    <p class="text-muted">
-        Record a candidate or campaign commitment made to this voter.
-    </p>
-
-    <form asp-action="Create"
-          method="post">
-
-        @Html.AntiForgeryToken()
-
-        <input asp-for="VoterId"
-               type="hidden" />
-
-        <div asp-validation-summary="ModelOnly"
-             class="alert alert-danger">
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-amber"><partial name="_Icon" model='"handshake"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a asp-controller="Voters" asp-action="Profile" asp-route-id="@Model.VoterId">Voter profile</a>
+                    <span aria-hidden="true">/</span> <span>Add pledge</span>
+                </nav>
+                <h1 class="ui-title">Add Pledge</h1>
+                <p class="ui-sub">Record a candidate or campaign commitment made to this voter.</p>
+            </div>
         </div>
+    </header>
 
-        <div class="mb-3">
+    <section class="ui-card ui-card-lg">
 
-            <label asp-for="Title"
-                   class="form-label">
-            </label>
+        <form asp-action="Create" method="post">
 
-            <input asp-for="Title"
-                   class="form-control"
-                   placeholder="Example: House rent assistance" />
+            @Html.AntiForgeryToken()
 
-            <span asp-validation-for="Title"
-                  class="text-danger">
-            </span>
+            <input asp-for="VoterId" type="hidden" />
 
-        </div>
+            <div asp-validation-summary="ModelOnly" class="ui-summary"></div>
 
-        <div class="mb-3">
+            <div class="ui-note is-amber">
+                <partial name="_Icon" model='"info"' />
+                <span>Record pledges clearly and factually. They are tracked against the voter and appear in pledge reports.</span>
+            </div>
 
-            <label asp-for="Description"
-                   class="form-label">
-            </label>
+            <div class="ui-field">
+                <label asp-for="Title" class="ui-label">Pledge title</label>
 
-            <textarea asp-for="Description"
-                      class="form-control"
-                      rows="5"
-                      maxlength="2000"
-                      placeholder="Describe the commitment clearly and factually.">
-            </textarea>
+                <input asp-for="Title"
+                       class="ui-input"
+                       placeholder="Example: House rent assistance" />
 
-            <span asp-validation-for="Description"
-                  class="text-danger">
-            </span>
+                <span asp-validation-for="Title" class="ui-error"></span>
+            </div>
 
-        </div>
+            <div class="ui-field">
+                <label asp-for="Description" class="ui-label">Description</label>
 
-        <div class="mb-3">
+                <textarea asp-for="Description"
+                          id="h28PledgeDescription"
+                          class="ui-textarea"
+                          rows="5"
+                          maxlength="2000"
+                          placeholder="Describe the commitment clearly and factually."></textarea>
 
-            <label asp-for="PledgeDate"
-                   class="form-label">
-            </label>
+                <div class="ui-counter">
+                    <span id="h28PledgeCount">0</span> / 2000
+                </div>
 
-            <input asp-for="PledgeDate"
-                   type="datetime-local"
-                   class="form-control" />
+                <span asp-validation-for="Description" class="ui-error"></span>
+            </div>
 
-            <span asp-validation-for="PledgeDate"
-                  class="text-danger">
-            </span>
+            <div class="ui-grid-2">
 
-        </div>
+                <div class="ui-field">
+                    <label asp-for="PledgeDate" class="ui-label">Pledge date</label>
 
-        <div class="mb-3">
+                    <input asp-for="PledgeDate"
+                           type="datetime-local"
+                           class="ui-input" />
 
-            <label asp-for="DueDate"
-                   class="form-label">
-            </label>
+                    <span asp-validation-for="PledgeDate" class="ui-error"></span>
+                </div>
 
-            <input asp-for="DueDate"
-                   type="date"
-                   class="form-control" />
+                <div class="ui-field">
+                    <label asp-for="DueDate" class="ui-label">
+                        Due date <span class="ui-optional">(optional)</span>
+                    </label>
 
-            <span asp-validation-for="DueDate"
-                  class="text-danger">
-            </span>
+                    <input asp-for="DueDate"
+                           type="date"
+                           class="ui-input" />
 
-        </div>
+                    <span asp-validation-for="DueDate" class="ui-error"></span>
+                </div>
 
-        <button type="submit"
-                class="btn btn-warning">
+            </div>
 
-            Save Pledge
+            <div class="ui-form-actions">
+                <button type="submit" class="ui-btn ui-btn-primary">
+                    <partial name="_Icon" model='"check"' />
+                    Save pledge
+                </button>
 
-        </button>
+                <a asp-controller="Voters"
+                   asp-action="Profile"
+                   asp-route-id="@Model.VoterId"
+                   class="ui-btn ui-btn-secondary">
+                    Cancel
+                </a>
+            </div>
 
-        <a asp-controller="Voters"
-           asp-action="Profile"
-           asp-route-id="@Model.VoterId"
-           class="btn btn-secondary">
+        </form>
 
-            Cancel
-
-        </a>
-
-    </form>
+    </section>
 
 </div>
 
 @section Scripts
 {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (function () {
+            var box = document.getElementById("h28PledgeDescription");
+            var count = document.getElementById("h28PledgeCount");
+
+            if (!box || !count) return;
+
+            function update() {
+                count.textContent = box.value.length;
+            }
+
+            box.addEventListener("input", update);
+            update();
+        })();
+    </script>
 }

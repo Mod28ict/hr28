@@ -1,30 +1,58 @@
-﻿@model List<HR28.Web.Models.TopInfluencerDto>
+@model List<HR28.Web.Models.TopInfluencerDto>
 
-<div class="container mt-4">
+@{
+    ViewData["Title"] = "Top Influencers";
 
-    <h2>Top Influencers</h2>
+    var rows = Model ?? new List<HR28.Web.Models.TopInfluencerDto>();
+}
 
-    <table class="table table-striped">
+<div class="ui-page">
 
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Linked Voters</th>
-            </tr>
-        </thead>
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-violet"><partial name="_Icon" model='"star"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb"><span>Reports</span></nav>
+                <h1 class="ui-title">Top Influencers</h1>
+                <p class="ui-sub">Influencers ranked by the number of voters linked to them.</p>
+            </div>
+        </div>
+    </header>
 
-        <tbody>
-
-        @foreach(var item in Model)
+    <section class="ui-card">
+        @if (!rows.Any())
         {
-            <tr>
-                <td>@item.FullName</td>
-                <td>@item.LinkedVoters</td>
-            </tr>
+            <div class="ui-empty">
+                <partial name="_Icon" model='"star"' />
+                No influencers have linked voters yet.
+            </div>
         }
-
-        </tbody>
-
-    </table>
+        else
+        {
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">#</th>
+                            <th>Name</th>
+                            <th class="is-right">Linked voters</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ var rank = 0; }
+                        @foreach (var item in rows)
+                        {
+                            rank++;
+                            <tr>
+                                <td class="ui-num ui-muted">@rank</td>
+                                <td class="ui-strong">@item.FullName</td>
+                                <td class="ui-num is-right">@item.LinkedVoters</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
 
 </div>

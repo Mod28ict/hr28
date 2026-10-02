@@ -1,49 +1,67 @@
-﻿@model HR28.Web.Models.UpdateInfluencerRelationshipDto
+@model HR28.Web.Models.UpdateInfluencerRelationshipDto
 
-<div class="container mt-4">
+@{
+    ViewData["Title"] = "Edit Relationship";
+}
 
-    <h2>Edit Relationship</h2>
+<div class="ui-page is-narrow">
 
-    <form asp-action="EditRelationship"
-          method="post">
-
-        <input asp-for="VoterId"
-               type="hidden" />
-
-        <input asp-for="InfluencerId"
-               type="hidden" />
-
-        <div class="mb-3">
-
-            <label class="form-label">
-                Relationship Type
-            </label>
-
-            <select asp-for="RelationshipType"
-                    class="form-select">
-
-                <option value="Parent">Parent</option>
-                <option value="Child">Child</option>
-                <option value="Sibling">Sibling</option>
-                <option value="Relative">Relative</option>
-                <option value="Friend">Friend</option>
-                <option value="Colleague">Colleague</option>
-                <option value="Community Leader">
-                    Community Leader
-                </option>
-                <option value="Spouse">Spouse</option>
-
-            </select>
-
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-violet"><partial name="_Icon" model='"edit"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a asp-controller="Voters" asp-action="Profile" asp-route-id="@Model.VoterId">Voter profile</a>
+                    <span aria-hidden="true">/</span> <span>Edit relationship</span>
+                </nav>
+                <h1 class="ui-title">Edit Relationship</h1>
+                <p class="ui-sub">Change how this influencer is related to the voter.</p>
+            </div>
         </div>
+    </header>
 
-        <button type="submit"
-                class="btn btn-warning">
+    <section class="ui-card ui-card-lg">
 
-            Save Changes
+        <form asp-action="EditRelationship" method="post">
 
-        </button>
+            <input asp-for="VoterId" type="hidden" />
+            <input asp-for="InfluencerId" type="hidden" />
 
-    </form>
+            <div asp-validation-summary="ModelOnly" class="ui-summary"></div>
+
+            <div class="ui-field">
+                <label asp-for="RelationshipType" class="ui-label">Relationship type</label>
+
+                <select asp-for="RelationshipType" class="ui-select">
+                    <option value="Spouse">Spouse</option>
+                    <option value="Parent">Parent</option>
+                    <option value="Child">Child</option>
+                    <option value="Sibling">Sibling</option>
+                    <option value="Relative">Relative</option>
+                    <option value="Friend">Friend</option>
+                    <option value="Colleague">Colleague</option>
+                    <option value="Community Leader">Community Leader</option>
+                </select>
+
+                <span asp-validation-for="RelationshipType" class="ui-error"></span>
+            </div>
+
+            <div class="ui-form-actions">
+                <button type="submit" class="ui-btn ui-btn-primary">
+                    <partial name="_Icon" model='"check"' />
+                    Save changes
+                </button>
+
+                <a asp-controller="Voters"
+                   asp-action="Profile"
+                   asp-route-id="@Model.VoterId"
+                   class="ui-btn ui-btn-secondary">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+
+    </section>
 
 </div>

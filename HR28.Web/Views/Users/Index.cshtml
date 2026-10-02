@@ -1,103 +1,279 @@
-﻿@model List<HR28.Web.Models.Users.UserDto>
+@model List<HR28.Web.Models.Users.UserDto>
 
-<div class="container mt-4">
+@{
+    ViewData["Title"] = "Users";
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Users</h2>
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["SuccessMessage"]
-    </div>
+    var users = Model ?? new List<HR28.Web.Models.Users.UserDto>();
+
+    var totalUsers = users.Count;
+    var activeUsers = users.Count(u => u.IsActive);
+    var inactiveUsers = totalUsers - activeUsers;
+    var unassigned = users.Count(u => string.IsNullOrWhiteSpace(u.RoleName));
+
+    string InitialsOf(string name) =>
+        string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
 }
 
-        <a asp-action="Create"
-           class="btn btn-primary">
-            Create User
-        </a>
-    </div>
+<div class="ui-page">
 
-    <table class="table table-bordered table-striped">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ui-alert is-green" role="status">
+            <partial name="_Icon" model='"check-circle"' />
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
 
-        <thead>
-            <tr>
-                <th>Full Name</th>
-                <th>National ID</th>
-                <th>Mobile Number</th>
-                <th>Email</th>
-                <th>Designation</th>
-                <th>Role</th>
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-blue"><partial name="_Icon" model='"user"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb"><span>Administration</span></nav>
+                <h1 class="ui-title">Users</h1>
+                <p class="ui-sub">Manage platform accounts, roles and access scopes.</p>
+            </div>
+        </div>
 
-                <th>Scope</th>
+        <div class="ui-head-actions">
+            <a asp-action="Create" class="ui-btn ui-btn-primary">
+                <partial name="_Icon" model='"user-plus"' />
+                Create user
+            </a>
+        </div>
+    </header>
 
-                <th>Authorization Code</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+    <section class="ui-stats">
+        <div class="ui-stat is-blue">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"users"' /></span>
+            <div>
+                <div class="ui-stat-label">Total users</div>
+                <div class="ui-stat-value">@totalUsers.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="ui-stat is-green">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"user-check"' /></span>
+            <div>
+                <div class="ui-stat-label">Active</div>
+                <div class="ui-stat-value">@activeUsers.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="ui-stat is-red">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"user-x"' /></span>
+            <div>
+                <div class="ui-stat-label">Inactive</div>
+                <div class="ui-stat-value">@inactiveUsers.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="ui-stat is-amber">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"shield"' /></span>
+            <div>
+                <div class="ui-stat-label">No role assigned</div>
+                <div class="ui-stat-value">@unassigned.ToString("N0")</div>
+            </div>
+        </div>
+    </section>
 
-        <tbody>
+    <section class="ui-card">
 
-            @foreach (var user in Model)
-            {
-                <tr>
-                    <td>@user.FullName</td>
-                    <td>@user.NationalId</td>
-                    <td>@user.MobileNumber</td>
-                    <td>@user.Email</td>
-                    <td>@user.Designation</td>
-                    <td>
-                        @(string.IsNullOrWhiteSpace(user.RoleName)
-                            ? "-"
-                            : user.RoleName)
-                    </td>
+        <div class="ui-card-head">
+            <h2>All users</h2>
 
-                    <td>
-                        @if (!string.IsNullOrWhiteSpace(
-                                user.ConstituencyName))
+            <div class="ui-search" style="flex: 0 1 320px;">
+                <partial name="_Icon" model='"search"' />
+                <label for="h28UserSearch" class="visually-hidden">Filter users</label>
+                <input type="search"
+                       id="h28UserSearch"
+                       class="ui-input"
+                       placeholder="Filter by name, ID, role or scope" />
+            </div>
+        </div>
+
+        @if (!users.Any())
+        {
+            <div class="ui-empty">
+                <partial name="_Icon" model='"users"' />
+                No users created yet.
+            </div>
+        }
+        else
+        {
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>National ID</th>
+                            <th>Contact</th>
+                            <th>Role</th>
+                            <th>Scope</th>
+                            <th>Auth code</th>
+                            <th>Status</th>
+                            <th><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="h28UserBody">
+                        @foreach (var user in users)
                         {
-                            @user.ConstituencyName
+                            var name = string.IsNullOrWhiteSpace(user.FullName) ? "Unnamed user" : user.FullName;
 
-                            @if (!string.IsNullOrWhiteSpace(
-                                    user.IslandName))
-                            {
-                                <text> / @user.IslandName</text>
-                            }
+                            var role = user.RoleName ?? string.Empty;
+                            var roleKey = role.ToLowerInvariant();
+                            var roleTone =
+                                string.IsNullOrWhiteSpace(role) ? "is-amber" :
+                                roleKey.Contains("super") ? "is-violet" :
+                                roleKey.Contains("national") ? "is-blue" :
+                                roleKey.Contains("reporter") ? "is-cyan" :
+                                "is-muted";
+
+                            var scope = string.IsNullOrWhiteSpace(user.ConstituencyName)
+                                ? string.Empty
+                                : user.ConstituencyName +
+                                  (string.IsNullOrWhiteSpace(user.IslandName) ? "" : " / " + user.IslandName);
+
+                            <tr>
+                                <td>
+                                    <div class="ui-person" style="min-width: 200px;">
+                                        <span class="ui-avatar" aria-hidden="true">@InitialsOf(name)</span>
+                                        <span>
+                                            <strong>@name</strong>
+                                            @if (!string.IsNullOrWhiteSpace(user.Designation))
+                                            {
+                                                <small>@user.Designation</small>
+                                            }
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td class="ui-num ui-muted" style="white-space: nowrap;">@user.NationalId</td>
+
+                                <td style="min-width: 160px;">
+                                    <div class="ui-num">@user.MobileNumber</div>
+                                    @if (!string.IsNullOrWhiteSpace(user.Email))
+                                    {
+                                        <div class="ui-muted" style="font-size: 12px;">@user.Email</div>
+                                    }
+                                </td>
+
+                                <td>
+                                    <span class="ui-pill @roleTone">
+                                        @(string.IsNullOrWhiteSpace(role) ? "No role" : role)
+                                    </span>
+                                </td>
+
+                                <td style="min-width: 140px;">
+                                    @if (string.IsNullOrWhiteSpace(scope))
+                                    {
+                                        <span class="ui-faint">Not assigned</span>
+                                    }
+                                    else
+                                    {
+                                        @scope
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (string.IsNullOrWhiteSpace(user.AuthorizationCode))
+                                    {
+                                        <span class="ui-faint">—</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
+                                            <span class="ui-tag ui-mono h28-code-value" style="min-width: 92px;" data-code="@user.AuthorizationCode">••••••••</span>
+
+                                            <button type="button" class="ui-icon-btn h28-code-reveal" aria-label="Show or hide code">
+                                                <partial name="_Icon" model='"eye"' />
+                                            </button>
+
+                                            <button type="button" class="ui-icon-btn h28-code-copy" aria-label="Copy code">
+                                                <partial name="_Icon" model='"copy"' />
+                                            </button>
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <span class="ui-pill @(user.IsActive ? "is-green" : "is-red")">
+                                        @(user.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <div style="display: flex; gap: 6px; white-space: nowrap;">
+                                        <a asp-action="AssignRole"
+                                           asp-route-id="@user.Id"
+                                           class="ui-btn ui-btn-soft is-violet ui-btn-sm">
+                                            Role
+                                        </a>
+
+                                        <a asp-action="AssignScope"
+                                           asp-route-id="@user.Id"
+                                           class="ui-btn ui-btn-soft is-cyan ui-btn-sm">
+                                            Scope
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
                         }
-                        else
-                        {
-                            <text>-</text>
-                        }
-                    </td>
+                    </tbody>
+                </table>
+            </div>
 
-                    <td>
-                        <code>@user.AuthorizationCode</code>
-                    </td>
-                    <td>
-                        @(user.IsActive
-                            ? "Active"
-                            : "Inactive")
-                    </td>
-                    <td>
+            <div class="ui-empty" id="h28UserNoMatch" hidden>No users match your filter.</div>
+        }
 
-                        <a asp-action="AssignRole"
-                           asp-route-id="@user.Id"
-                           class="btn btn-sm btn-warning">
-                            Edit Role
-                        </a>
-
-                        <a asp-action="AssignScope"
-                           asp-route-id="@user.Id"
-                           class="btn btn-sm btn-info">
-                            Edit Scope
-                        </a>
-
-                </td>
-                </tr>
-            }
-
-        </tbody>
-
-    </table>
+    </section>
 
 </div>
+
+@section Scripts
+{
+    <script>
+        (function () {
+            // Filter
+            var search = document.getElementById("h28UserSearch");
+            var body = document.getElementById("h28UserBody");
+            var noMatch = document.getElementById("h28UserNoMatch");
+
+            if (search && body) {
+                search.addEventListener("input", function () {
+                    var term = search.value.trim().toLowerCase();
+                    var shown = 0;
+
+                    body.querySelectorAll("tr").forEach(function (row) {
+                        var match = row.textContent.toLowerCase().includes(term);
+                        row.style.display = match ? "" : "none";
+                        if (match) shown++;
+                    });
+
+                    if (noMatch) noMatch.hidden = shown > 0;
+                });
+            }
+
+            // Reveal / hide authorization code
+            document.querySelectorAll(".h28-code-reveal").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    var value = btn.parentElement.querySelector(".h28-code-value");
+                    var hidden = value.textContent.indexOf("•") === 0;
+
+                    value.textContent = hidden ? value.dataset.code : "••••••••";
+                });
+            });
+
+            // Copy authorization code
+            document.querySelectorAll(".h28-code-copy").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    var code = btn.parentElement.querySelector(".h28-code-value").dataset.code;
+
+                    if (!navigator.clipboard) return;
+
+                    navigator.clipboard.writeText(code).then(function () {
+                        btn.style.color = "var(--ui-green)";
+                        setTimeout(function () { btn.style.color = ""; }, 1200);
+                    });
+                });
+            });
+        })();
+    </script>
+}

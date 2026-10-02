@@ -1,364 +1,262 @@
-﻿@model HR28.Web.Models.PagedResult<
-    HR28.Web.Models.VoterSearchDto>
+@model HR28.Web.Models.PagedResult<HR28.Web.Models.VoterSearchDto>
 
 @{
     ViewData["Title"] = "Voters";
 
-    var searchTerm =
-        ViewBag.SearchTerm as string
-        ?? string.Empty;
+    var searchTerm = ViewBag.SearchTerm as string ?? string.Empty;
 
-    var startRecord =
-        Model.TotalCount == 0
-            ? 0
-            : ((Model.Page - 1)
-               * Model.PageSize) + 1;
+    var startRecord = Model.TotalCount == 0
+        ? 0
+        : ((Model.Page - 1) * Model.PageSize) + 1;
 
-    var endRecord =
-        Math.Min(
-            Model.Page * Model.PageSize,
-            Model.TotalCount);
+    var endRecord = Math.Min(Model.Page * Model.PageSize, Model.TotalCount);
 
-    var firstVisiblePage =
-        Math.Max(1, Model.Page - 2);
+    var firstVisiblePage = Math.Max(1, Model.Page - 2);
+    var lastVisiblePage = Math.Min(Model.TotalPages, Model.Page + 2);
 
-    var lastVisiblePage =
-        Math.Min(
-            Model.TotalPages,
-            Model.Page + 2);
+    string InitialsOf(string name) =>
+        string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
 }
 
-<div class="container mt-4">
+<div class="ui-page">
 
-    <h2>Voters</h2>
-
-    <p class="text-muted">
-        Showing voters within your assigned scope.
-    </p>
-
-    <form asp-action="Index"
-          method="get"
-          class="mb-3">
-
-        <input type="hidden"
-               name="page"
-               value="1" />
-
-        <input type="hidden"
-               name="pageSize"
-               value="@Model.PageSize" />
-
-        <div class="row g-2">
-
-            <div class="col-md-9">
-
-                <input type="text"
-                       name="searchTerm"
-                       value="@searchTerm"
-                       class="form-control"
-                       placeholder=
-                       "Search by National ID or name" />
-
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-blue"><partial name="_Icon" model='"users"' /></span>
+            <div>
+                <h1 class="ui-title">Voters</h1>
+                <p class="ui-sub">
+                    @Model.TotalCount.ToString("N0")
+                    @(string.IsNullOrWhiteSpace(searchTerm) ? "voters within your assigned scope" : "voters match your search")
+                </p>
             </div>
+        </div>
 
-            <div class="col-md-3">
+        <div class="ui-head-actions">
+            <a asp-action="Create" class="ui-btn ui-btn-primary">
+                <partial name="_Icon" model='"plus"' />
+                Add Voter
+            </a>
+        </div>
+    </header>
 
-                <button type="submit"
-                        class="btn btn-primary">
+    <section class="ui-card">
 
-                    Search
+        <div class="ui-toolbar">
 
-                </button>
+            <form asp-action="Index" method="get" class="ui-grow" role="search">
+                <input type="hidden" name="page" value="1" />
+                <input type="hidden" name="pageSize" value="@Model.PageSize" />
 
-                @if (!string.IsNullOrWhiteSpace(
-                    searchTerm))
+                <div class="ui-search">
+                    <partial name="_Icon" model='"search"' />
+                    <label for="voterSearch" class="visually-hidden">Search voters</label>
+                    <input type="search"
+                           id="voterSearch"
+                           name="searchTerm"
+                           value="@searchTerm"
+                           class="ui-input"
+                           placeholder="Search by National ID or name" />
+                </div>
+
+                <button type="submit" class="ui-btn ui-btn-primary">Search</button>
+
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
                     <a asp-action="Index"
-                       asp-route-pageSize=
-                           "@Model.PageSize"
-                       class="btn btn-secondary">
-
+                       asp-route-pageSize="@Model.PageSize"
+                       class="ui-btn ui-btn-secondary">
                         Clear
-
                     </a>
                 }
+            </form>
 
-            </div>
+            <form asp-action="Index" method="get">
+                <input type="hidden" name="page" value="1" />
+                <input type="hidden" name="searchTerm" value="@searchTerm" />
+
+                <label for="voterPageSize" class="visually-hidden">Rows per page</label>
+                <select name="pageSize"
+                        id="voterPageSize"
+                        class="ui-select"
+                        onchange="this.form.requestSubmit()">
+                    @foreach (var size in new[] { 10, 20, 50, 100 })
+                    {
+                        if (Model.PageSize == size)
+                        {
+                            <option value="@size" selected>@size per page</option>
+                        }
+                        else
+                        {
+                            <option value="@size">@size per page</option>
+                        }
+                    }
+                </select>
+            </form>
 
         </div>
 
-    </form>
+        @if (!Model.Items.Any())
+        {
+            <div class="ui-empty">
+                <partial name="_Icon" model='"search"' />
+                @(string.IsNullOrWhiteSpace(searchTerm)
+                    ? "No voters found within your assigned scope."
+                    : "No voters match your search.")
+            </div>
+        }
+        else
+        {
+            <div class="ui-meta">
+                Showing <strong>@startRecord.ToString("N0")</strong>
+                to <strong>@endRecord.ToString("N0")</strong>
+                of <strong>@Model.TotalCount.ToString("N0")</strong> voters
+            </div>
 
-    <div class="d-flex
-                justify-content-between
-                align-items-center
-                mb-3">
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th>Voter</th>
+                            <th>National ID</th>
+                            <th>Phone</th>
+                            <th class="ui-hide-sm">Address</th>
+                            <th>Status</th>
+                            <th><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
 
-        <span>
-            Showing
-            <strong>@startRecord</strong>
-            to
-            <strong>@endRecord</strong>
-            of
-            <strong>@Model.TotalCount</strong>
-            voters
-        </span>
+                    <tbody>
+                        @foreach (var voter in Model.Items)
+                        {
+                            var name = string.IsNullOrWhiteSpace(voter.FullName) ? "Unnamed voter" : voter.FullName;
+                            var profileUrl = Url.Action("Profile", new { id = voter.Id });
 
-        <form asp-action="Index"
-              method="get">
+                            <tr class="ui-row-link" onclick="window.location='@profileUrl'">
+                                <td>
+                                    <div class="ui-person">
+                                        <span class="ui-avatar" aria-hidden="true">@InitialsOf(name)</span>
+                                        <span>
+                                            <strong>@name</strong>
+                                            @if (!string.IsNullOrWhiteSpace(voter.IslandName) || !string.IsNullOrWhiteSpace(voter.ConstituencyName))
+                                            {
+                                                <small>@string.Join(" · ", new[] { voter.IslandName, voter.ConstituencyName }.Where(s => !string.IsNullOrWhiteSpace(s)))</small>
+                                            }
+                                        </span>
+                                    </div>
+                                </td>
 
-            <input type="hidden"
-                   name="page"
-                   value="1" />
+                                <td class="ui-num ui-muted">@voter.NationalId</td>
 
-            <input type="hidden"
-                   name="searchTerm"
-                   value="@searchTerm" />
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(voter.MobileNumber))
+                                    {
+                                        <a href="tel:@voter.MobileNumber"
+                                           class="ui-link ui-num"
+                                           onclick="event.stopPropagation()">@voter.MobileNumber</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="ui-faint">—</span>
+                                    }
+                                </td>
 
-            <select name="pageSize"
-                    class="form-select"
-                    onchange="this.form.submit()">
+                                <td class="ui-muted ui-hide-sm">@voter.Address</td>
 
-                @foreach (
-                    var size
-                    in new[] { 10, 20, 50, 100 })
+                                <td><partial name="_StatusPill" model="voter.SupportStatus" /></td>
+
+                                <td class="is-right">
+                                    <a asp-action="Profile"
+                                       asp-route-id="@voter.Id"
+                                       class="ui-btn ui-btn-secondary ui-btn-sm"
+                                       onclick="event.stopPropagation()">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="ui-pager" aria-label="Voter pagination">
+
+                @if (Model.HasPreviousPage)
                 {
-                    if (Model.PageSize == size)
-                    {
-                        <option value="@size"
-                                selected>
-                            @size per page
-                        </option>
-                    }
-                    else
-                    {
-                        <option value="@size">
-                            @size per page
-                        </option>
-                    }
-                }
-
-            </select>
-
-        </form>
-
-    </div>
-
-    <div class="table-responsive">
-
-        <table class="table table-striped">
-
-            <thead>
-                <tr>
-                    <th>National ID</th>
-                    <th>Name</th>
-                    <th>Address</th>
-                    <th>Status</th>
-                    <th></th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-            @if (!Model.Items.Any())
-            {
-                <tr>
-                    <td colspan="5"
-                        class="text-center
-                               text-muted">
-
-                        No voters found within
-                        your assigned scope.
-
-                    </td>
-                </tr>
-            }
-            else
-            {
-                @foreach (
-                    var voter in Model.Items)
-                {
-                    <tr>
-
-                        <td>
-                            @voter.NationalId
-                        </td>
-
-                        <td>
-                            @voter.FullName
-                        </td>
-
-                        <td>
-                            @voter.Address
-                        </td>
-
-                        <td>
-                            @voter.SupportStatus
-                        </td>
-
-                        <td>
-                            <a asp-action="Profile"
-                               asp-route-id=
-                                   "@voter.Id"
-                               class=
-                                   "btn btn-sm btn-success">
-
-                                View
-
-                            </a>
-                        </td>
-
-                    </tr>
-                }
-            }
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-    @if (Model.TotalPages > 1)
-    {
-        <nav aria-label="Voter pagination">
-
-            <ul class="pagination
-                       justify-content-center">
-
-                <li class="page-item
-                    @(Model.HasPreviousPage
-                        ? ""
-                        : "disabled")">
-
-                    <a class="page-link"
+                    <a class="ui-page-btn"
                        asp-action="Index"
-                       asp-route-page=
-                           "@(Model.Page - 1)"
-                       asp-route-pageSize=
-                           "@Model.PageSize"
-                       asp-route-searchTerm=
-                           "@searchTerm">
-
-                        Previous
-
-                    </a>
-
-                </li>
+                       asp-route-page="@(Model.Page - 1)"
+                       asp-route-pageSize="@Model.PageSize"
+                       asp-route-searchTerm="@searchTerm">‹ Previous</a>
+                }
+                else
+                {
+                    <span class="ui-page-btn is-disabled">‹ Previous</span>
+                }
 
                 @if (firstVisiblePage > 1)
                 {
-                    <li class="page-item">
-
-                        <a class="page-link"
-                           asp-action="Index"
-                           asp-route-page="1"
-                           asp-route-pageSize=
-                               "@Model.PageSize"
-                           asp-route-searchTerm=
-                               "@searchTerm">
-
-                            1
-
-                        </a>
-
-                    </li>
-
-                    @if (firstVisiblePage > 2)
-                    {
-                        <li class="page-item
-                                   disabled">
-                            <span class="page-link">
-                                ...
-                            </span>
-                        </li>
-                    }
-                }
-
-                @for (
-                    var pageNumber =
-                        firstVisiblePage;
-                    pageNumber <=
-                        lastVisiblePage;
-                    pageNumber++)
-                {
-                    <li class="page-item
-                        @(pageNumber == Model.Page
-                            ? "active"
-                            : "")">
-
-                        <a class="page-link"
-                           asp-action="Index"
-                           asp-route-page=
-                               "@pageNumber"
-                           asp-route-pageSize=
-                               "@Model.PageSize"
-                           asp-route-searchTerm=
-                               "@searchTerm">
-
-                            @pageNumber
-
-                        </a>
-
-                    </li>
-                }
-
-                @if (
-                    lastVisiblePage <
-                    Model.TotalPages)
-                {
-                    @if (
-                        lastVisiblePage <
-                        Model.TotalPages - 1)
-                    {
-                        <li class="page-item
-                                   disabled">
-                            <span class="page-link">
-                                ...
-                            </span>
-                        </li>
-                    }
-
-                    <li class="page-item">
-
-                        <a class="page-link"
-                           asp-action="Index"
-                           asp-route-page=
-                               "@Model.TotalPages"
-                           asp-route-pageSize=
-                               "@Model.PageSize"
-                           asp-route-searchTerm=
-                               "@searchTerm">
-
-                            @Model.TotalPages
-
-                        </a>
-
-                    </li>
-                }
-
-                <li class="page-item
-                    @(Model.HasNextPage
-                        ? ""
-                        : "disabled")">
-
-                    <a class="page-link"
+                    <a class="ui-page-btn"
                        asp-action="Index"
-                       asp-route-page=
-                           "@(Model.Page + 1)"
-                       asp-route-pageSize=
-                           "@Model.PageSize"
-                       asp-route-searchTerm=
-                           "@searchTerm">
+                       asp-route-page="1"
+                       asp-route-pageSize="@Model.PageSize"
+                       asp-route-searchTerm="@searchTerm">1</a>
 
-                        Next
+                    if (firstVisiblePage > 2)
+                    {
+                        <span class="ui-page-btn is-disabled">…</span>
+                    }
+                }
 
-                    </a>
+                @for (var pageNumber = firstVisiblePage; pageNumber <= lastVisiblePage; pageNumber++)
+                {
+                    if (pageNumber == Model.Page)
+                    {
+                        <span class="ui-page-btn is-current" aria-current="page">@pageNumber</span>
+                    }
+                    else
+                    {
+                        <a class="ui-page-btn"
+                           asp-action="Index"
+                           asp-route-page="@pageNumber"
+                           asp-route-pageSize="@Model.PageSize"
+                           asp-route-searchTerm="@searchTerm">@pageNumber</a>
+                    }
+                }
 
-                </li>
+                @if (lastVisiblePage < Model.TotalPages)
+                {
+                    if (lastVisiblePage < Model.TotalPages - 1)
+                    {
+                        <span class="ui-page-btn is-disabled">…</span>
+                    }
 
-            </ul>
+                    <a class="ui-page-btn"
+                       asp-action="Index"
+                       asp-route-page="@Model.TotalPages"
+                       asp-route-pageSize="@Model.PageSize"
+                       asp-route-searchTerm="@searchTerm">@Model.TotalPages.ToString("N0")</a>
+                }
 
-        </nav>
-    }
+                @if (Model.HasNextPage)
+                {
+                    <a class="ui-page-btn"
+                       asp-action="Index"
+                       asp-route-page="@(Model.Page + 1)"
+                       asp-route-pageSize="@Model.PageSize"
+                       asp-route-searchTerm="@searchTerm">Next ›</a>
+                }
+                else
+                {
+                    <span class="ui-page-btn is-disabled">Next ›</span>
+                }
+
+            </nav>
+        }
+
+    </section>
 
 </div>

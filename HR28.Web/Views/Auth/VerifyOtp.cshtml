@@ -1,34 +1,1427 @@
 ﻿@model HR28.Web.Models.Auth.VerifyOtpRequest
 
-<h2>Verify OTP</h2>
+@{
+    Layout = null;
 
-<form method="post">
-
-    <div class="mb-3">
-        <label>Authorization Code</label>
-
-        <input asp-for="AuthorizationCode"
-               class="form-control"
-               value="@TempData["AuthorizationCode"]" />
-    </div>
-
-    <div class="mb-3">
-        <label>OTP Code</label>
-
-        <input asp-for="OtpCode"
-               class="form-control" />
-    </div>
-
-    <button type="submit"
-            class="btn btn-success">
-        Verify OTP
-    </button>
-
-</form>
-
-@if (ViewBag.Error != null)
-{
-    <div class="alert alert-danger mt-3">
-        @ViewBag.Error
-    </div>
+    var authorizationCode =
+        Model?.AuthorizationCode
+        ?? TempData["AuthorizationCode"]?.ToString()
+        ?? string.Empty;
 }
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Verify Identity | Hithaai Roohun 2028</title>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #60a5fa;
+            --primary-dark: #1d4ed8;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border: #dbe4ef;
+            --danger: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: var(--text-dark);
+            background: #f8fafc;
+        }
+
+        button,
+        input {
+            font-family: inherit;
+        }
+
+        .auth-page {
+            display: grid;
+            grid-template-columns:
+                minmax(0, 1.15fr)
+                minmax(500px, 0.85fr);
+            min-height: 100vh;
+        }
+
+        /* LEFT HERO PANEL */
+
+        .hero-panel {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 100vh;
+            padding: 48px 64px;
+            overflow: hidden;
+            color: white;
+
+            background:
+                radial-gradient(
+                    circle at 18% 18%,
+                    rgba(59, 130, 246, 0.30),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 80% 78%,
+                    rgba(14, 165, 233, 0.18),
+                    transparent 34%
+                ),
+                linear-gradient(
+                    145deg,
+                    #061323 0%,
+                    #0a1e37 52%,
+                    #123f78 100%
+                );
+        }
+
+        .hero-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            opacity: 0.18;
+
+            background-image:
+                linear-gradient(
+                    rgba(255, 255, 255, 0.05) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255, 255, 255, 0.05) 1px,
+                    transparent 1px
+                );
+
+            background-size: 70px 70px;
+            pointer-events: none;
+        }
+
+        .hero-panel::after {
+            content: "";
+            position: absolute;
+            right: -180px;
+            bottom: -190px;
+            width: 470px;
+            height: 470px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 50%;
+
+            box-shadow:
+                0 0 0 70px rgba(255, 255, 255, 0.025),
+                0 0 0 140px rgba(255, 255, 255, 0.018);
+
+            pointer-events: none;
+        }
+
+        .brand,
+        .hero-content,
+        .hero-footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-mark {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 48px;
+            width: 48px;
+            height: 48px;
+            border-radius: 15px;
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -1px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    var(--primary-light)
+                );
+
+            box-shadow:
+                0 12px 30px rgba(37, 99, 235, 0.35);
+        }
+
+        .brand-name {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+        }
+
+        .brand-caption {
+            margin-top: 2px;
+            color: #a9bfd8;
+            font-size: 12px;
+        }
+
+        .hero-content {
+            max-width: 680px;
+            margin: 60px 0;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            margin-bottom: 25px;
+            padding: 9px 14px;
+            border: 1px solid rgba(147, 197, 253, 0.22);
+            border-radius: 999px;
+            color: #bfdbfe;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.9px;
+            text-transform: uppercase;
+            background: rgba(37, 99, 235, 0.10);
+        }
+
+        .eyebrow-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #60a5fa;
+            box-shadow: 0 0 14px #60a5fa;
+        }
+
+        .hero-title {
+            max-width: 650px;
+            margin: 0;
+            color: white;
+            font-size: clamp(44px, 5vw, 72px);
+            line-height: 1.03;
+            letter-spacing: -3px;
+            font-weight: 780;
+        }
+
+        .hero-title span {
+            color: #7db4ff;
+        }
+
+        .hero-description {
+            max-width: 590px;
+            margin: 25px 0 0;
+            color: #b7cae0;
+            font-size: 18px;
+            line-height: 1.75;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            max-width: 620px;
+            margin-top: 38px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 58px;
+            padding: 13px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 15px;
+            color: #e5effb;
+            font-size: 14px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.045);
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 31px;
+            width: 31px;
+            height: 31px;
+            border-radius: 10px;
+            color: #bfdbfe;
+            background: rgba(59, 130, 246, 0.18);
+        }
+
+        .feature-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .hero-footer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #829bb7;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.75);
+        }
+
+        /* RIGHT VERIFICATION PANEL */
+
+        .verification-panel {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 50px;
+
+            background:
+                radial-gradient(
+                    circle at 100% 0%,
+                    rgba(219, 234, 254, 0.65),
+                    transparent 34%
+                ),
+                #f8fafc;
+        }
+
+        .verification-wrapper {
+            width: 100%;
+            max-width: 480px;
+            animation: fadeInRight 0.9s ease;
+        }
+
+        .mobile-brand {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 45px;
+        }
+
+        .verification-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 58px;
+            height: 58px;
+            margin-bottom: 24px;
+            border: 1px solid #dbeafe;
+            border-radius: 17px;
+            color: var(--primary);
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #ffffff,
+                    #eff6ff
+                );
+
+            box-shadow:
+                0 12px 30px rgba(37, 99, 235, 0.12);
+        }
+
+        .verification-icon svg {
+            width: 26px;
+            height: 26px;
+        }
+
+        .verification-heading {
+            margin: 0;
+            color: #0f172a;
+            font-size: 40px;
+            line-height: 1.13;
+            letter-spacing: -1.4px;
+            font-weight: 760;
+        }
+
+        .verification-description {
+            margin: 14px 0 0;
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .code-reference {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin: 25px 0 29px;
+            padding: 13px 15px;
+            border: 1px solid #dbeafe;
+            border-radius: 14px;
+            color: #31527e;
+            font-size: 13px;
+            background: #eff6ff;
+        }
+
+        .code-reference-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 31px;
+            width: 31px;
+            height: 31px;
+            border-radius: 9px;
+            color: var(--primary);
+            background: white;
+        }
+
+        .code-reference-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .code-reference-text {
+            min-width: 0;
+        }
+
+        .code-reference-label {
+            margin-bottom: 2px;
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        .code-reference-value {
+            overflow: hidden;
+            color: #1e3a8a;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* OTP SECTION */
+
+        .otp-section {
+            width: 100%;
+        }
+
+        .otp-heading {
+            margin: 0 0 7px;
+            color: #334155;
+            font-size: 14px;
+            font-weight: 750;
+            text-align: center;
+        }
+
+        .otp-description {
+            margin: 0 0 20px;
+            color: #64748b;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        /*
+         * The outer container uses normal block layout.
+         * The inner row centers the four fixed-width inputs.
+         */
+
+        .otp-container {
+            display: block;
+            width: 100%;
+            margin: 0;
+        }
+
+        .otp-row {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .otp-input {
+            display: inline-block;
+            flex: 0 0 72px;
+
+            width: 80px;
+            min-width: 80px;
+            max-width: 80px;
+            height: 80px;
+
+            margin: 0;
+            padding: 0;
+
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            outline: none;
+
+            color: #0f172a;
+            font-size: 28px;
+            font-weight: 750;
+            text-align: center;
+
+            caret-color: var(--primary);
+            background: white;
+
+            box-shadow:
+                0 6px 22px rgba(15, 23, 42, 0.045);
+
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                transform 0.2s ease,
+                background 0.2s ease;
+        }
+
+        .otp-input:hover {
+            border-color: #b9c8da;
+        }
+
+        .otp-input:focus {
+            border-color: var(--primary);
+            background: white;
+            transform: translateY(-3px);
+
+            box-shadow:
+                0 0 0 4px rgba(37, 99, 235, 0.11),
+                0 10px 25px rgba(37, 99, 235, 0.08);
+        }
+
+        .otp-input.filled {
+            border-color: #93c5fd;
+            color: #1d4ed8;
+            background: #f8fbff;
+        }
+
+        .validation-message {
+            display: block;
+            min-height: 20px;
+            margin-top: 10px;
+            color: var(--danger);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .otp-help {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin: 17px 0 27px;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .timer {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0;
+            border: 0;
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .back-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .back-link svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* SUBMIT BUTTON */
+
+        .submit-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+
+            width: 100%;
+            height: 60px;
+            padding: 0 24px;
+
+            border: 0;
+            border-radius: 14px;
+
+            color: white;
+            font-size: 15px;
+            font-weight: 750;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary-dark),
+                    #3b82f6
+                );
+
+            box-shadow:
+                0 14px 30px rgba(37, 99, 235, 0.24);
+
+            cursor: pointer;
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                opacity 0.2s ease;
+        }
+
+        .submit-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 18px 35px rgba(37, 99, 235, 0.30);
+        }
+
+        .submit-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.72;
+        }
+
+        .button-arrow {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.2s ease;
+        }
+
+        .submit-button:hover:not(:disabled) .button-arrow {
+            transform: translateX(3px);
+        }
+
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+
+        .submit-button.loading .spinner {
+            display: inline-block;
+        }
+
+        .submit-button.loading .button-arrow {
+            display: none;
+        }
+
+        /* ERRORS */
+
+        .alert-error {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 22px;
+            padding: 14px 15px;
+            border: 1px solid #fecaca;
+            border-radius: 13px;
+            color: #991b1b;
+            font-size: 13px;
+            line-height: 1.5;
+            background: #fef2f2;
+        }
+
+        .alert-error:empty {
+            display: none;
+        }
+
+        .alert-error svg {
+            flex: 0 0 18px;
+            width: 18px;
+            height: 18px;
+            margin-top: 1px;
+        }
+
+        .verification-footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .verification-footer strong {
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        /* ANIMATIONS */
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @@keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20% {
+                transform: translateX(-6px);
+            }
+
+            40% {
+                transform: translateX(6px);
+            }
+
+            60% {
+                transform: translateX(-4px);
+            }
+
+            80% {
+                transform: translateX(4px);
+            }
+        }
+
+        .otp-row.invalid {
+            animation: shake 0.4s ease;
+        }
+
+        /* RESPONSIVE */
+
+        @@media (max-width: 1100px) {
+            .auth-page {
+                grid-template-columns:
+                    minmax(0, 1fr)
+                    minmax(460px, 0.9fr);
+            }
+
+            .hero-panel {
+                padding: 40px;
+            }
+
+            .hero-title {
+                font-size: 50px;
+                letter-spacing: -2px;
+            }
+
+            .verification-panel {
+                padding: 40px;
+            }
+        }
+
+        @@media (max-width: 900px) {
+            .auth-page {
+                display: block;
+            }
+
+            .hero-panel {
+                display: none;
+            }
+
+            .verification-panel {
+                min-height: 100vh;
+                padding: 35px 24px;
+
+                background:
+                    radial-gradient(
+                        circle at 100% 0%,
+                        rgba(191, 219, 254, 0.75),
+                        transparent 34%
+                    ),
+                    radial-gradient(
+                        circle at 0% 100%,
+                        rgba(219, 234, 254, 0.7),
+                        transparent 36%
+                    ),
+                    #f8fafc;
+            }
+
+            .verification-wrapper {
+                max-width: 500px;
+            }
+
+            .mobile-brand {
+                display: flex;
+            }
+
+            .verification-heading {
+                font-size: 36px;
+            }
+        }
+
+        @@media (max-width: 520px) {
+            .verification-panel {
+                align-items: flex-start;
+                padding: 24px 18px 35px;
+            }
+
+            .mobile-brand {
+                margin-bottom: 42px;
+            }
+
+            .verification-heading {
+                font-size: 32px;
+            }
+
+            .otp-row {
+                gap: 9px;
+            }
+
+            .otp-input {
+                flex-basis: 60px;
+                width: 60px;
+                min-width: 60px;
+                max-width: 60px;
+                height: 60px;
+                border-radius: 13px;
+                font-size: 23px;
+            }
+
+            .submit-button {
+                height: 56px;
+            }
+        }
+
+        @@media (max-width: 350px) {
+            .otp-row {
+                gap: 6px;
+            }
+
+            .otp-input {
+                flex-basis: 54px;
+                width: 54px;
+                min-width: 54px;
+                max-width: 54px;
+                height: 54px;
+                border-radius: 11px;
+                font-size: 21px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="auth-page">
+
+        <section class="hero-panel">
+
+            <header class="brand">
+                <div class="brand-mark">H28</div>
+
+                <div>
+                    <div class="brand-name">
+                        Hithaai Roohun 2028
+                    </div>
+
+                    <div class="brand-caption">
+                        Campaign Intelligence Platform
+                    </div>
+                </div>
+            </header>
+
+            <div class="hero-content">
+
+                <div class="eyebrow">
+                    <span class="eyebrow-dot"></span>
+                    Secure campaign operations
+                </div>
+
+                <h1 class="hero-title">
+                    Turn voter insights into
+                    <span>campaign action.</span>
+                </h1>
+
+                <p class="hero-description">
+                    A unified platform for voter registration, engagement
+                    tracking, constituency operations and campaign oversight.
+                </p>
+
+                <div class="feature-grid">
+
+                    <div class="feature-item">
+                        <span class="feature-icon">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 aria-hidden="true">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M19 8v6M22 11h-6" />
+                            </svg>
+                        </span>
+
+                        Voter registration
+                    </div>
+
+                    <div class="feature-item">
+                        <span class="feature-icon">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 aria-hidden="true">
+                                <path d="M3 3v18h18" />
+                                <path d="m7 16 4-5 4 3 5-7" />
+                            </svg>
+                        </span>
+
+                        Campaign analytics
+                    </div>
+
+                    <div class="feature-item">
+                        <span class="feature-icon">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 aria-hidden="true">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                <path d="m9 12 2 2 4-4" />
+                            </svg>
+                        </span>
+
+                        Role-based access
+                    </div>
+
+                    <div class="feature-item">
+                        <span class="feature-icon">
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 aria-hidden="true">
+                                <path d="M9 11l3 3L22 4" />
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                            </svg>
+                        </span>
+
+                        Complete audit trail
+                    </div>
+
+                </div>
+            </div>
+
+            <footer class="hero-footer">
+                <span class="status-dot"></span>
+                Secure access portal
+            </footer>
+
+        </section>
+
+        <section class="verification-panel">
+            <div class="verification-wrapper">
+
+                <div class="mobile-brand">
+                    <div class="brand-mark">H28</div>
+
+                    <div>
+                        <div class="brand-name"
+                             style="color: #0f172a;">
+                            Hithaai Roohun 2028
+                        </div>
+
+                        <div class="brand-caption"
+                             style="color: #64748b;">
+                            Campaign Intelligence Platform
+                        </div>
+                    </div>
+                </div>
+
+                <div class="verification-icon">
+                    <svg viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         aria-hidden="true">
+
+                        <rect x="3"
+                              y="11"
+                              width="18"
+                              height="10"
+                              rx="2" />
+
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+
+                        <path d="m10 16 1.5 1.5L15 14" />
+                    </svg>
+                </div>
+
+                <h2 class="verification-heading">
+                    Secure Verification
+                </h2>
+
+                <p class="verification-description">
+                    Enter the four-digit verification code sent for this
+                    authorization attempt.
+                </p>
+
+                <div class="code-reference">
+
+                    <div class="code-reference-icon">
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             aria-hidden="true">
+
+                            <circle cx="7.5"
+                                    cy="15.5"
+                                    r="5.5" />
+
+                            <path d="m12 12 4-4 4 4-2 2 2 2-3 3" />
+                        </svg>
+                    </div>
+
+                    <div class="code-reference-text">
+                        <div class="code-reference-label">
+                            Authorization code
+                        </div>
+
+                        <div class="code-reference-value">
+                            @authorizationCode
+                        </div>
+                    </div>
+
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert-error"
+                         role="alert">
+
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             aria-hidden="true">
+
+                            <circle cx="12"
+                                    cy="12"
+                                    r="10" />
+
+                            <path d="M12 8v4" />
+                            <path d="M12 16h.01" />
+                        </svg>
+
+                        <span>@ViewBag.Error</span>
+                    </div>
+                }
+
+                <form method="post"
+                      id="otpForm">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="AuthorizationCode"
+                           value="@authorizationCode" />
+
+                    <input type="hidden"
+                           name="OtpCode"
+                           id="OtpCode"
+                           value="" />
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert-error">
+                    </div>
+
+                    <div class="otp-section">
+
+                        <div class="otp-heading">
+                            Enter verification code
+                        </div>
+
+                        <div class="otp-description">
+                            Enter the 4-digit code sent to your device
+                        </div>
+
+                        <div class="otp-container">
+
+                            <div class="otp-row"
+                                 id="otpRow">
+
+                                <input type="text"
+                                       id="otpDigit1"
+                                       class="otp-input"
+                                       inputmode="numeric"
+                                       pattern="[0-9]*"
+                                       autocomplete="one-time-code"
+                                       maxlength="1"
+                                       aria-label="Verification code digit 1"
+                                       autofocus />
+
+                                <input type="text"
+                                       id="otpDigit2"
+                                       class="otp-input"
+                                       inputmode="numeric"
+                                       pattern="[0-9]*"
+                                       maxlength="1"
+                                       aria-label="Verification code digit 2" />
+
+                                <input type="text"
+                                       id="otpDigit3"
+                                       class="otp-input"
+                                       inputmode="numeric"
+                                       pattern="[0-9]*"
+                                       maxlength="1"
+                                       aria-label="Verification code digit 3" />
+
+                                <input type="text"
+                                       id="otpDigit4"
+                                       class="otp-input"
+                                       inputmode="numeric"
+                                       pattern="[0-9]*"
+                                       maxlength="1"
+                                       aria-label="Verification code digit 4" />
+
+                            </div>
+                        </div>
+
+                        <span id="otpValidation"
+                              class="validation-message">
+                        </span>
+
+                    </div>
+
+                    <div class="otp-help">
+
+                        <span class="timer" id="timer">
+                            Code expires in 02:00
+                        </span>
+
+                        <a asp-controller="Auth"
+                           asp-action="Login"
+                           class="back-link">
+
+                            <svg viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 aria-hidden="true">
+
+                                <path d="m15 18-6-6 6-6" />
+                            </svg>
+
+                            Use another code
+                        </a>
+
+                    </div>
+
+                    <button type="submit"
+                            id="verifyButton"
+                            class="submit-button">
+
+                        <span class="spinner"
+                              aria-hidden="true">
+                        </span>
+
+                        <span id="buttonText">
+                            Verify and continue
+                        </span>
+
+                        <svg class="button-arrow"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             aria-hidden="true">
+
+                            <path d="M5 12h14M13 6l6 6-6 6" />
+                        </svg>
+
+                    </button>
+
+                </form>
+
+                <div class="verification-footer">
+                    Protected by secure OTP verification<br />
+                    <strong>HR28 Secure Access Portal</strong>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        (function () {
+            const form =
+                document.getElementById("otpForm");
+
+            const otpRow =
+                document.getElementById("otpRow");
+
+            const otpInputs =
+                Array.from(
+                    document.querySelectorAll(".otp-input")
+                );
+
+            const hiddenOtp =
+                document.getElementById("OtpCode");
+
+            const validation =
+                document.getElementById("otpValidation");
+
+            const verifyButton =
+                document.getElementById("verifyButton");
+
+            const buttonText =
+                document.getElementById("buttonText");
+const timerElement =
+    document.getElementById("timer");
+
+let secondsRemaining = 120;
+
+function updateTimer() {
+
+    const minutes =
+        Math.floor(secondsRemaining / 60);
+
+    const seconds =
+        secondsRemaining % 60;
+
+    timerElement.textContent =
+        `Code expires in ${minutes}:${seconds
+            .toString()
+            .padStart(2, '0')}`;
+}
+
+if (timerElement) {
+
+    updateTimer();
+
+    const countdown = setInterval(function () {
+
+        if (secondsRemaining <= 0) {
+
+            clearInterval(countdown);
+
+            timerElement.textContent =
+                "Code expired";
+
+            timerElement.style.color = "#ef4444";
+            timerElement.style.fontWeight = "600";
+
+            return;
+        }
+
+        secondsRemaining--;
+
+        updateTimer();
+
+    }, 1000);
+}
+
+            function keepDigitsOnly(value) {
+                return value.replace(/\D/g, "");
+            }
+
+            function getOtpCode() {
+                return otpInputs
+                    .map(function (input) {
+                        return input.value;
+                    })
+                    .join("");
+            }
+
+            function updateOtpValue() {
+                const otpCode = getOtpCode();
+
+                hiddenOtp.value = otpCode;
+
+                otpInputs.forEach(function (input) {
+                    input.classList.toggle(
+                        "filled",
+                        input.value.length === 1
+                    );
+                });
+
+                if (otpCode.length === 4) {
+                    validation.textContent = "";
+                    otpRow.classList.remove("invalid");
+                }
+            }
+
+            function fillFromPaste(value) {
+                const digits =
+                    keepDigitsOnly(value).slice(0, 4);
+
+                otpInputs.forEach(function (input) {
+                    input.value = "";
+                });
+
+                digits.split("").forEach(function (digit, index) {
+                    otpInputs[index].value = digit;
+                });
+
+
+                updateOtpValue();
+
+                const focusIndex =
+                    digits.length >= 4
+                        ? 3
+                        : digits.length;
+
+                otpInputs[focusIndex].focus();
+                otpInputs[focusIndex].select();
+            }
+
+            otpInputs.forEach(function (input, index) {
+
+                input.addEventListener("input", function (event) {
+                    const digits =
+                        keepDigitsOnly(event.target.value);
+
+                    if (digits.length > 1) {
+                        fillFromPaste(digits);
+                        return;
+                    }
+
+                    event.target.value =
+                        digits.slice(0, 1);
+
+                    updateOtpValue();
+
+                    if (
+                        event.target.value !== "" &&
+                        index < otpInputs.length - 1
+                    ) {
+                        otpInputs[index + 1].focus();
+                        otpInputs[index + 1].select();
+                    }
+                });
+
+                input.addEventListener("keydown", function (event) {
+
+                    if (
+                        event.key === "Backspace" &&
+                        input.value === "" &&
+                        index > 0
+                    ) {
+                        event.preventDefault();
+
+                        otpInputs[index - 1].value = "";
+                        otpInputs[index - 1].focus();
+
+                        updateOtpValue();
+                    }
+
+                    if (
+                        event.key === "ArrowLeft" &&
+                        index > 0
+                    ) {
+                        event.preventDefault();
+                        otpInputs[index - 1].focus();
+                    }
+
+                    if (
+                        event.key === "ArrowRight" &&
+                        index < otpInputs.length - 1
+                    ) {
+                        event.preventDefault();
+                        otpInputs[index + 1].focus();
+                    }
+                });
+
+                input.addEventListener("focus", function () {
+                    input.select();
+                });
+
+                input.addEventListener("paste", function (event) {
+                    event.preventDefault();
+
+                    const pastedText =
+                        event.clipboardData.getData("text");
+
+                    fillFromPaste(pastedText);
+                });
+
+            });
+
+            form.addEventListener("submit", function (event) {
+                const otpCode = getOtpCode();
+
+                hiddenOtp.value = otpCode;
+
+                if (otpCode.length !== 4) {
+                    event.preventDefault();
+
+                    validation.textContent =
+                        "Enter the complete four-digit verification code.";
+
+                    otpRow.classList.remove("invalid");
+
+                    void otpRow.offsetWidth;
+
+                    otpRow.classList.add("invalid");
+
+                    const firstEmptyInput =
+                        otpInputs.find(function (input) {
+                            return input.value === "";
+                        });
+
+                    if (firstEmptyInput) {
+                        firstEmptyInput.focus();
+                    }
+
+                    return;
+                }
+
+                verifyButton.disabled = true;
+                verifyButton.classList.add("loading");
+
+   buttonText.textContent =
+    "Verifying...";
+            });
+
+            updateOtpValue();
+        })();
+    </script>
+</body>
+</html>

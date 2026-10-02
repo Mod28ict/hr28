@@ -1,366 +1,272 @@
-﻿@model HR28.Web.Models.VoterProfileDto
+@model HR28.Web.Models.VoterProfileDto
+
 @{
-    var influencers =
-        Model?.Influencers
-        ?? new List<HR28.Web.Models.VoterInfluencerDto>();
+    ViewData["Title"] = "Voter Profile";
 
-    var encounters =
-        Model?.Encounters
-        ?? new List<HR28.Web.Models.EncounterDto>();
+    var voter = Model?.Voter;
+    var voterId = voter?.Id;
 
-    var pledges =
-        Model?.Pledges
-        ?? new List<HR28.Web.Models.PledgeDto>();
+    var influencers = Model?.Influencers ?? new List<HR28.Web.Models.VoterInfluencerDto>();
+    var encounters = Model?.Encounters ?? new List<HR28.Web.Models.EncounterDto>();
+    var pledges = Model?.Pledges ?? new List<HR28.Web.Models.PledgeDto>();
+
+    var name = string.IsNullOrWhiteSpace(voter?.FullName) ? "Unnamed voter" : voter!.FullName;
+    var initials = string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
+
+    var mobile = voter?.MobileNumber;
+
+    string OrDash(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
 }
 
-<div class="container mt-4">
-    <h2>Voter Profile</h2>
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["SuccessMessage"]
-    </div>
-}
+<div class="ui-page">
 
-
-
-    <div class="card">
-        <div class="card-body">
-
-            <div class="row">
-
-                <div class="col-md-6">
-                    <strong>National ID</strong><br />
-                    @Model?.Voter?.NationalId
-                </div>
-
-                <div class="col-md-6">
-                    <strong>Mobile Number</strong><br />
-                    @Model?.Voter?.MobileNumber
-                </div>
-
-            </div>
-
-            <hr />
-
-            <div class="row">
-
-                <div class="col-md-6">
-                    <strong>Address</strong><br />
-                    @Model?.Voter?.Address
-                </div>
-
-                <div class="col-md-6">
-                    <strong>Support Status</strong><br />
-                    @Model?.Voter?.SupportStatus
-                </div>
-
-            </div>
-
-            <hr />
-
-            <div class="row">
-
-                <div class="col-md-6">
-                    <strong>Constituency</strong><br />
-                    @Model?.Voter?.ConstituencyName
-                </div>
-
-                <div class="col-md-6">
-                    <strong>Island</strong><br />
-                    @Model?.Voter?.IslandName
-                </div>
-
-            </div>
-
-            <hr />
-
-            <strong>Remarks</strong><br />
-            @Model?.Voter?.Remarks
-
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ui-alert is-green" role="status">
+            <partial name="_Icon" model='"check-circle"' />
+            <span>@TempData["SuccessMessage"]</span>
         </div>
-    </div>
+    }
 
-    <br />
-
-    <a asp-action="Edit"
-       asp-route-id="@Model?.Voter?.Id"
-       class="btn btn-warning">
-        Edit Voter
-    </a>
-
-<br /><br />
-<div class="row mt-3">
-
-    <div class="col-md-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5>Influencers</h5>
-                <h2>@influencers.Count</h2>
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-avatar ui-avatar-lg" aria-hidden="true">@initials</span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a asp-action="Index">Voters</a> <span aria-hidden="true">/</span> <span>Profile</span>
+                </nav>
+                <h1 class="ui-title">@name</h1>
+                <p class="ui-sub">
+                    <span class="ui-num">@voter?.NationalId</span>
+                    @if (!string.IsNullOrWhiteSpace(voter?.ConstituencyName))
+                    {
+                        <text> · @voter.ConstituencyName</text>
+                    }
+                </p>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5>Encounters</h5>
-                <h2>@encounters.Count</h2>
+        <div class="ui-head-actions">
+            <partial name="_StatusPill" model="voter?.SupportStatus" />
+            <a asp-action="Edit" asp-route-id="@voterId" class="ui-btn ui-btn-secondary">
+                <partial name="_Icon" model='"edit"' />
+                Edit voter
+            </a>
+        </div>
+    </header>
+
+    <!-- DETAILS -->
+    <section class="ui-card">
+        <dl class="ui-details">
+            <div>
+                <dt>Mobile</dt>
+                <dd>
+                    @if (!string.IsNullOrWhiteSpace(mobile))
+                    {
+                        <a href="tel:@mobile" class="ui-link ui-num">@mobile</a>
+                    }
+                    else
+                    {
+                        <span class="ui-faint">Not recorded</span>
+                    }
+                </dd>
+            </div>
+            <div>
+                <dt>Address</dt>
+                <dd>@OrDash(voter?.Address)</dd>
+            </div>
+            <div>
+                <dt>Constituency</dt>
+                <dd>@OrDash(voter?.ConstituencyName)</dd>
+            </div>
+            <div>
+                <dt>Island</dt>
+                <dd>@OrDash(voter?.IslandName)</dd>
+            </div>
+        </dl>
+
+        <div class="ui-note is-muted" style="margin: 18px 0 0;">
+            <partial name="_Icon" model='"file"' />
+            <div>
+                <strong>Remarks</strong>
+                @(string.IsNullOrWhiteSpace(voter?.Remarks) ? "No remarks added." : voter!.Remarks)
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="col-md-4">
-        <div class="card text-center">
-            <div class="card-body">
-                <h5>Pledges</h5>
-                <h2>@pledges.Count</h2>
+    <!-- COUNTS -->
+    <section class="ui-stats is-3">
+        <div class="ui-stat is-violet">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"star"' /></span>
+            <div>
+                <div class="ui-stat-label">Influencers</div>
+                <div class="ui-stat-value">@influencers.Count</div>
             </div>
         </div>
-    </div>
+        <div class="ui-stat is-green">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"message"' /></span>
+            <div>
+                <div class="ui-stat-label">Encounters</div>
+                <div class="ui-stat-value">@encounters.Count</div>
+            </div>
+        </div>
+        <div class="ui-stat is-amber">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"handshake"' /></span>
+            <div>
+                <div class="ui-stat-label">Pledges</div>
+                <div class="ui-stat-value">@pledges.Count</div>
+            </div>
+        </div>
+    </section>
 
-</div>
-
-    <hr />
-
-    <!-- Influencers -->
-
-    <div class="d-flex justify-content-between mb-2">
-
-        <h3>
-            Influencers
-            <span class="badge bg-primary">
-                @influencers.Count
-            </span>
-        </h3>
-
-        <a asp-controller="Influencers"
-           asp-action="Link"
-           asp-route-voterId="@Model?.Voter?.Id"
-           class="btn btn-primary btn-sm">
-
-            Link Influencer
-
-        </a>
-    </div>
-@if (!influencers.Any())
-{
-    <p class="text-muted">
-        No influencers linked.
-    </p>
-}
-else
-{
-    <div class="table-responsive">
-
-        <table class="table table-striped">
-<thead>
-    <tr>
-        <th>National ID</th>
-        <th>Name</th>
-        <th>Contact</th>
-        <th>Relationship</th>
-        <th>Actions</th>
-    </tr>
-</thead>
-
-            <tbody>
-
-@foreach (var influencer in influencers)
-{
-    <tr>
-
-        <td>@influencer.NationalId</td>
-
-        <td>@influencer.FullName</td>
-
-        <td>@influencer.ContactNumber</td>
-
-        <td>@influencer.RelationshipType</td>
-
-        <td>
+    <!-- INFLUENCERS -->
+    <section class="ui-card">
+        <div class="ui-card-head">
+            <h2>Influencers <span class="ui-count is-violet">@influencers.Count</span></h2>
 
             <a asp-controller="Influencers"
-               asp-action="EditRelationship"
-               asp-route-voterId="@Model!.Voter!.Id"
-               asp-route-influencerId="@influencer.InfluencerId"
-               class="btn btn-warning btn-sm">
-
-                Edit
-
+               asp-action="Link"
+               asp-route-voterId="@voterId"
+               class="ui-btn ui-btn-soft is-violet ui-btn-sm">
+                <partial name="_Icon" model='"link"' />
+                Link influencer
             </a>
+        </div>
 
-        </td>
+        @if (!influencers.Any())
+        {
+            <div class="ui-empty">No influencers linked yet.</div>
+        }
+        else
+        {
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>National ID</th>
+                            <th>Contact</th>
+                            <th>Relationship</th>
+                            <th><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var influencer in influencers)
+                        {
+                            <tr>
+                                <td class="ui-strong">@influencer.FullName</td>
+                                <td class="ui-num ui-muted">@influencer.NationalId</td>
+                                <td class="ui-num">@OrDash(influencer.ContactNumber)</td>
+                                <td><span class="ui-tag">@influencer.RelationshipType</span></td>
+                                <td class="is-right">
+                                    <a asp-controller="Influencers"
+                                       asp-action="EditRelationship"
+                                       asp-route-voterId="@voterId"
+                                       asp-route-influencerId="@influencer.InfluencerId"
+                                       class="ui-btn ui-btn-secondary ui-btn-sm">
+                                        Edit
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
 
-    </tr>
-}
+    <!-- ENCOUNTERS -->
+    <section class="ui-card">
+        <div class="ui-card-head">
+            <h2>Encounters <span class="ui-count is-green">@encounters.Count</span></h2>
 
-            </tbody>
+            <a asp-controller="Encounters"
+               asp-action="Create"
+               asp-route-voterId="@voterId"
+               class="ui-btn ui-btn-soft is-green ui-btn-sm">
+                <partial name="_Icon" model='"plus"' />
+                Add encounter
+            </a>
+        </div>
 
-        </table>
+        @if (!encounters.Any())
+        {
+            <div class="ui-empty">No encounters recorded yet.</div>
+        }
+        else
+        {
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Outcome</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var encounter in encounters.OrderByDescending(x => x.EncounterDate))
+                        {
+                            <tr>
+                                <td class="ui-strong ui-num" style="white-space: nowrap;">@encounter.EncounterDate.ToString("dd MMM yyyy")</td>
+                                <td><span class="ui-tag">@encounter.EncounterType</span></td>
+                                <td>@encounter.Outcome</td>
+                                <td class="ui-muted">@encounter.Notes</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
 
-    </div>
-}
-    <hr />
+    <!-- PLEDGES -->
+    <section class="ui-card">
+        <div class="ui-card-head">
+            <h2>Pledges <span class="ui-count is-amber">@pledges.Count</span></h2>
 
-    <!-- Encounters -->
+            <a asp-controller="Pledges"
+               asp-action="Create"
+               asp-route-voterId="@voterId"
+               class="ui-btn ui-btn-soft is-amber ui-btn-sm">
+                <partial name="_Icon" model='"plus"' />
+                Add pledge
+            </a>
+        </div>
 
-    <div class="d-flex justify-content-between mb-2">
-
-<h3>
-    Encounters
-    <span class="badge bg-success">
-        @encounters.Count
-    </span>
-</h3>
-
-        <a asp-controller="Encounters"
-            asp-action="Create"
-            asp-route-voterId="@Model?.Voter?.Id"
-            class="btn btn-success btn-sm">
-
-            Add Encounter
-
-        </a>
-
-    </div>
-
-    @if (!encounters.Any())
-    {
-        <p class="text-muted">
-            No encounters recorded.
-        </p>
-    }
-    else
-    {
-        <table class="table table-striped">
-
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Outcome</th>
-                    <th>Notes</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-            @foreach (var encounter in Model.Encounters.OrderByDescending(x => x.EncounterDate))
-            {
-                <tr>
-
-
-                    <td>
-                        @($"{encounter.EncounterDate:dd-MMM-yyyy}")
-                    </td>
-
-
-                    <td>
-                        @encounter.EncounterType
-                    </td>
-
-                    <td>
-                        @encounter.Outcome
-                    </td>
-
-                    <td>
-                        @encounter.Notes
-                    </td>
-
-                </tr>
-            }
-
-            </tbody>
-
-        </table>
-    }
-
-    <hr />
-
-    <!-- Pledges -->
-
-    <div class="d-flex justify-content-between mb-2">
-
-<h3>
-    Pledges
-    <span class="badge bg-warning text-dark">
-        @pledges.Count
-    </span>
-</h3>
-
-        <a asp-controller="Pledges"
-           asp-action="Create"
-           asp-route-voterId="@Model?.Voter?.Id"
-           class="btn btn-warning btn-sm">
-
-            Add Pledge
-
-        </a>
-
-    </div>
-
-@if (!pledges.Any())
-{
-    <p class="text-muted">
-        No pledges recorded.
-    </p>
-}
-else
-{
-    <div class="table-responsive">
-
-        <table class="table table-striped">
-
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Status</th>
-                    <th>Pledge Date</th>
-                    <th>Due Date</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-            @foreach(var pledge in pledges.OrderByDescending(x => x.PledgeDate))
-            {
-                <tr>
-
-                    <td>
-                        @pledge.Title
-                    </td>
-
-                    <td>
-                        @pledge.Description
-                    </td>
-
-                    <td>
-                        @pledge.Status
-                    </td>
-
-                    <td>
-                        @($"{pledge.PledgeDate:dd-MMM-yyyy}")
-
-                    </td>
-
-                    <td>
-                        @(pledge.DueDate.HasValue
-                            ? pledge.DueDate.Value
-                                .ToString(
-                                    "dd-MMM-yyyy")
-                            : "-")
-                    </td>
-
-                </tr>
-            }
-
-            </tbody>
-
-        </table>
-
-    </div>
-}
+        @if (!pledges.Any())
+        {
+            <div class="ui-empty">No pledges recorded yet.</div>
+        }
+        else
+        {
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Pledge date</th>
+                            <th>Due date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var pledge in pledges.OrderByDescending(x => x.PledgeDate))
+                        {
+                            <tr>
+                                <td class="ui-strong">@pledge.Title</td>
+                                <td class="ui-muted">@pledge.Description</td>
+                                <td><span class="ui-tag">@pledge.Status</span></td>
+                                <td class="ui-num" style="white-space: nowrap;">@pledge.PledgeDate.ToString("dd MMM yyyy")</td>
+                                <td class="ui-num" style="white-space: nowrap;">@(pledge.DueDate.HasValue ? pledge.DueDate.Value.ToString("dd MMM yyyy") : "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
 
 </div>

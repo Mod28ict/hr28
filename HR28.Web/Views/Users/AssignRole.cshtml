@@ -1,47 +1,66 @@
-﻿@model HR28.Web.Models.Users.UserAccessViewModel
+@model HR28.Web.Models.Users.UserAccessViewModel
 
-<div class="container mt-4">
+@{
+    ViewData["Title"] = "Assign Role";
+}
 
-    <h2>Assign Role</h2>
+<div class="ui-page is-narrow">
 
-    <form method="post">
-
-        <input asp-for="UserId"
-               type="hidden" />
-
-        <div class="mb-3">
-            <label>User</label>
-
-            <input value="@Model.UserName"
-                   class="form-control"
-                   readonly />
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-violet"><partial name="_Icon" model='"shield"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a asp-action="Index">Users</a> <span aria-hidden="true">/</span> <span>Assign role</span>
+                </nav>
+                <h1 class="ui-title">Assign Role</h1>
+                <p class="ui-sub">Roles decide what a user can do. Their scope decides which records it applies to.</p>
+            </div>
         </div>
+    </header>
 
-        <div class="mb-3">
-            <label>Role</label>
+    <section class="ui-card ui-card-lg">
 
-            <select asp-for="RoleId"
-                    class="form-select">
+        <form method="post">
 
-                <option value="">
-                    Select Role
-                </option>
+            <input asp-for="UserId" type="hidden" />
 
-                @foreach (var role in Model.Roles)
-                {
-                    <option value="@role.Id">
-                        @role.Name
-                    </option>
-                }
+            <div asp-validation-summary="ModelOnly" class="ui-summary"></div>
 
-            </select>
-        </div>
+            <div class="ui-field">
+                <span class="ui-label">User</span>
+                <div class="ui-person" style="padding: 12px 14px; border-radius: 12px; background: var(--ui-subtle);">
+                    <span class="ui-avatar" aria-hidden="true"><partial name="_Icon" model='"user"' /></span>
+                    <strong>@Model.UserName</strong>
+                </div>
+            </div>
 
-        <button type="submit"
-                class="btn btn-primary">
-            Save
-        </button>
+            <div class="ui-field">
+                <label asp-for="RoleId" class="ui-label">Role</label>
 
-    </form>
+                <select asp-for="RoleId" class="ui-select">
+                    <option value="">Select Role</option>
+
+                    @foreach (var role in Model.Roles)
+                    {
+                        <option value="@role.Id">@role.Name</option>
+                    }
+                </select>
+
+                <span asp-validation-for="RoleId" class="ui-error"></span>
+            </div>
+
+            <div class="ui-form-actions">
+                <button type="submit" class="ui-btn ui-btn-primary">
+                    <partial name="_Icon" model='"check"' />
+                    Save role
+                </button>
+
+                <a asp-action="Index" class="ui-btn ui-btn-secondary">Cancel</a>
+            </div>
+
+        </form>
+
+    </section>
 
 </div>
