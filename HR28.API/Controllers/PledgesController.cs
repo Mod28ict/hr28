@@ -42,6 +42,12 @@ public class PledgesController : ControllerBase
 
         return Ok(result);
     }
+    [HttpGet("{pledgeId:guid}")]
+    public async Task<IActionResult> GetById(Guid pledgeId)
+    {
+        return Ok(await _pledgeService.GetByIdAsync(pledgeId));
+    }
+
     [HttpPut("{pledgeId}/status")]
     public async Task<IActionResult> UpdateStatus(
     Guid pledgeId,

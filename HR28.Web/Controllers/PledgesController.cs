@@ -9,11 +9,80 @@ namespace HR28.Web.Controllers;
 public class PledgesController : Controller
 {
     private readonly DashboardService _dashboardService;
+    private readonly ApiClient _apiClient;
 
     public PledgesController(
-        DashboardService dashboardService)
+        DashboardService dashboardService,
+        ApiClient apiClient)
     {
         _dashboardService = dashboardService;
+        _apiClient = apiClient;
+    }
+
+    /// <summary>Change a pledge's status and record what was done.</summary>
+    [HttpGet]
+    public async Task<IActionResult> Update(Guid id)
+    {
+        var pledge = await _apiClient.GetAsync<PledgeDto>(
+            $"Pledges/{id}",
+            HttpContext.Session.GetString("JwtToken"));
+
+        if (pledge.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!pledge.Success || pledge.Data == null)
+        {
+            TempData["FlashError"] = "That pledge could not be found.";
+            return RedirectToAction("Index", "Voters");
+        }
+
+        return View(new UpdatePledgeViewModel
+        {
+            Pledge = pledge.Data,
+            Status = pledge.Data.Status,
+            ResolutionNotes = pledge.Data.ResolutionNotes
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Update(Guid id, UpdatePledgeViewModel model)
+    {
+        var token = HttpContext.Session.GetString("JwtToken");
+
+        var result = await _apiClient.PutAsync<PledgeDto>(
+            $"Pledges/{id}/status",
+            new { status = model.Status, resolutionNotes = model.ResolutionNotes ?? string.Empty },
+            token);
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (result.Success && result.Data != null)
+        {
+            TempData["SuccessMessage"] = $"Pledge \"{result.Data.Title}\" is now {result.Data.Status}.";
+            return RedirectToAction("Profile", "Voters", new { id = result.Data.VoterId });
+        }
+
+        // Reload the pledge so the page can show it again with the message.
+        var pledge = await _apiClient.GetAsync<PledgeDto>($"Pledges/{id}", token);
+
+        if (pledge.Data == null)
+        {
+            TempData["FlashError"] = result.Message;
+            return RedirectToAction("Index", "Voters");
+        }
+
+        ModelState.AddModelError(string.Empty, result.Message);
+        model.Pledge = pledge.Data;
+
+        return View(model);
     }
 
     [HttpGet]

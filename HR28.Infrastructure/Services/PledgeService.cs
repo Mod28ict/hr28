@@ -134,40 +134,73 @@ public class PledgeService : IPledgeService
 
         await EnsureVoterInScopeAsync(pledge.VoterId);
 
-        pledge.Status = request.Status;
-        pledge.ResolutionNotes = request.ResolutionNotes;
+        // Only these statuses exist; reports count exactly these values.
+        var status = AllowedStatuses.FirstOrDefault(s =>
+            string.Equals(s, request.Status?.Trim(), StringComparison.OrdinalIgnoreCase))
+            ?? throw new BusinessRuleException("Please choose a valid status.");
 
-        if (request.Status == "Completed")
-        {
-            pledge.FulfilledDate = DateTime.UtcNow;
-        }
+        var notes = (request.ResolutionNotes ?? string.Empty).Trim();
 
-        if (request.Status != "Completed")
-        {
+        if (notes.Length > 1000)
+            throw new BusinessRuleException("Resolution notes must be 1000 characters or fewer.");
+
+        var oldStatus = pledge.Status;
+        var notesChanged = notes != (pledge.ResolutionNotes ?? string.Empty);
+
+        if (oldStatus == status && !notesChanged)
+            return ToDto(pledge);
+
+        pledge.Status = status;
+        pledge.ResolutionNotes = notes;
+
+        // Keep the original completion date if it was already completed.
+        if (status == "Completed")
+            pledge.FulfilledDate ??= DateTime.UtcNow;
+        else
             pledge.FulfilledDate = null;
-        }
 
         await _dbContext.SaveChangesAsync();
+
+        var action = oldStatus == status
+            ? "Resolution notes updated"
+            : $"Status changed from \"{oldStatus}\" to \"{status}\"" + (notesChanged ? " (notes updated)" : "");
+
         await _auditService.LogAsync(
             GetCurrentUserId(),
-            $"Status Changed to {pledge.Status}",
+            action,
             "Pledge",
             pledge.Id.ToString());
 
-        return new PledgeDto
-        {
-            Id = pledge.Id,
-            VoterId = pledge.VoterId,
-            CreatedByUserId = pledge.CreatedByUserId,
-            AssignedToUserId = pledge.AssignedToUserId,
-            PledgeDate = pledge.PledgeDate,
-            Title = pledge.Title,
-            Description = pledge.Description,
-            Status = pledge.Status,
-            DueDate = pledge.DueDate,
-            FulfilledDate = pledge.FulfilledDate,
-            ResolutionNotes = pledge.ResolutionNotes
-        };
+        return ToDto(pledge);
     }
 
+    public static readonly string[] AllowedStatuses = { "Open", "In Progress", "Completed", "Cancelled" };
+
+    /// <summary>One pledge, if its voter is in the caller's areas (404 otherwise).</summary>
+    public async Task<PledgeDto> GetByIdAsync(Guid pledgeId)
+    {
+        var pledge = await _dbContext.Pledges
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == pledgeId)
+            ?? throw new KeyNotFoundException("Pledge not found.");
+
+        await EnsureVoterInScopeAsync(pledge.VoterId);
+
+        return ToDto(pledge);
+    }
+
+    private static PledgeDto ToDto(Pledge pledge) => new()
+    {
+        Id = pledge.Id,
+        VoterId = pledge.VoterId,
+        CreatedByUserId = pledge.CreatedByUserId,
+        AssignedToUserId = pledge.AssignedToUserId,
+        PledgeDate = pledge.PledgeDate,
+        Title = pledge.Title,
+        Description = pledge.Description,
+        Status = pledge.Status,
+        DueDate = pledge.DueDate,
+        FulfilledDate = pledge.FulfilledDate,
+        ResolutionNotes = pledge.ResolutionNotes
+    };
 }

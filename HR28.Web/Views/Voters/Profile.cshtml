@@ -250,6 +250,7 @@
                             <th>Status</th>
                             <th>Pledge date</th>
                             <th>Due date</th>
+                            <th><span class="visually-hidden">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -257,10 +258,31 @@
                         {
                             <tr>
                                 <td class="ui-strong">@pledge.Title</td>
-                                <td class="ui-muted">@pledge.Description</td>
-                                <td><span class="ui-tag">@pledge.Status</span></td>
+                                <td class="ui-muted">
+                                    @(string.IsNullOrWhiteSpace(pledge.Description) ? "—" : pledge.Description)
+                                    @if (!string.IsNullOrWhiteSpace(pledge.ResolutionNotes))
+                                    {
+                                        <div style="margin-top: 4px; font-size: 12px;"><strong>Update:</strong> @pledge.ResolutionNotes</div>
+                                    }
+                                </td>
+                                <td>
+                                    @{
+                                        var tone = HR28.Web.Models.UpdatePledgeViewModel.Statuses
+                                            .FirstOrDefault(s => string.Equals(s.Value, pledge.Status, StringComparison.OrdinalIgnoreCase))
+                                            .Tone ?? "is-muted";
+                                    }
+                                    <span class="ui-pill @tone">@pledge.Status</span>
+                                </td>
                                 <td class="ui-num" style="white-space: nowrap;">@pledge.PledgeDate.ToString("dd MMM yyyy")</td>
                                 <td class="ui-num" style="white-space: nowrap;">@(pledge.DueDate.HasValue ? pledge.DueDate.Value.ToString("dd MMM yyyy") : "—")</td>
+                                <td class="is-right">
+                                    <a asp-controller="Pledges"
+                                       asp-action="Update"
+                                       asp-route-id="@pledge.Id"
+                                       class="ui-btn ui-btn-secondary ui-btn-sm">
+                                        Update
+                                    </a>
+                                </td>
                             </tr>
                         }
                     </tbody>

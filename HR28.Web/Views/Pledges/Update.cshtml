@@ -1,0 +1,132 @@
+@model HR28.Web.Models.UpdatePledgeViewModel
+
+@{
+    ViewData["Title"] = "Update Pledge";
+
+    var p = Model.Pledge;
+
+    string Date(DateTime? value) => value.HasValue ? value.Value.ToString("dd MMM yyyy") : "—";
+}
+
+<div class="ui-page is-narrow">
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-amber"><partial name="_Icon" model='"handshake"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a asp-controller="Voters" asp-action="Profile" asp-route-id="@p.VoterId">Voter profile</a>
+                    <span aria-hidden="true">/</span> <span>Update pledge</span>
+                </nav>
+                <h1 class="ui-title">Update Pledge</h1>
+                <p class="ui-sub">Record progress on this commitment. Every change is kept in the audit trail.</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- The pledge as it stands -->
+    <section class="ui-card">
+        <div class="ui-card-head">
+            <h2>@p.Title</h2>
+            <span class="ui-pill @(UpdatePledgeViewModelTone(p.Status))">@p.Status</span>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(p.Description))
+        {
+            <p style="margin: -4px 0 14px; color: var(--ui-text-2);">@p.Description</p>
+        }
+
+        <dl class="ui-details" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+            <div>
+                <dt>Pledged on</dt>
+                <dd>@Date(p.PledgeDate)</dd>
+            </div>
+            <div>
+                <dt>Due</dt>
+                <dd>@Date(p.DueDate)</dd>
+            </div>
+            <div>
+                <dt>Completed on</dt>
+                <dd>@Date(p.FulfilledDate)</dd>
+            </div>
+        </dl>
+    </section>
+
+    <!-- Update form -->
+    <section class="ui-card ui-card-lg">
+        <form asp-action="Update" asp-route-id="@p.Id" method="post">
+
+            <div asp-validation-summary="ModelOnly" class="ui-summary"></div>
+
+            <fieldset>
+                <legend class="ui-label">Status</legend>
+
+                <div class="ui-status-grid">
+                    @foreach (var s in HR28.Web.Models.UpdatePledgeViewModel.Statuses)
+                    {
+                        <label class="ui-check-card ui-status-card @s.Tone">
+                            <input type="radio"
+                                   name="Status"
+                                   value="@s.Value"
+                                   checked="@(string.Equals(Model.Status, s.Value, StringComparison.OrdinalIgnoreCase))" />
+                            <span>
+                                <strong>@s.Value</strong>
+                                <small>@s.Help</small>
+                            </span>
+                        </label>
+                    }
+                </div>
+            </fieldset>
+
+            <div class="ui-field" style="margin-top: 20px;">
+                <label asp-for="ResolutionNotes" class="ui-label">
+                    Resolution notes <span class="ui-optional">(optional)</span>
+                </label>
+                <textarea asp-for="ResolutionNotes"
+                          id="h28PledgeNotes"
+                          class="ui-textarea"
+                          rows="4"
+                          maxlength="1000"
+                          placeholder="What was done, or why it was cancelled. Keep it short and factual."></textarea>
+                <div class="ui-counter"><span id="h28PledgeNotesCount">0</span> / 1000</div>
+                <span asp-validation-for="ResolutionNotes" class="ui-error"></span>
+            </div>
+
+            <div class="ui-form-actions">
+                <button type="submit" class="ui-btn ui-btn-primary">
+                    <partial name="_Icon" model='"check"' />
+                    Save update
+                </button>
+
+                <a asp-controller="Voters" asp-action="Profile" asp-route-id="@p.VoterId" class="ui-btn ui-btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </section>
+
+</div>
+
+@functions {
+    private static string UpdatePledgeViewModelTone(string status) =>
+        HR28.Web.Models.UpdatePledgeViewModel.Statuses
+            .FirstOrDefault(s => string.Equals(s.Value, status, StringComparison.OrdinalIgnoreCase))
+            .Tone ?? "is-muted";
+}
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (function () {
+            var box = document.getElementById("h28PledgeNotes");
+            var count = document.getElementById("h28PledgeNotesCount");
+
+            if (!box || !count) return;
+
+            function update() { count.textContent = box.value.length; }
+
+            box.addEventListener("input", update);
+            update();
+        })();
+    </script>
+}

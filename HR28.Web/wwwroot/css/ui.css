@@ -1227,6 +1227,29 @@ fieldset {
     border: 0;
 }
 
+/* ---------- Status choice (e.g. pledge status) ---------- */
+
+.ui-status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.ui-status-card:has(input:checked) {
+    border-color: var(--tone);
+    background: var(--tone-soft);
+}
+
+.ui-status-card input {
+    accent-color: var(--tone);
+}
+
+@media (max-width: 575.98px) {
+    .ui-status-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ---------- Area list ---------- */
 
 .ui-area-list {
