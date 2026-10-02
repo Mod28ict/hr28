@@ -159,7 +159,8 @@ html[data-theme="dark"] {
         color: #ffb3bf;
     }
 
-    html[data-theme="dark"] .ui-error {
+    html[data-theme="dark"] .ui-error,
+    html[data-theme="dark"] .ui-field-status.is-error {
         color: #ff8f9f;
     }
 

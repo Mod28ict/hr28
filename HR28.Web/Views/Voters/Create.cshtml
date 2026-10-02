@@ -44,7 +44,9 @@
                                id="h28NationalId"
                                class="ui-input ui-upper"
                                placeholder="A123456"
-                               autocomplete="off" />
+                               autocomplete="off"
+                               aria-describedby="h28NidStatus" />
+                        <div id="h28NidStatus" class="ui-field-status" aria-live="polite"></div>
                         <span asp-validation-for="Voter.NationalId" class="ui-error"></span>
                     </div>
 
@@ -270,6 +272,88 @@
                 this.value = this.value.toUpperCase();
                 this.setSelectionRange(pos, pos);
             });
+
+            // ---- National ID: live duplicate check ----
+            var $nid = $('#h28NationalId');
+            var $nidStatus = $('#h28NidStatus');
+            var checkUrl = '@Url.Action("CheckNationalId", "Voters")';
+            var nidTimer = null;
+            var nidRequest = null;
+            var nidDuplicate = false;
+            var lastChecked = '';
+
+            function setNidStatus(kind, html) {
+                $nidStatus.removeClass('is-error is-ok is-muted').addClass(kind ? 'is-' + kind : '').html(html || '');
+                $nid.toggleClass('input-validation-error', kind === 'error')
+                    .attr('aria-invalid', kind === 'error' ? 'true' : null);
+            }
+
+            function escapeHtml(text) {
+                return $('<div>').text(text).html();
+            }
+
+            function checkNationalId() {
+                var value = $.trim($nid.val());
+
+                if (value === lastChecked) return;
+                lastChecked = value;
+
+                if (nidRequest) nidRequest.abort();
+
+                if (value.length < 5) {
+                    nidDuplicate = false;
+                    setNidStatus('', '');
+                    return;
+                }
+
+                setNidStatus('muted', 'Checking…');
+
+                nidRequest = $.getJSON(checkUrl, { nationalId: value })
+                    .done(function (data) {
+                        nidDuplicate = !!data.exists;
+
+                        if (!data.exists) {
+                            setNidStatus('ok', '✓ Not registered yet');
+                            return;
+                        }
+
+                        var html = 'This National ID is already registered';
+                        if (data.fullName) {
+                            html += ' to <strong>' + escapeHtml(data.fullName) + '</strong>.';
+                            if (data.profileUrl) {
+                                html += ' <a href="' + data.profileUrl + '">View profile</a>';
+                            }
+                        } else {
+                            html += '.';
+                        }
+
+                        setNidStatus('error', html);
+                    })
+                    .fail(function (xhr, status) {
+                        if (status === 'abort') return;
+                        nidDuplicate = false;
+                        lastChecked = '';
+                        setNidStatus('', '');   // the server still checks when saving
+                    });
+            }
+
+            $nid.on('input', function () {
+                clearTimeout(nidTimer);
+                nidTimer = setTimeout(checkNationalId, 450);
+            });
+
+            $nid.on('blur', checkNationalId);
+
+            // Don't submit a known duplicate.
+            $nid.closest('form').on('submit', function (e) {
+                if (nidDuplicate) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    $nid.trigger('focus');
+                }
+            });
+
+            if ($.trim($nid.val()).length >= 5) checkNationalId();
         });
     </script>
 }

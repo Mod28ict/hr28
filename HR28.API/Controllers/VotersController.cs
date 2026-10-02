@@ -130,6 +130,22 @@ await _voterService.GetVoterByIdAsync(
 
         return Ok("Voter deleted successfully.");
     }
+    /// <summary>
+    /// Live duplicate check for the voter forms. Rate-limited like search so it
+    /// can't be used to sweep the registry; reveals details only for voters in scope.
+    /// </summary>
+    [HttpGet("national-id-check")]
+    [EnableRateLimiting(RateLimitPolicies.Search)]
+    public async Task<IActionResult> CheckNationalId(
+        [FromQuery] string nationalId,
+        [FromQuery] Guid? excludeId = null)
+    {
+        if (User.GetUserId() is not Guid userId)
+            return Unauthorized();
+
+        return Ok(await _voterService.CheckNationalIdAsync(userId, nationalId, excludeId));
+    }
+
     [HttpGet("{id}/profile")]
     public async Task<IActionResult> GetProfile(
         Guid id)

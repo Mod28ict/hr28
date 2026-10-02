@@ -375,6 +375,39 @@ public class VoterService : IVoterService
 
     // Keep your existing influencer,
     // encounter and pledge queries below.
+    public async Task<NationalIdCheckDto> CheckNationalIdAsync(
+        Guid userId,
+        string nationalId,
+        Guid? excludeVoterId)
+    {
+        var id = (nationalId ?? string.Empty).Trim().ToUpperInvariant();
+
+        if (id.Length == 0)
+            return new NationalIdCheckDto();
+
+        var existing = await _dbContext.Voters
+            .AsNoTracking()
+            .Where(v => v.NationalId == id && v.Id != excludeVoterId)
+            .Select(v => new { v.Id })
+            .FirstOrDefaultAsync();
+
+        if (existing == null)
+            return new NationalIdCheckDto();
+
+        // Only reveal who it is if the caller is allowed to see that voter.
+        var visible = await (await GetAuthorizedVoterQueryAsync(userId))
+            .Where(v => v.Id == existing.Id)
+            .Select(v => new { v.Id, v.FullName })
+            .FirstOrDefaultAsync();
+
+        return new NationalIdCheckDto
+        {
+            Exists = true,
+            VoterId = visible?.Id,
+            FullName = visible?.FullName
+        };
+    }
+
     public async Task<List<VoterDto>> GetRecentAsync(
         Guid userId,
         int count = 10)

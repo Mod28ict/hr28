@@ -25,6 +25,15 @@ public interface IVoterService
     Task DeleteVoterAsync(
         Guid id);
 
+    /// <summary>
+    /// Whether a National ID is already registered. Details (name, id) are only
+    /// returned when that voter is inside the user's scope.
+    /// </summary>
+    Task<NationalIdCheckDto> CheckNationalIdAsync(
+        Guid userId,
+        string nationalId,
+        Guid? excludeVoterId);
+
     /// <summary>Most recently added voters within the user's scope.</summary>
     Task<List<VoterDto>> GetRecentAsync(
         Guid userId,

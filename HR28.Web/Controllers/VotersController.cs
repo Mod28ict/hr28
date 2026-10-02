@@ -10,11 +10,56 @@ namespace HR28.Web.Controllers;
 public class VotersController : Controller
 {
     private readonly DashboardService _dashboardService;
+    private readonly ApiClient _apiClient;
 
     public VotersController(
-        DashboardService dashboardService)
+        DashboardService dashboardService,
+        ApiClient apiClient)
     {
         _dashboardService = dashboardService;
+        _apiClient = apiClient;
+    }
+
+    /// <summary>
+    /// Live duplicate check used by the Add/Edit voter forms while typing.
+    /// Returns { exists, voterId?, fullName? }; details only for voters in the user's areas.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> CheckNationalId(string nationalId, Guid? excludeId)
+    {
+        if (string.IsNullOrWhiteSpace(nationalId))
+            return Json(new { exists = false });
+
+        var query = "Voters/national-id-check?nationalId=" + Uri.EscapeDataString(nationalId.Trim());
+
+        if (excludeId.HasValue)
+            query += "&excludeId=" + excludeId.Value;
+
+        var result = await _apiClient.GetAsync<NationalIdCheckResult>(
+            query,
+            HttpContext.Session.GetString("JwtToken"));
+
+        if (!result.Success || result.Data == null)
+            return StatusCode((int)result.StatusCode, new { message = result.Message });
+
+        return Json(new
+        {
+            exists = result.Data.Exists,
+            voterId = result.Data.VoterId,
+            fullName = result.Data.FullName,
+            profileUrl = result.Data.VoterId.HasValue
+                ? Url.Action(nameof(Profile), new { id = result.Data.VoterId })
+                : null
+        });
+    }
+
+    private class NationalIdCheckResult
+    {
+        public bool Exists { get; set; }
+
+        public Guid? VoterId { get; set; }
+
+        public string? FullName { get; set; }
     }
 
     [HttpGet]
@@ -113,6 +158,7 @@ public class VotersController : Controller
         return View(model);
     }
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult>
         Create(VoterCreateViewModel model)
     {
@@ -120,14 +166,32 @@ public class VotersController : Controller
             HttpContext.Session.GetString(
                 "JwtToken");
 
-        var success =
-            await _dashboardService
-                .CreateVoterAsync(
-                    model.Voter,
-                    token);
+        var result = await _apiClient.PostAsync<object>(
+            "Voters",
+            model.Voter,
+            token);
 
-        if (!success)
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!result.Success)
+        {
+            // e.g. "A voter with National ID A123456 already exists."
+            ModelState.AddModelError(string.Empty, result.Message);
+
+            // Reload the lists, or the constituency dropdown comes back empty.
+            model.Constituencies =
+                await _dashboardService.GetConstituenciesAsync(token) ?? new();
+            model.Islands =
+                await _dashboardService.GetIslandsAsync(token) ?? new();
+
             return View(model);
+        }
+
+        TempData["SuccessMessage"] = $"{model.Voter.FullName} was added.";
 
         return RedirectToAction(
             "Index");

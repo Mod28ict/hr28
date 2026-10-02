@@ -20,6 +20,14 @@
 
 <div class="ui-page">
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ui-alert is-green" role="status">
+            <partial name="_Icon" model='"check-circle"' />
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
     <header class="ui-head">
         <div class="ui-head-main">
             <span class="ui-head-icon is-blue"><partial name="_Icon" model='"users"' /></span>

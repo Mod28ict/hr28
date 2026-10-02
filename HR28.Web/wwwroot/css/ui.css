@@ -585,6 +585,42 @@
     text-align: right;
 }
 
+/* Live status under a field (e.g. duplicate National ID check) */
+.ui-field-status {
+    min-height: 0;
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+    .ui-field-status:empty {
+        display: none;
+    }
+
+    .ui-field-status.is-error {
+        color: #c42b40;
+    }
+
+    .ui-field-status.is-ok {
+        color: var(--ui-green);
+    }
+
+    .ui-field-status.is-muted {
+        color: var(--ui-muted);
+    }
+
+    .ui-field-status a {
+        color: inherit;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+.ui-input.input-validation-error:focus,
+.ui-select.input-validation-error:focus,
+.ui-textarea.input-validation-error:focus {
+    border-color: var(--ui-red);
+    box-shadow: 0 0 0 4px rgba(228, 72, 93, 0.15);
+}
+
 .ui-error {
     display: block;
     margin-top: 6px;
