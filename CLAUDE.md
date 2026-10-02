@@ -48,9 +48,17 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   its own web app, API and database, all running the **same codebase and version**.
   Never add client-specific code branches; differences come from configuration only.
 - There is no shared multi-tenant database. Do not add tenant IDs to tables.
-- Roles in each deployment: **Owner** (platform owner, not managed by the client),
-  **Client Administrator** (manages that client's users, roles and scopes), and the
-  client's other users with their roles and scopes.
+- **Owner and Administrator are unrelated** (owner decision, 2026-10-02):
+  - **Owner** = the platform owner. Works in **Azure only** (module switches, settings,
+    deployments). There is **no Owner role or account inside the app**, so no screen
+    or API can ever enable a paid module.
+  - **Administrator** = the client's own top role inside HR28: manages users, roles,
+    areas, system settings, constituencies and islands. Stored as
+    `"Super Administrator"` (kept for existing data); always **shown** as
+    "Administrator" (`Hr28Roles.DisplayName`).
+  - Other roles: National Administrator (all data, no user management),
+    Constituency Administrator, Island Administrator, Collector, Reporter (read-only
+    reports). "Sees everything" = Super Administrator or National Administrator.
 - Planned hosting: Azure App Service + Azure SQL Database, one deployment per client,
   published by one automated pipeline to all clients.
 
@@ -70,15 +78,16 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
 
 - **A constituency contains many islands; each island belongs to exactly one
   constituency.** An island must never be linked to more than one constituency.
-  (This replaces the earlier many-to-many `ConstituencyIsland` assumption; see the
-  migration task in the backlog.)
+  (This replaces the earlier many-to-many `ConstituencyIsland` assumption. Until that
+  table is dropped, keep exactly one link row per island, matching
+  `Island.ConstituencyId` — `IslandService` does this.)
 - Not every constituency requires an island selection. Support constituency-only voters.
 - If a voter has an island, it must belong to the voter's constituency.
 - Roles grant capabilities; scopes decide which records those capabilities apply to.
   Role assignment and scope assignment are separate.
-- **A user can have multiple roles AND multiple scopes.** (The current code supports
-  only a single scope per user; this must change.) Roles and scopes are independent:
-  every role a user has applies in every scope they have.
+- **A user can have multiple roles AND multiple scopes** (implemented). Roles and
+  scopes are independent: every role a user has applies in every scope they have.
+  Screens call scopes "Areas".
   - Effective permissions = the union of all the user's roles.
   - Effective access = the union of all the user's scopes. A record is visible if it
     falls inside ANY of the user's scopes (a whole constituency, or a specific island).
@@ -87,6 +96,9 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   - Every scope check filters by the user's full scope list, never a single scope ID.
   - Changes to roles or scopes take effect immediately: resolve them on the server
     (cached, with invalidation on change), not from a list frozen in the login token.
+    Implemented in `AccessScopeService` (30s cache, `Invalidate(userId)` on change)
+    and the API's `AccessRequirementHandler`; roles in the JWT are ignored.
+    Deactivated accounts get 401 on their next request.
   - Assigning or removing a role or scope is audited, and assignment screens must be
     simple for non-technical administrators.
 - Non-administrators cannot edit protected voter fields or access records outside
@@ -110,13 +122,23 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
 Users sign in with SMS auth codes instead of authenticator apps. Build it so it is
 strong despite that:
 
-- Login must be **two factors**: something the user knows (password or PIN) plus the
-  SMS code. If login currently uses only phone/ID + code, flag it to the owner and
-  confirm before changing the login flow.
-- SMS codes: 6 digits, cryptographically random, ~5 minute expiry, **single use**
-  (atomic consume), bound to that specific login attempt.
-- Limit wrong attempts, then temporary lockout; cooldown between resends; rate limit
-  per user, per phone number and per IP.
+- **Decision (owner, 2026-10-02): no passwords.** Sign-in is two factors:
+  1. **Authorization code** (something the user is given and keeps): 8 characters,
+     cryptographically random, shown as `ABCD-EFGH`, typed case-insensitively with or
+     without the dash. Stored **only** as HMAC-SHA256 with `Security:AuthorizationCodeKey`
+     (User Secrets in dev, Key Vault in prod; every instance must use the same key or
+     nobody can sign in). Shown **once** at creation or reset, never again; an
+     Administrator can "Reset code". Older 5-character codes still work.
+  2. **SMS OTP** (something the user has).
+  Do not add passwords or PINs without the owner's approval.
+- SMS codes (implemented): 6 digits from `RandomNumberGenerator`, expiry set by the
+  Administrator in Settings → System (default 5 min, 1–15), **single use** (atomic
+  consume), constant-time comparison, max attempts per code (setting, default 5).
+- Rate limits (implemented): per IP 10 code requests and 20 code checks per 5 minutes;
+  per account 60s between requests, 5 codes per hour, and 10 wrong codes in a row
+  locks sign-in for 15 minutes. The web app forwards the visitor IP; the API trusts it
+  only from `ReverseProxy:KnownProxies` (loopback by default; set the web app's
+  outbound IPs in Azure). Per phone number: not yet (there is no SMS sender yet).
 - SMS text includes a warning, e.g. "HR28 code: 482913. Never share this code.
   HR28 staff will never ask for it."
 - Use generic messages that don't reveal whether a user or phone number exists.
@@ -131,10 +153,11 @@ strong despite that:
 - **Login alerts**: SMS the user when someone signs in from a new device.
 - **Sessions**: idle timeout, absolute timeout, real server-side logout, and admins
   can end any user's sessions.
-- **Stronger sign-in for high-risk accounts**: Owner and Client Administrators must
-  use passkeys (fingerprint/face unlock via WebAuthn) or another phishing-resistant
-  method. Passkeys are optional for everyone else. Check the passkey support in the
-  ASP.NET Core Identity version in use before implementing.
+- **Stronger sign-in for high-risk accounts — deferred (owner, 2026-10-02):**
+  Administrators should later use passkeys (fingerprint/face unlock via WebAuthn) or
+  another phishing-resistant method; optional for everyone else. Not now. (The Owner
+  does not sign in to the app.) Check the passkey support in the ASP.NET Core
+  Identity version in use before implementing.
 - Never log or display codes, tokens, passwords, connection strings or keys outside
   the Development environment.
 
@@ -157,6 +180,10 @@ strong despite that:
 
 - Secrets live in User Secrets (development) and Azure Key Vault via managed identity
   (production). Never in committed files.
+- Required secrets for `HR28.API`: `Security:AuthorizationCodeKey` (base64, ≥32 bytes;
+  the API refuses to start without it). Still to move out of `appsettings.json`:
+  `ConnectionStrings:DefaultConnection` and `Jwt:Key` (both are committed today and
+  must be rotated when moved).
 - Azure SQL: firewall restricted to the app; no public database access.
 - Keep NuGet packages free of known vulnerabilities.
 
@@ -169,7 +196,8 @@ strong despite that:
 - Collect only approved fields. Do not add fields for ID card copies, photos, health,
   financial, family-sensitive data, precise location or free-text allegations.
 - Data exports are restricted by role and scope, require step-up verification, and
-  are audited.
+  are audited. (Today: report CSVs are scoped, rate-limited and audited; step-up
+  verification is not built yet.)
 - Out of scope unless explicitly requested: public self-service portal, automated
   persuasion or behavioral targeting, offline sync, GIS tracking, biometrics stored
   by HR28, government-database integrations.
@@ -207,15 +235,45 @@ strong despite that:
 
 ## Current focus: Phase 1 – Stabilize
 
-1. Island model correction: one constituency → many islands, island → one constituency.
-2. Multiple roles and multiple scopes per user (data model, migration of existing
-   single-scope assignments, assignment screens, scope filtering everywhere).
-3. Permission matrix and API authorization policies built on multiple roles/scopes.
-4. Central session / 401 handling in the MVC app.
-5. Authentication hardening per the "Authentication" section above.
-6. Security review of the existing code against OWASP ASVS Level 2, and fixes.
-7. Audit coverage checklist.
-8. Regression tests: login, user provisioning, voter CRUD, scope isolation, pledges,
-   encounters, influencer links, and users with multiple roles/scopes.
+Status as of 2026-10-02 (update when an item changes):
+
+1. Island model correction — **partly done.** Island create/edit keeps exactly one
+   `ConstituencyIsland` link in sync with `Island.ConstituencyId` and blocks moving
+   islands that have voters. Still to do: reconcile existing data, then drop the
+   many-to-many table and read islands from `Island.ConstituencyId` only.
+2. Multiple roles and multiple scopes per user — **done** (no migration was needed;
+   the tables already allowed many rows). Roles page = tick list; Areas page =
+   add/remove.
+3. Permission matrix and API authorization policies — **mostly done.** Policies:
+   default (active account), `Administrator`, `SuperAdministrator`, resolved live.
+   Still to do: a written permission matrix; stop Reporters writing via the API.
+4. Central session / 401 handling — **partly done.** `ApiClient` + `AppController`
+   handle 401/403 for newer pages; `SessionRoleRefreshFilter` ends sessions of
+   deactivated users. Older pages still call `DashboardService` directly (raw errors
+   possible, including on 429).
+5. Authentication hardening — **partly done:** 6-digit secure OTP, hashed
+   authorization codes, attempt limits, cooldown, lockout, per-IP rate limits,
+   inactive users blocked, anti-forgery on login forms. Still to do: SMS sender
+   (with warning text and per-phone limits), step-up codes for exports/user
+   management, trusted devices, login alerts, session timeouts/admin sign-out,
+   passkeys (deferred).
+6. OWASP ASVS L2 review — **not started** as a formal pass.
+7. Audit coverage — **partly done:** voters, influencers, encounters, pledges,
+   users (create, code reset, roles, areas), constituencies, islands, settings and
+   report downloads are audited. Voter/influencer updates do not yet record which
+   fields changed.
+8. Regression tests — **not started; there is no test project yet.**
+
+Known open issues (fix or confirm with the owner):
+- OTP is written to the console in every environment (`AuthService`); should be
+  Development only, via a fake SMS sender.
+- `GET /Auth/ClearSession` logs anyone out from a link; remove or make it POST.
+- Web `VotersController` sets `ViewBag.IsSuperAdmin = true` for everyone, so the Edit
+  page lets any user change a voter's area (API still blocks out-of-scope moves).
+- No security headers (CSP, nosniff, frame protection, Referrer-Policy) yet.
+- Report downloads are scoped, rate-limited and audited but have no step-up code.
+- `Users.AuthorizationCode` (plain, now always empty) can be dropped in a migration.
+- Dev data to tidy: "Collector Demo" holds three roles incl. National Administrator;
+  Mariyam Waheed's area pairs Henveiru West with Galolhu.
 
 Next, after Phase 1: module switch system → deployment pipeline → paid modules.
