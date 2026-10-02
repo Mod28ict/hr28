@@ -1,7 +1,11 @@
 @model HR28.Web.Models.UserCreateViewModel
 
 @{
-    ViewData["Title"] = "User Created";
+    // Also used after resetting a code (ViewBag.IsReset).
+    var isReset = (bool)(ViewBag.IsReset ?? false);
+    var userName = ViewBag.UserName as string;
+
+    ViewData["Title"] = isReset ? "New Authorization Code" : "User Created";
 
     var code =
         Model?.GeneratedAuthorizationCode
@@ -16,8 +20,19 @@
             <partial name="_Icon" model='"check"' />
         </span>
 
-        <h1 class="ui-title">User created</h1>
-        <p class="ui-sub">The account is ready. Share the authorization code with the user securely.</p>
+        @if (isReset)
+        {
+            <h1 class="ui-title">New code issued</h1>
+            <p class="ui-sub">
+                @(string.IsNullOrWhiteSpace(userName) ? "The user's" : $"{userName}'s") old code has stopped working.
+                Give them this new code in person or by phone.
+            </p>
+        }
+        else
+        {
+            <h1 class="ui-title">User created</h1>
+            <p class="ui-sub">The account is ready. Share the authorization code with the user securely.</p>
+        }
 
         <div style="margin: 26px 0 8px;" class="ui-label">Authorization code</div>
 
@@ -31,8 +46,10 @@
         <div class="ui-note is-amber" style="margin: 22px 0; text-align: left;">
             <partial name="_Icon" model='"alert"' />
             <div>
-                <strong>Save this code now</strong>
-                The user needs it for first login and OTP verification.
+                <strong>This code is shown only once</strong>
+                It is stored in a form nobody can read back, including administrators.
+                If it is lost, use "Reset code" on the Users page to issue a new one.
+                Users can type it with or without the dash, in capitals or lower case.
             </div>
         </div>
 
@@ -42,10 +59,13 @@
                 Back to Users
             </a>
 
-            <a asp-action="Create" class="ui-btn ui-btn-secondary">
-                <partial name="_Icon" model='"user-plus"' />
-                Create another
-            </a>
+            @if (!isReset)
+            {
+                <a asp-action="Create" class="ui-btn ui-btn-secondary">
+                    <partial name="_Icon" model='"user-plus"' />
+                    Create another
+                </a>
+            }
         </div>
 
     </section>

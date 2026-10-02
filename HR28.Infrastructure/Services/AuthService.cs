@@ -12,23 +12,38 @@ public class AuthService : IAuthService
     private readonly HR28DbContext _dbContext;
     private readonly ITokenService _tokenService;
     private readonly ISystemSettingsService _settingsService;
+    private readonly IAuthorizationCodeHasher _codeHasher;
 
     public AuthService(
         HR28DbContext dbContext,
         ITokenService tokenService,
-        ISystemSettingsService settingsService)
+        ISystemSettingsService settingsService,
+        IAuthorizationCodeHasher codeHasher)
     {
         _dbContext = dbContext;
         _tokenService = tokenService;
         _settingsService = settingsService;
+        _codeHasher = codeHasher;
+    }
+
+    /// <summary>Finds an active user by authorization code (compared by keyed hash only).</summary>
+    private async Task<User?> FindActiveUserAsync(string? authorizationCode)
+    {
+        if (string.IsNullOrWhiteSpace(authorizationCode))
+            return null;
+
+        var hash = _codeHasher.Hash(authorizationCode);
+
+        return await _dbContext.Users
+            .FirstOrDefaultAsync(u =>
+                u.AuthorizationCodeHash == hash &&
+                u.IsActive);
     }
 
     public async Task<GenerateOtpResultDto> GenerateOtpAsync(
         GenerateOtpRequestDto request)
     {
-        var user = await _dbContext.Users
-            .FirstOrDefaultAsync(u =>
-                u.AuthorizationCode == request.AuthorizationCode);
+        var user = await FindActiveUserAsync(request.AuthorizationCode);
 
         if (user == null)
             return new GenerateOtpResultDto { Success = false };
@@ -65,9 +80,7 @@ public class AuthService : IAuthService
     public async Task<LoginResponseDto> VerifyOtpAsync(
         VerifyOtpRequestDto request)
     {
-        var user = await _dbContext.Users
-            .FirstOrDefaultAsync(u =>
-                u.AuthorizationCode == request.AuthorizationCode);
+        var user = await FindActiveUserAsync(request.AuthorizationCode);
 
         if (user == null)
         {

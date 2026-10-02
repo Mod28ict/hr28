@@ -18,4 +18,11 @@ public interface IUserService
     Guid userId,
     Guid? constituencyId,
     Guid? islandId);
+
+    /// <summary>
+    /// Issues a new authorization code, revokes the old one, and returns the
+    /// new code. This is the only time the code is available in plain text.
+    /// Returns null if the user does not exist.
+    /// </summary>
+    Task<string?> ResetAuthorizationCodeAsync(Guid userId);
 }

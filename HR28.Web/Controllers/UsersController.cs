@@ -1,13 +1,16 @@
-﻿using HR28.Web.Models.Users;
+﻿using HR28.Web.Filters;
 using HR28.Web.Models;
+using HR28.Web.Models.Users;
 using HR28.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HR28.Web.Controllers;
 
+[SessionAuthorize]
 public class UsersController : Controller
 {
     private readonly DashboardService _dashboardService;
+    private readonly ApiClient _apiClient;
     private bool IsSuperAdmin()
     {
         return HttpContext.Session.GetString(
@@ -16,9 +19,65 @@ public class UsersController : Controller
     }
 
     public UsersController(
-        DashboardService dashboardService)
+        DashboardService dashboardService,
+        ApiClient apiClient)
     {
         _dashboardService = dashboardService;
+        _apiClient = apiClient;
+    }
+
+    /// <summary>
+    /// Issues a new authorization code and shows it once. The old code stops
+    /// working immediately. The API records this in the audit trail.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetCode(Guid id, string? name)
+    {
+        if (!IsSuperAdmin())
+        {
+            return RedirectToAction(
+                "Index",
+                "Dashboard");
+        }
+
+        var result = await _apiClient.PostAsync<ResetCodeResult>(
+            $"Users/{id}/reset-code",
+            new { },
+            HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!result.Success || string.IsNullOrWhiteSpace(result.Data?.AuthorizationCode))
+        {
+            TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
+                ? "The code could not be reset. Please try again."
+                : result.Message;
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        ViewBag.IsReset = true;
+        ViewBag.UserName = name;
+
+        // The code is shown once; don't let the browser cache this page.
+        Response.Headers.CacheControl = "no-store";
+
+        return View(
+            "CreateSuccess",
+            new UserCreateViewModel
+            {
+                GeneratedAuthorizationCode = result.Data.AuthorizationCode
+            });
+    }
+
+    private class ResetCodeResult
+    {
+        public string AuthorizationCode { get; set; } = string.Empty;
     }
 
     [HttpGet]
@@ -82,6 +141,9 @@ public class UsersController : Controller
 
         model.GeneratedAuthorizationCode =
             createdUser.AuthorizationCode;
+
+        // The code is shown once; don't let the browser cache this page.
+        Response.Headers.CacheControl = "no-store";
 
         return View(
             "CreateSuccess",

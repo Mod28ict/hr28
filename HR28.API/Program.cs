@@ -33,6 +33,12 @@ builder.Services.AddScoped<IReportingService, ReportService>();
 builder.Services.AddScoped<IAccessScopeService, AccessScopeService>();
 builder.Services.AddScoped<IAuditTrailService, AuditTrailService>();
 builder.Services.AddScoped<ISystemSettingsService, SystemSettingsService>();
+
+// Authorization codes are stored as a keyed hash. The key comes from User Secrets
+// (development) or Key Vault (production); startup fails if it is missing.
+builder.Services.AddSingleton<IAuthorizationCodeHasher>(
+    new HR28.Infrastructure.Helpers.AuthorizationCodeHasher(
+        builder.Configuration["Security:AuthorizationCodeKey"] ?? string.Empty));
 builder.Services.AddHr28AuthorizationPolicies();
 builder.Services
     .AddAuthentication(
@@ -122,6 +128,16 @@ using (var scope = app.Services.CreateScope())
     await RoleSeeder.SeedRolesAsync(dbContext);
     await ConstituencySeeder.SeedAsync(dbContext);
     await IslandSeeder.SeedAsync(dbContext);
+
+    var converted = await AuthorizationCodeBackfill.RunAsync(
+        dbContext,
+        scope.ServiceProvider.GetRequiredService<IAuthorizationCodeHasher>());
+
+    if (converted > 0)
+    {
+        app.Logger.LogInformation(
+            "Converted {Count} authorization codes to secure storage.", converted);
+    }
 }
 
 app.Run();

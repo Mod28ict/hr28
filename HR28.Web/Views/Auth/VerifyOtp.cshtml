@@ -8,6 +8,12 @@
         ?? TempData["AuthorizationCode"]?.ToString()
         ?? string.Empty;
 
+    // Show only the last two characters so the code isn't readable over a shoulder.
+    var visibleCode = authorizationCode.Replace("-", "").Trim();
+    var maskedCode = visibleCode.Length > 2
+        ? new string('•', visibleCode.Length - 2) + visibleCode[^2..]
+        : visibleCode;
+
     // Peek keeps the value so the countdown survives a retry after a wrong code.
     var otpExpiresAtMs =
         long.TryParse(TempData.Peek("OtpExpiresAtMs")?.ToString(), out var expiresAt)
@@ -1029,8 +1035,8 @@
                             Authorization code
                         </div>
 
-                        <div class="code-reference-value">
-                            @authorizationCode
+                        <div class="code-reference-value" aria-label="Authorization code ending in @(visibleCode.Length >= 2 ? visibleCode[^2..] : visibleCode)">
+                            @maskedCode
                         </div>
                     </div>
 

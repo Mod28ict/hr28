@@ -106,7 +106,6 @@
                             <th>Contact</th>
                             <th>Role</th>
                             <th>Scope</th>
-                            <th>Auth code</th>
                             <th>Status</th>
                             <th><span class="visually-hidden">Actions</span></th>
                         </tr>
@@ -173,27 +172,6 @@
                                 </td>
 
                                 <td>
-                                    @if (string.IsNullOrWhiteSpace(user.AuthorizationCode))
-                                    {
-                                        <span class="ui-faint">—</span>
-                                    }
-                                    else
-                                    {
-                                        <span style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
-                                            <span class="ui-tag ui-mono h28-code-value" style="min-width: 92px;" data-code="@user.AuthorizationCode">••••••••</span>
-
-                                            <button type="button" class="ui-icon-btn h28-code-reveal" aria-label="Show or hide code">
-                                                <partial name="_Icon" model='"eye"' />
-                                            </button>
-
-                                            <button type="button" class="ui-icon-btn h28-code-copy" aria-label="Copy code">
-                                                <partial name="_Icon" model='"copy"' />
-                                            </button>
-                                        </span>
-                                    }
-                                </td>
-
-                                <td>
                                     <span class="ui-pill @(user.IsActive ? "is-green" : "is-red")">
                                         @(user.IsActive ? "Active" : "Inactive")
                                     </span>
@@ -212,6 +190,18 @@
                                            class="ui-btn ui-btn-soft is-cyan ui-btn-sm">
                                             Scope
                                         </a>
+
+                                        <form asp-action="ResetCode"
+                                              method="post"
+                                              class="h28-reset-form"
+                                              data-name="@name">
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <input type="hidden" name="name" value="@name" />
+                                            <button type="submit" class="ui-btn ui-btn-soft is-amber ui-btn-sm" title="Issue a new authorization code">
+                                                <partial name="_Icon" model='"key"' />
+                                                Reset code
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -251,27 +241,18 @@
                 });
             }
 
-            // Reveal / hide authorization code
-            document.querySelectorAll(".h28-code-reveal").forEach(function (btn) {
-                btn.addEventListener("click", function () {
-                    var value = btn.parentElement.querySelector(".h28-code-value");
-                    var hidden = value.textContent.indexOf("•") === 0;
+            // Confirm before issuing a new code (the old one stops working at once).
+            document.querySelectorAll(".h28-reset-form").forEach(function (form) {
+                form.addEventListener("submit", function (e) {
+                    var ok = window.confirm(
+                        "Issue a new authorization code for " + form.dataset.name + "?\n\n" +
+                        "Their current code will stop working immediately. " +
+                        "You will see the new code once, so be ready to give it to them.");
 
-                    value.textContent = hidden ? value.dataset.code : "••••••••";
-                });
-            });
-
-            // Copy authorization code
-            document.querySelectorAll(".h28-code-copy").forEach(function (btn) {
-                btn.addEventListener("click", function () {
-                    var code = btn.parentElement.querySelector(".h28-code-value").dataset.code;
-
-                    if (!navigator.clipboard) return;
-
-                    navigator.clipboard.writeText(code).then(function () {
-                        btn.style.color = "var(--ui-green)";
-                        setTimeout(function () { btn.style.color = ""; }, 1200);
-                    });
+                    if (!ok) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
                 });
             });
         })();

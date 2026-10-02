@@ -59,6 +59,21 @@ public class UsersController : ControllerBase
 
         return Ok("Scope assigned successfully.");
     }
+    /// <summary>
+    /// Issues a new authorization code. The response is the only place the
+    /// new code ever appears; it is not stored in readable form.
+    /// </summary>
+    [HttpPost("{userId}/reset-code")]
+    public async Task<IActionResult> ResetAuthorizationCode(Guid userId)
+    {
+        var code = await _userService.ResetAuthorizationCodeAsync(userId);
+
+        if (code == null)
+            return NotFound();
+
+        return Ok(new { authorizationCode = code });
+    }
+
     [HttpPost("{userId}/role")]
     public async Task<IActionResult> AssignRole(
         Guid userId,

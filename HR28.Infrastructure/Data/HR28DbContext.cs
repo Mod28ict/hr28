@@ -187,6 +187,19 @@ public class HR28DbContext : DbContext
             .HasIndex(v => v.AtollCode);
 
         // --------------------------------------------------
+        // Authorization codes are stored only as a keyed hash
+        // --------------------------------------------------
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.Property(u => u.AuthorizationCodeHash).HasMaxLength(64);
+
+            entity.HasIndex(u => u.AuthorizationCodeHash)
+                .IsUnique()
+                .HasFilter("[AuthorizationCodeHash] IS NOT NULL");
+        });
+
+        // --------------------------------------------------
         // System settings (key/value)
         // --------------------------------------------------
 

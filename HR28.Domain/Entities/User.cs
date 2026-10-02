@@ -16,7 +16,14 @@ public class User
 
     public string Designation { get; set; } = string.Empty;
 
-    public string AuthorizationCode { get; set; } = string.Empty;
+    /// <summary>
+    /// Legacy plain-text code. Cleared once hashed at startup; never written for new codes.
+    /// Kept only so the one-time conversion can run, then to be dropped.
+    /// </summary>
+    public string? AuthorizationCode { get; set; }
+
+    /// <summary>Keyed hash of the authorization code (see IAuthorizationCodeHasher).</summary>
+    public string? AuthorizationCodeHash { get; set; }
 
     public bool IsActive { get; set; } = true;
 

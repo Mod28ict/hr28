@@ -16,6 +16,10 @@ public class UserDto
 
     public string Designation { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Only filled in the response to creating a user (shown once). Stored codes
+    /// are hashed and can never be returned.
+    /// </summary>
     public string AuthorizationCode { get; set; } = string.Empty;
 
     public bool IsActive { get; set; }
