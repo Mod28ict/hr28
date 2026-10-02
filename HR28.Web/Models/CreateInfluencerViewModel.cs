@@ -34,6 +34,11 @@ public class CreateInfluencerDto
 
 public class CreateInfluencerViewModel
 {
+    /// <summary>Set when editing an existing influencer; null when adding.</summary>
+    public Guid? Id { get; set; }
+
+    public bool IsEdit => Id.HasValue;
+
     public CreateInfluencerDto Influencer { get; set; } = new();
 
     public List<LookupDto> Constituencies { get; set; } = new();

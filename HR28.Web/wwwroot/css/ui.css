@@ -1079,6 +1079,23 @@ a.ui-page-btn:hover {
         transform: translateY(-2px);
     }
 
+    .ui-tile-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: auto;
+        padding-top: 12px;
+        border-top: 1px solid var(--ui-border);
+    }
+
+    .ui-btn-danger {
+        color: var(--ui-red);
+    }
+
+        .ui-btn-danger:hover {
+            color: var(--ui-red);
+            background: var(--ui-red-soft);
+        }
+
     .ui-tile.is-flagged {
         border-color: #f2a7b2;
         box-shadow: 0 0 0 1px #f2a7b2 inset;
@@ -1121,6 +1138,33 @@ a.ui-page-btn:hover {
         height: 10px;
         border-radius: 50%;
         background: var(--tone);
+    }
+
+/* ---------- Permissions grid ---------- */
+
+.ui-table .is-center {
+    text-align: center;
+}
+
+.ui-perm-check {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--ui-blue);
+    cursor: pointer;
+}
+
+.ui-perm-legend {
+    display: grid;
+    gap: 6px;
+    margin: 16px 0 0;
+    padding: 0;
+    color: var(--ui-muted);
+    font-size: 13px;
+    list-style: none;
+}
+
+    .ui-perm-legend strong {
+        color: var(--ui-text);
     }
 
 /* ---------- Checkbox cards (roles) ---------- */

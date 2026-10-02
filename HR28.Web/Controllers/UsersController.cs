@@ -179,6 +179,8 @@ public class UsersController : Controller
 
         var roles = await _dashboardService.GetRolesAsync(token) ?? new();
 
+        var extra = await _apiClient.GetAsync<List<string>>($"Permissions/users/{id}", token);
+
         var model = new UserRolesViewModel
         {
             UserId = id,
@@ -187,10 +189,20 @@ public class UsersController : Controller
             SelectedRoleIds = roles
                 .Where(r => user.Data.Roles.Contains(r.Name))
                 .Select(r => r.Id)
-                .ToList()
+                .ToList(),
+            SelectedPermissions = extra.Data ?? new()
         };
 
+        await LoadPermissionCatalogAsync(model, token);
+
         return View(model);
+    }
+
+    private async Task LoadPermissionCatalogAsync(UserRolesViewModel model, string? token)
+    {
+        var matrix = await _apiClient.GetAsync<PermissionMatrix>("Permissions", token);
+
+        model.AvailablePermissions = matrix.Data?.Permissions ?? new();
     }
 
     /// <summary>Saves the ticked roles. Permissions are the combination of all of them.</summary>
@@ -228,20 +240,35 @@ public class UsersController : Controller
 
             if (result.Success)
             {
-                TempData["SuccessMessage"] =
-                    $"{model.UserName}'s roles were updated. The change applies straight away.";
+                // Then the extra rights for this person.
+                var rights = await _apiClient.PutAsync<object>(
+                    $"Permissions/users/{model.UserId}",
+                    new { permissions = model.SelectedPermissions },
+                    token);
 
-                return RedirectToAction(nameof(Index));
+                if (rights.Success)
+                {
+                    TempData["SuccessMessage"] =
+                        $"{model.UserName}'s roles and rights were updated. The change applies straight away.";
+
+                    return RedirectToAction(nameof(Index));
+                }
+
+                ModelState.AddModelError(string.Empty, "Roles were saved, but the extra rights were not: " + rights.Message);
             }
-
-            // e.g. "This is the only Administrator..."
-            ModelState.AddModelError(string.Empty, result.Message);
+            else
+            {
+                // e.g. "This is the only Administrator..."
+                ModelState.AddModelError(string.Empty, result.Message);
+            }
         }
 
         model.Roles =
             await _dashboardService
                 .GetRolesAsync(token)
             ?? new();
+
+        await LoadPermissionCatalogAsync(model, token);
 
         return View(model);
     }

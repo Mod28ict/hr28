@@ -19,6 +19,10 @@
     var isAdministrator = HR28.Web.Services.Hr28Roles.IsAdministrator(role);
     var canManage = HR28.Web.Services.Hr28Roles.CanManageRecords(role);
 
+    // Rights granted by the Administrator (the API checks them again).
+    var canEdit = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.InfluencersEdit);
+    var canDelete = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.InfluencersDelete);
+
     string InitialsOf(string name) =>
         string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
 }
@@ -161,6 +165,34 @@
                                 @influencer.LinkedVoters linked @(influencer.LinkedVoters == 1 ? "voter" : "voters")
                             </span>
                         </div>
+
+                        @if (canEdit || canDelete)
+                        {
+                            <div class="ui-tile-actions">
+                                @if (canEdit)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@influencer.Id" class="ui-btn ui-btn-secondary ui-btn-sm">
+                                        <partial name="_Icon" model='"edit"' />
+                                        Edit
+                                    </a>
+                                }
+
+                                @if (canDelete)
+                                {
+                                    <form asp-action="Delete"
+                                          asp-route-id="@influencer.Id"
+                                          method="post"
+                                          class="h28-delete-influencer"
+                                          data-name="@name"
+                                          data-links="@influencer.LinkedVoters">
+                                        <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm ui-btn-danger">
+                                            <partial name="_Icon" model='"trash"' />
+                                            Delete
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        }
                     </article>
                 }
 
@@ -177,6 +209,24 @@
 {
     <script>
         (function () {
+            // Permanent delete: say exactly what will be lost before going ahead.
+            document.querySelectorAll('.h28-delete-influencer').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    var links = parseInt(form.dataset.links || '0', 10);
+                    var message =
+                        'Permanently delete ' + form.dataset.name + '?\n\n' +
+                        (links > 0
+                            ? 'This also removes their link to ' + links + ' voter' + (links === 1 ? '' : 's') + '.\n'
+                            : '') +
+                        'This cannot be undone.';
+
+                    if (!window.confirm(message)) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                });
+            });
+
             var input = document.getElementById('influencerSearch');
             var noMatch = document.getElementById('influencerNoMatch');
 

@@ -15,6 +15,11 @@
         tabs.Add(("geography", "Constituencies & islands", "map"));
     }
 
+    if (Model.IsSuperAdministrator)
+    {
+        tabs.Add(("permissions", "Permissions", "shield"));
+    }
+
     string LocalTime(DateTime? value) =>
         value.HasValue
             ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc).ToLocalTime().ToString("dd MMM yyyy, HH:mm")
@@ -242,6 +247,83 @@
                             Last changed @LocalTime(s.UpdatedAt)@(string.IsNullOrWhiteSpace(s.UpdatedByName) ? "" : $" by {s.UpdatedByName}"). Every change is recorded in the audit trail.
                         </span>
                     }
+                </div>
+            </form>
+        </section>
+    }
+
+    @* ---------------- PERMISSIONS (Administrator) ---------------- *@
+    @if (Model.Tab == "permissions" && Model.Permissions != null)
+    {
+        var matrix = Model.Permissions;
+
+        <div class="ui-note">
+            <partial name="_Icon" model='"info"' />
+            <span>
+                Tick a box to give that right to <strong style="display: inline;">everyone</strong> with the role.
+                To give a right to just one person, open Users → Roles for that person.
+                Rights only ever apply inside the person's own areas.
+            </span>
+        </div>
+
+        <section class="ui-card ui-card-lg">
+            <form asp-action="SavePermissions" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="ui-table-wrap">
+                    <table class="ui-table ui-perm-table">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                @foreach (var p in matrix.Permissions)
+                                {
+                                    <th class="is-center" title="@p.Description">@p.Name</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var role in matrix.Roles)
+                            {
+                                <tr>
+                                    <td class="ui-strong">@HR28.Web.Services.Hr28Roles.DisplayName(role.RoleName)</td>
+
+                                    @foreach (var p in matrix.Permissions)
+                                    {
+                                        <td class="is-center">
+                                            @if (role.HasAllPermissions)
+                                            {
+                                                <span class="ui-pill is-blue" title="The Administrator always has every right">Always</span>
+                                            }
+                                            else
+                                            {
+                                                <input type="checkbox"
+                                                       class="ui-perm-check"
+                                                       name="grants"
+                                                       value="@role.RoleId:@p.Key"
+                                                       checked="@role.Permissions.Contains(p.Key)"
+                                                       aria-label="@p.Name for @HR28.Web.Services.Hr28Roles.DisplayName(role.RoleName)" />
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <ul class="ui-perm-legend">
+                    @foreach (var p in matrix.Permissions)
+                    {
+                        <li><strong>@p.Name</strong> — @p.Description</li>
+                    }
+                </ul>
+
+                <div class="ui-form-actions">
+                    <button type="submit" class="ui-btn ui-btn-primary">
+                        <partial name="_Icon" model='"check"' />
+                        Save permissions
+                    </button>
+                    <span class="ui-muted" style="font-size: 13px; align-self: center;">Every change is recorded in the audit trail.</span>
                 </div>
             </form>
         </section>

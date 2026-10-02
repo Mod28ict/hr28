@@ -1,7 +1,10 @@
 @model HR28.Web.Models.CreateInfluencerViewModel
 
 @{
-    ViewData["Title"] = "Add Influencer";
+    // The same form is used to add and to edit.
+    var title = Model.IsEdit ? "Edit Influencer" : "Add Influencer";
+
+    ViewData["Title"] = title;
 
     var selectedIslandId = Model.Influencer.IslandId?.ToString() ?? string.Empty;
 }
@@ -10,13 +13,17 @@
 
     <header class="ui-head">
         <div class="ui-head-main">
-            <span class="ui-head-icon is-violet"><partial name="_Icon" model='"star"' /></span>
+            <span class="ui-head-icon is-violet"><partial name="_Icon" model='@(Model.IsEdit ? "edit" : "star")' /></span>
             <div>
                 <nav class="ui-crumb" aria-label="Breadcrumb">
-                    <a asp-action="Index">Influencers</a> <span aria-hidden="true">/</span> <span>Add influencer</span>
+                    <a asp-action="Index">Influencers</a> <span aria-hidden="true">/</span> <span>@(Model.IsEdit ? "Edit" : "Add influencer")</span>
                 </nav>
-                <h1 class="ui-title">Add Influencer</h1>
-                <p class="ui-sub">Record a community leader or trusted contact in your area.</p>
+                <h1 class="ui-title">@title</h1>
+                <p class="ui-sub">
+                    @(Model.IsEdit
+                        ? "Update this influencer's details. Every change is recorded in the audit trail."
+                        : "Record a community leader or trusted contact in your area.")
+                </p>
             </div>
         </div>
     </header>
@@ -33,7 +40,7 @@
         }
         else
         {
-            <form asp-action="Create" method="post">
+            <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id" method="post">
 
                 @Html.AntiForgeryToken()
 
@@ -100,7 +107,7 @@
                                 <option value="">Select Constituency</option>
                                 @foreach (var item in Model.Constituencies)
                                 {
-                                    <option value="@item.Id">@item.Name</option>
+                                    <option value="@item.Id" selected="@(item.Id == Model.Influencer.ConstituencyId)">@item.Name</option>
                                 }
                             </select>
                             <span asp-validation-for="Influencer.ConstituencyId" class="ui-error"></span>
@@ -158,7 +165,7 @@
                 <div class="ui-form-actions">
                     <button type="submit" class="ui-btn ui-btn-primary">
                         <partial name="_Icon" model='"check"' />
-                        Save influencer
+                        @(Model.IsEdit ? "Save changes" : "Save influencer")
                     </button>
 
                     <a asp-action="Index" class="ui-btn ui-btn-secondary">Cancel</a>

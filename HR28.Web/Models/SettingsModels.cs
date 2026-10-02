@@ -38,6 +38,9 @@ public class MyAccountDto
 
     public List<string> Roles { get; set; } = new();
 
+    /// <summary>Effective rights, e.g. "Influencers.Edit".</summary>
+    public List<string> Permissions { get; set; } = new();
+
     public bool IsAdministrator { get; set; }
 
     public List<string> Scopes { get; set; } = new();
@@ -100,9 +103,38 @@ public class IslandForm
     public Guid? ConstituencyId { get; set; }
 }
 
+public class PermissionInfo
+{
+    public string Key { get; set; } = string.Empty;
+
+    public string Name { get; set; } = string.Empty;
+
+    public string Description { get; set; } = string.Empty;
+
+    public string Group { get; set; } = string.Empty;
+}
+
+public class RolePermissions
+{
+    public Guid RoleId { get; set; }
+
+    public string RoleName { get; set; } = string.Empty;
+
+    public bool HasAllPermissions { get; set; }
+
+    public List<string> Permissions { get; set; } = new();
+}
+
+public class PermissionMatrix
+{
+    public List<PermissionInfo> Permissions { get; set; } = new();
+
+    public List<RolePermissions> Roles { get; set; } = new();
+}
+
 public class SettingsViewModel
 {
-    /// <summary>appearance | account | system | geography</summary>
+    /// <summary>appearance | account | system | geography | permissions</summary>
     public string Tab { get; set; } = "appearance";
 
     public bool IsAdministrator { get; set; }
@@ -123,4 +155,9 @@ public class SettingsViewModel
 
     /// <summary>Set when adding or editing an island (Id null = new).</summary>
     public IslandForm? IslandForm { get; set; }
+
+    /// <summary>Roles × rights grid (Administrator only).</summary>
+    public PermissionMatrix? Permissions { get; set; }
+
+    public bool IsSuperAdministrator { get; set; }
 }

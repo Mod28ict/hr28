@@ -20,6 +20,15 @@ public class AccessScope
     /// <summary>The client's Administrator (stored as "Super Administrator"): manages users, roles and scopes.</summary>
     public bool IsSuperAdministrator { get; init; }
 
+    /// <summary>
+    /// Rights from the user's roles plus rights granted to them directly.
+    /// The Administrator has every right.
+    /// </summary>
+    public IReadOnlyCollection<string> Permissions { get; init; } = Array.Empty<string>();
+
+    public bool HasPermission(string permission) =>
+        IsActive && (IsSuperAdministrator || Permissions.Contains(permission));
+
     /// <summary>Constituencies the user can see in full (scope with no island).</summary>
     public IReadOnlyList<Guid> ConstituencyIds { get; init; } = Array.Empty<Guid>();
 

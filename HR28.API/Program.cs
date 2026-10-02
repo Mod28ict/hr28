@@ -33,6 +33,7 @@ builder.Services.AddScoped<IReportingService, ReportService>();
 builder.Services.AddScoped<IAccessScopeService, AccessScopeService>();
 builder.Services.AddScoped<IAuditTrailService, AuditTrailService>();
 builder.Services.AddScoped<ISystemSettingsService, SystemSettingsService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 // Development: SMS is written to the log (never sent). Elsewhere, sending fails
 // safely until a real provider is connected; codes are never logged.

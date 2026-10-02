@@ -29,6 +29,30 @@ public class InfluencersController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        return Ok(await _influencerService.GetByIdAsync(id));
+    }
+
+    /// <summary>Needs the "Edit influencers" right and the influencer in the user's areas.</summary>
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        [FromBody] CreateInfluencerDto request)
+    {
+        return Ok(await _influencerService.UpdateAsync(id, request));
+    }
+
+    /// <summary>Permanent. Needs the "Delete influencers" right and the influencer in the user's areas.</summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var name = await _influencerService.DeleteAsync(id);
+
+        return Ok(new { message = $"{name} was deleted." });
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {

@@ -34,6 +34,9 @@ public class MyAccountDto
     /// <summary>All roles; the web app combines their permissions.</summary>
     public List<string> Roles { get; set; } = new();
 
+    /// <summary>Effective rights (roles + extra grants; everything for the Administrator).</summary>
+    public List<string> Permissions { get; set; } = new();
+
     public bool IsAdministrator { get; set; }
 
     /// <summary>Readable scope lines, e.g. "Malé Central (all islands)".</summary>

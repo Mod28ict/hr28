@@ -67,6 +67,32 @@
                 </div>
             </fieldset>
 
+            @if (Model.AvailablePermissions.Any())
+            {
+                <fieldset style="margin-top: 22px;">
+                    <legend class="ui-label">Extra rights for this person</legend>
+                    <p class="ui-muted" style="margin: -2px 0 10px; font-size: 13px;">
+                        Given on top of their roles, only within their own areas. Administrators already have every right.
+                    </p>
+
+                    <div class="ui-check-list">
+                        @foreach (var p in Model.AvailablePermissions)
+                        {
+                            <label class="ui-check-card">
+                                <input type="checkbox"
+                                       name="SelectedPermissions"
+                                       value="@p.Key"
+                                       checked="@Model.SelectedPermissions.Contains(p.Key)" />
+                                <span>
+                                    <strong>@p.Name</strong>
+                                    <small>@p.Description</small>
+                                </span>
+                            </label>
+                        }
+                    </div>
+                </fieldset>
+            }
+
             <div class="ui-note is-muted" style="margin-top: 18px;">
                 <partial name="_Icon" model='"info"' />
                 <span>Roles decide <strong style="display: inline;">what</strong> someone can do. Their areas decide <strong style="display: inline;">where</strong>. Set areas from the Users list.</span>

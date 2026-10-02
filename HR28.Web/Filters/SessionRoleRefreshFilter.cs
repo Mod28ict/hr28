@@ -58,6 +58,9 @@ public class SessionRoleRefreshFilter : IAsyncActionFilter
                         ? account.Data.Roles
                         : new[] { account.Data.RoleName }));
             session.SetString("UserName", account.Data.FullName ?? string.Empty);
+            session.SetString(
+                Hr28Permissions.SessionKey,
+                Hr28Permissions.ToSession(account.Data.Permissions));
         }
 
         // Record the check even if the API was briefly unavailable, to avoid hammering it.

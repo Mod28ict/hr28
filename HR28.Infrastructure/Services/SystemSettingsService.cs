@@ -176,6 +176,10 @@ public class SystemSettingsService : ISystemSettingsService
             Email = user.Email,
             RoleName = HR28.Application.DTOs.Users.RoleOrder.Sort(scope.Roles).FirstOrDefault() ?? string.Empty,
             Roles = HR28.Application.DTOs.Users.RoleOrder.Sort(scope.Roles),
+            Permissions = HR28.Application.Common.PermissionCatalog.All
+                .Select(p => p.Key)
+                .Where(scope.HasPermission)
+                .ToList(),
             IsAdministrator = scope.IsAdministrator,
             Scopes = scopeLines,
             LastLoginAt = user.LastLoginAt

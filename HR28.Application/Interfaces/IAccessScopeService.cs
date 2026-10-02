@@ -12,4 +12,7 @@ public interface IAccessScopeService
     Task<AccessScope> GetAsync(Guid userId);
 
     void Invalidate(Guid userId);
+
+    /// <summary>Clears everyone's cached access (e.g. after a role's rights change).</summary>
+    void InvalidateAll();
 }

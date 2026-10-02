@@ -60,6 +60,92 @@ public class InfluencersController : AppController
         return RedirectToAction(nameof(Index));
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Edit(Guid id)
+    {
+        if (!Hr28Permissions.Has(HttpContext.Session, Hr28Permissions.InfluencersEdit))
+        {
+            TempData["FlashError"] = "You don't have permission to edit influencers. Ask your Administrator.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var existing = await _apiClient.GetAsync<InfluencerDto>($"Influencers/{id}", Token);
+
+        if (HandleApiFailure(existing) is { } redirect)
+            return redirect;
+
+        if (!existing.Success || existing.Data == null)
+        {
+            TempData["FlashError"] = "That influencer could not be found.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var model = new CreateInfluencerViewModel
+        {
+            Id = id,
+            Influencer = new CreateInfluencerDto
+            {
+                NationalId = existing.Data.NationalId,
+                FullName = existing.Data.FullName,
+                Address = existing.Data.Address,
+                ContactNumber = existing.Data.ContactNumber,
+                ConstituencyId = existing.Data.ConstituencyId,
+                IslandId = existing.Data.IslandId,
+                Remarks = existing.Data.Remarks
+            }
+        };
+
+        return await LoadConstituenciesAsync(model) ?? View("Create", model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(Guid id, CreateInfluencerViewModel model)
+    {
+        model.Id = id;
+
+        if (!ModelState.IsValid)
+            return await LoadConstituenciesAsync(model) ?? View("Create", model);
+
+        var result = await _apiClient.PutAsync<InfluencerDto>(
+            $"Influencers/{id}",
+            model.Influencer,
+            Token);
+
+        if (!result.Success)
+        {
+            if (result.IsUnauthorized)
+                return HandleApiFailure(result)!;
+
+            // No right, duplicate ID, or area outside the user's scope: show it on the form.
+            ModelState.AddModelError(string.Empty, result.Message);
+
+            return await LoadConstituenciesAsync(model) ?? View("Create", model);
+        }
+
+        TempData["SuccessMessage"] = $"{model.Influencer.FullName} was updated.";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    /// <summary>Permanent delete (the page asks for confirmation first).</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var result = await _apiClient.DeleteAsync($"Influencers/{id}", Token);
+
+        if (result.IsUnauthorized)
+            return HandleApiFailure(result)!;
+
+        if (result.Success)
+            TempData["SuccessMessage"] = "The influencer was deleted.";
+        else
+            TempData["FlashError"] = result.Message;
+
+        return RedirectToAction(nameof(Index));
+    }
+
     /// <summary>Islands of a constituency that the user may use (for the cascade).</summary>
     [HttpGet]
     public async Task<IActionResult> IslandsInScope(Guid constituencyId)

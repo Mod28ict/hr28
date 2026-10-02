@@ -31,9 +31,15 @@ public class AccessScopeService : IAccessScopeService
         _cache = cache;
     }
 
-    private static string CacheKey(Guid userId) => $"access-scope:{userId}";
+    // Bumped by InvalidateAll(); part of every cache key, so old entries are simply never read again.
+    private static long _generation;
+
+    private static string CacheKey(Guid userId) =>
+        $"access-scope:{Interlocked.Read(ref _generation)}:{userId}";
 
     public void Invalidate(Guid userId) => _cache.Remove(CacheKey(userId));
+
+    public void InvalidateAll() => Interlocked.Increment(ref _generation);
 
     public async Task<AccessScope> GetAsync(Guid userId)
     {
@@ -64,6 +70,21 @@ public class AccessScopeService : IAccessScopeService
 
         var isAdministrator = roles.Any(r => AdministratorRoles.Contains(r));
 
+        // Rights = those of every role the user has + those granted to the user.
+        var rolePermissions = await _dbContext.RolePermissions
+            .Where(rp => _dbContext.UserRoles.Any(ur => ur.UserId == userId && ur.RoleId == rp.RoleId))
+            .Select(rp => rp.Permission)
+            .ToListAsync();
+
+        var userPermissions = await _dbContext.UserPermissions
+            .Where(up => up.UserId == userId)
+            .Select(up => up.Permission)
+            .ToListAsync();
+
+        var permissions = rolePermissions
+            .Concat(userPermissions)
+            .ToHashSet(StringComparer.Ordinal);
+
         if (isAdministrator)
         {
             return new AccessScope
@@ -72,7 +93,8 @@ public class AccessScopeService : IAccessScopeService
                 IsActive = true,
                 Roles = roles,
                 IsAdministrator = true,
-                IsSuperAdministrator = roles.Contains(SuperAdministratorRole)
+                IsSuperAdministrator = roles.Contains(SuperAdministratorRole),
+                Permissions = permissions
             };
         }
 
@@ -106,6 +128,7 @@ public class AccessScopeService : IAccessScopeService
             IsActive = true,
             Roles = roles,
             IsAdministrator = false,
+            Permissions = permissions,
             ConstituencyIds = constituencyIds,
             IslandIds = islandIds,
             VisibleConstituencyIds = visibleConstituencyIds

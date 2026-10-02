@@ -200,6 +200,30 @@ public class HR28DbContext : DbContext
         });
 
         // --------------------------------------------------
+        // Rights granted to roles and to individual users
+        // --------------------------------------------------
+
+        modelBuilder.Entity<RolePermission>(entity =>
+        {
+            entity.HasKey(p => new { p.RoleId, p.Permission });
+            entity.Property(p => p.Permission).HasMaxLength(100);
+            entity.HasOne(p => p.Role)
+                .WithMany()
+                .HasForeignKey(p => p.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserPermission>(entity =>
+        {
+            entity.HasKey(p => new { p.UserId, p.Permission });
+            entity.Property(p => p.Permission).HasMaxLength(100);
+            entity.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // --------------------------------------------------
         // System settings (key/value)
         // --------------------------------------------------
 
@@ -271,6 +295,12 @@ public class HR28DbContext : DbContext
 
     public DbSet<SystemSetting> SystemSettings =>
         Set<SystemSetting>();
+
+    public DbSet<RolePermission> RolePermissions =>
+        Set<RolePermission>();
+
+    public DbSet<UserPermission> UserPermissions =>
+        Set<UserPermission>();
 
    
 

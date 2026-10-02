@@ -59,6 +59,11 @@ public class UserRolesViewModel
     public List<Guid> SelectedRoleIds { get; set; } = new();
 
     public List<RoleDto> Roles { get; set; } = new();
+
+    /// <summary>Rights granted to this person on top of their roles.</summary>
+    public List<string> SelectedPermissions { get; set; } = new();
+
+    public List<HR28.Web.Models.PermissionInfo> AvailablePermissions { get; set; } = new();
 }
 
 /// <summary>Areas page: current areas plus a form to add one.</summary>

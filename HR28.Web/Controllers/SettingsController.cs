@@ -10,8 +10,11 @@ namespace HR28.Web.Controllers;
 /// </summary>
 public class SettingsController : AppController
 {
-    private static readonly string[] Tabs = { "appearance", "account", "system", "geography" };
+    private static readonly string[] Tabs = { "appearance", "account", "system", "geography", "permissions" };
     private static readonly string[] AdminTabs = { "system", "geography" };
+    private static readonly string[] SuperAdminTabs = { "permissions" };
+
+    private bool IsSuperAdministrator => Hr28Roles.IsSuperAdministrator(Role);
 
     private readonly ApiClient _apiClient;
 
@@ -33,12 +36,26 @@ public class SettingsController : AppController
         if (AdminTabs.Contains(tab) && !IsAdministrator)
             tab = "appearance";
 
+        if (SuperAdminTabs.Contains(tab) && !IsSuperAdministrator)
+            tab = "appearance";
+
         var model = new SettingsViewModel
         {
             Tab = tab,
             IsAdministrator = IsAdministrator,
+            IsSuperAdministrator = IsSuperAdministrator,
             IslandConstituencyFilter = constituency
         };
+
+        if (tab == "permissions")
+        {
+            var matrix = await _apiClient.GetAsync<PermissionMatrix>("Permissions", Token);
+
+            if (HandleApiFailure(matrix) is { } redirect)
+                return redirect;
+
+            model.Permissions = matrix.Data;
+        }
 
         if (tab == "account")
         {
@@ -208,6 +225,67 @@ public class SettingsController : AppController
             : $"{form.Name} was added.";
 
         return RedirectToAction(nameof(Index), new { tab = "geography", constituency = form.ConstituencyId });
+    }
+
+    /// <summary>
+    /// Saves the roles × rights grid. Each ticked box posts "roleId:permission".
+    /// Only roles whose ticks changed are sent to the API.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SavePermissions(List<string>? grants)
+    {
+        if (!IsSuperAdministrator)
+            return RedirectToAction(nameof(Index));
+
+        var current = await _apiClient.GetAsync<PermissionMatrix>("Permissions", Token);
+
+        if (HandleApiFailure(current) is { } redirect)
+            return redirect;
+
+        if (!current.Success || current.Data == null)
+        {
+            TempData["ErrorMessage"] = current.Message;
+            return RedirectToAction(nameof(Index), new { tab = "permissions" });
+        }
+
+        var ticked = (grants ?? new())
+            .Select(g => g.Split(':', 2))
+            .Where(p => p.Length == 2 && Guid.TryParse(p[0], out _))
+            .GroupBy(p => Guid.Parse(p[0]))
+            .ToDictionary(g => g.Key, g => g.Select(p => p[1]).ToHashSet());
+
+        var changedRoles = 0;
+
+        foreach (var role in current.Data.Roles.Where(r => !r.HasAllPermissions))
+        {
+            var wanted = ticked.TryGetValue(role.RoleId, out var set) ? set : new HashSet<string>();
+
+            if (wanted.SetEquals(role.Permissions))
+                continue;
+
+            var result = await _apiClient.PutAsync<object>(
+                $"Permissions/roles/{role.RoleId}",
+                new { permissions = wanted.ToList() },
+                Token);
+
+            if (HandleApiFailure(result) is { } failed)
+                return failed;
+
+            if (!result.Success)
+            {
+                TempData["ErrorMessage"] = $"{Hr28Roles.DisplayName(role.RoleName)}: {result.Message}";
+                return RedirectToAction(nameof(Index), new { tab = "permissions" });
+            }
+
+            changedRoles++;
+        }
+
+        TempData["SuccessMessage"] = changedRoles == 0
+            ? "No changes to save."
+            : "Permissions saved. They apply straight away.";
+
+        return RedirectToAction(nameof(Index), new { tab = "permissions" });
     }
 
     private string FirstError() =>
