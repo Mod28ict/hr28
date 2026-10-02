@@ -4,7 +4,7 @@ namespace HR28.Application.Interfaces;
 
 public interface IAuthService
 {
-    Task<bool> GenerateOtpAsync(
+    Task<GenerateOtpResultDto> GenerateOtpAsync(
         GenerateOtpRequestDto request);
 
     Task<LoginResponseDto> VerifyOtpAsync(

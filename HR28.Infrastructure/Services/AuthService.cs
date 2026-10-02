@@ -23,7 +23,7 @@ public class AuthService : IAuthService
         _settingsService = settingsService;
     }
 
-    public async Task<bool> GenerateOtpAsync(
+    public async Task<GenerateOtpResultDto> GenerateOtpAsync(
         GenerateOtpRequestDto request)
     {
         var user = await _dbContext.Users
@@ -31,7 +31,7 @@ public class AuthService : IAuthService
                 u.AuthorizationCode == request.AuthorizationCode);
 
         if (user == null)
-            return false;
+            return new GenerateOtpResultDto { Success = false };
 
         var otp = OtpGenerator.Generate();
 
@@ -55,7 +55,11 @@ public class AuthService : IAuthService
         Console.WriteLine(
             $"OTP for {user.FullName}: {otp}");
 
-        return true;
+        return new GenerateOtpResultDto
+        {
+            Success = true,
+            ExpiresInSeconds = settings.OtpExpiryMinutes * 60
+        };
     }
 
     public async Task<LoginResponseDto> VerifyOtpAsync(

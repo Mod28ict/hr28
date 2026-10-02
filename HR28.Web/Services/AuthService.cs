@@ -18,14 +18,31 @@ public class AuthService
         _settings = settings.Value;
     }
 
-    public async Task<bool> GenerateOtpAsync(
+    /// <summary>
+    /// Requests an OTP. Returns how many seconds the code is valid,
+    /// or null if the request was rejected.
+    /// </summary>
+    public async Task<int?> GenerateOtpAsync(
         GenerateOtpRequest request)
     {
         var response = await _httpClient.PostAsJsonAsync(
             $"{_settings.BaseUrl}Auth/generate-otp",
             request);
 
-        return response.IsSuccessStatusCode;
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        var result = await response.Content
+            .ReadFromJsonAsync<GenerateOtpResult>();
+
+        return result?.ExpiresInSeconds > 0
+            ? result.ExpiresInSeconds
+            : 300;
+    }
+
+    private class GenerateOtpResult
+    {
+        public int ExpiresInSeconds { get; set; }
     }
 
     public async Task<VerifyOtpResponse?>

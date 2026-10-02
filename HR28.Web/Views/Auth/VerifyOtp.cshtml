@@ -7,6 +7,12 @@
         Model?.AuthorizationCode
         ?? TempData["AuthorizationCode"]?.ToString()
         ?? string.Empty;
+
+    // Peek keeps the value so the countdown survives a retry after a wrong code.
+    var otpExpiresAtMs =
+        long.TryParse(TempData.Peek("OtpExpiresAtMs")?.ToString(), out var expiresAt)
+            ? expiresAt
+            : 0;
 }
 
 <!DOCTYPE html>
@@ -433,7 +439,7 @@
 
         /*
          * The outer container uses normal block layout.
-         * The inner row centers the four fixed-width inputs.
+         * The inner row centers the six fixed-width inputs.
          */
 
         .otp-container {
@@ -448,19 +454,19 @@
             flex-wrap: nowrap;
             align-items: center;
             justify-content: center;
-            gap: 14px;
+            gap: 10px;
             width: 100%;
             margin: 0 auto;
         }
 
         .otp-input {
             display: inline-block;
-            flex: 0 0 72px;
+            flex: 0 0 62px;
 
-            width: 80px;
-            min-width: 80px;
-            max-width: 80px;
-            height: 80px;
+            width: 62px;
+            min-width: 62px;
+            max-width: 62px;
+            height: 70px;
 
             margin: 0;
             padding: 0;
@@ -809,17 +815,17 @@
             }
 
             .otp-row {
-                gap: 9px;
+                gap: 7px;
             }
 
             .otp-input {
-                flex-basis: 60px;
-                width: 60px;
-                min-width: 60px;
-                max-width: 60px;
-                height: 60px;
-                border-radius: 13px;
-                font-size: 23px;
+                flex-basis: 46px;
+                width: 46px;
+                min-width: 46px;
+                max-width: 46px;
+                height: 56px;
+                border-radius: 12px;
+                font-size: 22px;
             }
 
             .submit-button {
@@ -829,17 +835,17 @@
 
         @@media (max-width: 350px) {
             .otp-row {
-                gap: 6px;
+                gap: 5px;
             }
 
             .otp-input {
-                flex-basis: 54px;
-                width: 54px;
-                min-width: 54px;
-                max-width: 54px;
-                height: 54px;
-                border-radius: 11px;
-                font-size: 21px;
+                flex-basis: 40px;
+                width: 40px;
+                min-width: 40px;
+                max-width: 40px;
+                height: 50px;
+                border-radius: 10px;
+                font-size: 20px;
             }
         }
     </style>
@@ -997,7 +1003,7 @@
                 </h2>
 
                 <p class="verification-description">
-                    Enter the four-digit verification code sent for this
+                    Enter the 6-digit verification code sent for this
                     authorization attempt.
                 </p>
 
@@ -1078,7 +1084,7 @@
                         </div>
 
                         <div class="otp-description">
-                            Enter the 4-digit code sent to your device
+                            Enter the 6-digit code sent to your phone
                         </div>
 
                         <div class="otp-container">
@@ -1120,6 +1126,22 @@
                                        maxlength="1"
                                        aria-label="Verification code digit 4" />
 
+                                <input type="text"
+                                       id="otpDigit5"
+                                       class="otp-input"
+                                       inputmode="numeric"
+                                       pattern="[0-9]*"
+                                       maxlength="1"
+                                       aria-label="Verification code digit 5" />
+
+                                <input type="text"
+                                       id="otpDigit6"
+                                       class="otp-input"
+                                       inputmode="numeric"
+                                       pattern="[0-9]*"
+                                       maxlength="1"
+                                       aria-label="Verification code digit 6" />
+
                             </div>
                         </div>
 
@@ -1131,8 +1153,10 @@
 
                     <div class="otp-help">
 
-                        <span class="timer" id="timer">
-                            Code expires in 02:00
+                        <span class="timer"
+                              id="timer"
+                              data-expires-at="@otpExpiresAtMs">
+                            Code expires in 5:00
                         </span>
 
                         <a asp-controller="Auth"
@@ -1216,7 +1240,13 @@
 const timerElement =
     document.getElementById("timer");
 
-let secondsRemaining = 120;
+// Count down to the real expiry sent by the server; fall back to 5 minutes.
+const expiresAtMs =
+    Number(timerElement && timerElement.dataset.expiresAt) || 0;
+
+let secondsRemaining = expiresAtMs > 0
+    ? Math.max(0, Math.round((expiresAtMs - Date.now()) / 1000))
+    : 300;
 
 function updateTimer() {
 
@@ -1258,6 +1288,8 @@ if (timerElement) {
     }, 1000);
 }
 
+            const codeLength = otpInputs.length;
+
             function keepDigitsOnly(value) {
                 return value.replace(/\D/g, "");
             }
@@ -1282,7 +1314,7 @@ if (timerElement) {
                     );
                 });
 
-                if (otpCode.length === 4) {
+                if (otpCode.length === codeLength) {
                     validation.textContent = "";
                     otpRow.classList.remove("invalid");
                 }
@@ -1290,7 +1322,7 @@ if (timerElement) {
 
             function fillFromPaste(value) {
                 const digits =
-                    keepDigitsOnly(value).slice(0, 4);
+                    keepDigitsOnly(value).slice(0, codeLength);
 
                 otpInputs.forEach(function (input) {
                     input.value = "";
@@ -1304,8 +1336,8 @@ if (timerElement) {
                 updateOtpValue();
 
                 const focusIndex =
-                    digits.length >= 4
-                        ? 3
+                    digits.length >= codeLength
+                        ? codeLength - 1
                         : digits.length;
 
                 otpInputs[focusIndex].focus();
@@ -1389,11 +1421,11 @@ if (timerElement) {
 
                 hiddenOtp.value = otpCode;
 
-                if (otpCode.length !== 4) {
+                if (otpCode.length !== codeLength) {
                     event.preventDefault();
 
                     validation.textContent =
-                        "Enter the complete four-digit verification code.";
+                        "Enter all 6 digits of the verification code.";
 
                     otpRow.classList.remove("invalid");
 

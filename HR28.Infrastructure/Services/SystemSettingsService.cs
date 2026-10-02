@@ -15,7 +15,7 @@ public class SystemSettingsService : ISystemSettingsService
 
     // Defaults apply until an administrator saves a value.
     public const string DefaultCampaignName = "Campaign Intelligence";
-    public const int DefaultOtpExpiryMinutes = 2;
+    public const int DefaultOtpExpiryMinutes = 5;
     public const int DefaultOtpMaxAttempts = 5;
 
     private readonly HR28DbContext _dbContext;

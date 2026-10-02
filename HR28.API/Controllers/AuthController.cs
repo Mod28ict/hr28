@@ -22,10 +22,14 @@ public class AuthController : ControllerBase
         var result =
             await _authService.GenerateOtpAsync(request);
 
-        if (!result)
+        if (!result.Success)
             return BadRequest("Invalid Authorization Code.");
 
-        return Ok("OTP Generated.");
+        return Ok(new
+        {
+            message = "OTP Generated.",
+            expiresInSeconds = result.ExpiresInSeconds
+        });
     }
 
     [HttpPost("verify-otp")]

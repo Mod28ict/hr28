@@ -19,14 +19,23 @@ public class AuthController : Controller
         return View();
     }
 
+    public IActionResult Logout()
+    {
+        HttpContext.Session.Clear();
+
+        return RedirectToAction(
+            "Login",
+            "Auth");
+    }
+
     [HttpPost]
     public async Task<IActionResult> Login(
         GenerateOtpRequest request)
     {
-        var success =
+        var expiresInSeconds =
             await _authService.GenerateOtpAsync(request);
 
-        if (!success)
+        if (expiresInSeconds == null)
         {
             ViewBag.Error =
                 "Failed to generate OTP.";
@@ -36,6 +45,13 @@ public class AuthController : Controller
 
         TempData["AuthorizationCode"] =
             request.AuthorizationCode;
+
+        // Absolute expiry so the countdown stays correct if the page is re-shown after a wrong code.
+        TempData["OtpExpiresAtMs"] =
+            DateTimeOffset.UtcNow
+                .AddSeconds(expiresInSeconds.Value)
+                .ToUnixTimeMilliseconds()
+                .ToString();
 
         return RedirectToAction(
             "VerifyOtp");
@@ -60,7 +76,8 @@ public class AuthController : Controller
             ViewBag.Error =
                 "OTP verification failed.";
 
-            return View();
+            // Keep the authorization code so the user can retry the same code.
+            return View(request);
         }
 
         HttpContext.Session.SetString(
@@ -81,5 +98,11 @@ public class AuthController : Controller
         return RedirectToAction(
             "Index",
             "Dashboard");
+    }
+    public IActionResult ClearSession()
+    {
+        HttpContext.Session.Clear();
+
+        return Content("Session Cleared");
     }
 }
