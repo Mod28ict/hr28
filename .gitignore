@@ -15,3 +15,6 @@ TestResults/
 
 # Rider
 .idea/
+
+# Office lock files
+~$*

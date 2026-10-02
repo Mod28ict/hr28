@@ -27,6 +27,14 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "Set it in appsettings.Development.json (Windows sign-in, no password) or Key Vault.");
 }
 
+// Readable SMS codes are a testing aid until a real SMS provider exists; never on a live server.
+if (builder.Configuration.GetValue<bool>(AuthService.StoreReadableOtpSetting) &&
+    !builder.Environment.IsDevelopment())
+{
+    throw new InvalidOperationException(
+        $"{AuthService.StoreReadableOtpSetting} is only allowed in Development.");
+}
+
 var jwtKey = builder.Configuration["Jwt:Key"];
 
 if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32)
@@ -203,7 +211,10 @@ using (var scope = app.Services.CreateScope())
             "Converted {Count} authorization codes to secure storage.", converted);
     }
 
-    var clearedOtps = await AuthorizationCodeBackfill.ClearPlainOtpCodesAsync(dbContext);
+    // Erase readable codes, unless they are deliberately kept for testing (Development only).
+    var clearedOtps = app.Configuration.GetValue<bool>(AuthService.StoreReadableOtpSetting)
+        ? 0
+        : await AuthorizationCodeBackfill.ClearPlainOtpCodesAsync(dbContext);
 
     if (clearedOtps > 0)
     {

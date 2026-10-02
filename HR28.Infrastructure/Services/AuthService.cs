@@ -4,6 +4,7 @@ using HR28.Domain.Entities;
 using HR28.Infrastructure.Data;
 using HR28.Infrastructure.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace HR28.Infrastructure.Services;
 
@@ -15,13 +16,24 @@ public class AuthService : IAuthService
     private readonly IAuthorizationCodeHasher _codeHasher;
     private readonly ISmsSender _smsSender;
 
+    /// <summary>
+    /// Development only, until a real SMS provider is connected: keep SMS codes readable
+    /// in OtpRequests so testers can sign in. The API refuses to start with this on
+    /// outside Development. Remove the setting to store hashes again.
+    /// </summary>
+    public const string StoreReadableOtpSetting = "Security:StoreReadableOtpCodes";
+
+    private readonly bool _storeReadableOtp;
+
     public AuthService(
         HR28DbContext dbContext,
         ITokenService tokenService,
         ISystemSettingsService settingsService,
         IAuthorizationCodeHasher codeHasher,
-        ISmsSender smsSender)
+        ISmsSender smsSender,
+        IConfiguration configuration)
     {
+        _storeReadableOtp = bool.TryParse(configuration[StoreReadableOtpSetting], out var readable) && readable;
         _dbContext = dbContext;
         _tokenService = tokenService;
         _settingsService = settingsService;
@@ -108,8 +120,8 @@ public class AuthService : IAuthService
             Id = otpRequestId,
             UserId = user.Id,
 
-            // Only a keyed hash is stored; the digits exist only in the SMS.
-            OtpCode = _codeHasher.HashOtp(otpRequestId, otp),
+            // Normally only a keyed hash is stored; the digits exist only in the SMS.
+            OtpCode = _storeReadableOtp ? otp : _codeHasher.HashOtp(otpRequestId, otp),
             ExpiresAt = DateTime.UtcNow.AddMinutes(settings.OtpExpiryMinutes),
             FailedAttempts = 0,
             IsUsed = false,
@@ -151,9 +163,15 @@ public class AuthService : IAuthService
     /// </summary>
     private bool CodesMatch(OtpRequest otpRequest, string? entered)
     {
-        var expected = System.Text.Encoding.ASCII.GetBytes(otpRequest.OtpCode ?? string.Empty);
-        var actual = System.Text.Encoding.ASCII.GetBytes(
-            _codeHasher.HashOtp(otpRequest.Id, entered ?? string.Empty));
+        var stored = otpRequest.OtpCode ?? string.Empty;
+
+        // A readable (Development) code is 6 digits; a hash is 64 hex characters.
+        var enteredForm = stored.Length == OtpGenerator.Length
+            ? (entered ?? string.Empty).Trim()
+            : _codeHasher.HashOtp(otpRequest.Id, entered ?? string.Empty);
+
+        var expected = System.Text.Encoding.ASCII.GetBytes(stored);
+        var actual = System.Text.Encoding.ASCII.GetBytes(enteredForm);
 
         return System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(expected, actual);
     }

@@ -161,6 +161,10 @@ strong despite that:
   consume), constant-time comparison, max attempts per code (setting, default 5).
   Stored only as an HMAC-SHA256 bound to the code request (`HashOtp`, same key as
   authorization codes); the digits exist only in the SMS. Sign out is a POST form.
+  **Temporary (owner, 2026-10-02):** until a real SMS provider is connected,
+  `Security:StoreReadableOtpCodes: true` in `appsettings.Development.json` keeps codes
+  readable in `OtpRequests.OtpCode` so testers can sign in. The API refuses to start
+  with it on outside Development. Remove the setting when SMS is integrated.
 - Rate limits (implemented): per IP 10 code requests and 20 code checks per 5 minutes;
   per account 60s between requests, 5 codes per hour, and 10 wrong codes in a row
   locks sign-in for 15 minutes. Per user: 120 searches/min, 20 report downloads/hour,
