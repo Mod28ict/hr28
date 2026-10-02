@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "hr28-api",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "HR28.API", "--launch-profile", "https"],
+      "port": 7242,
+      "url": "https://localhost:7242"
+    },
+    {
+      "name": "hr28-web",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "HR28.Web", "--launch-profile", "https"],
+      "port": 7128,
+      "url": "https://localhost:7128"
+    }
+  ]
+}

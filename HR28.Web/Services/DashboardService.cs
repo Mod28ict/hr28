@@ -1,8 +1,9 @@
 ﻿using HR28.Web.Models;
-using Microsoft.Extensions.Options;
-using System.Net.Http.Json;
-using System.Net.Http.Headers;
 using HR28.Web.Models.Users;
+using Microsoft.Extensions.Options;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 
 namespace HR28.Web.Services;
@@ -20,16 +21,28 @@ public class DashboardService
         _settings = settings.Value;
     }
 
-    public async Task<DashboardDto?>
-        GetDashboardAsync(string? token)
+    public async Task<DashboardDto?> GetDashboardAsync(
+        string? token)
     {
         _httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue(
                 "Bearer",
                 token);
 
-        return await _httpClient.GetFromJsonAsync<DashboardDto>(
-            $"{_settings.BaseUrl}Dashboard");
+        var response =
+            await _httpClient.GetAsync(
+                $"{_settings.BaseUrl}Dashboard");
+
+        if (response.StatusCode ==
+            HttpStatusCode.Unauthorized)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content
+            .ReadFromJsonAsync<DashboardDto>();
     }
     public async Task<List<RecentActivityDto>?>
         GetRecentActivityAsync(
