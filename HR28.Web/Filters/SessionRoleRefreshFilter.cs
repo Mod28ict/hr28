@@ -63,6 +63,12 @@ public class SessionRoleRefreshFilter : IAsyncActionFilter
                 Hr28Permissions.ToSession(account.Data.Permissions));
         }
 
+        // The campaign name (Settings → System) appears in the sidebar; keep it current too.
+        var settings = await _apiClient.GetAsync<SystemSettingsDto>("Settings/system", token);
+
+        if (settings.Success && !string.IsNullOrWhiteSpace(settings.Data?.CampaignName))
+            session.SetString("CampaignName", settings.Data.CampaignName);
+
         // Record the check even if the API was briefly unavailable, to avoid hammering it.
         session.SetString(CheckedAtKey, DateTime.UtcNow.Ticks.ToString());
 

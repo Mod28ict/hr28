@@ -243,10 +243,7 @@
             </span>
             <span class="shell-brand-text">
                 <span>HR28</span>
-                @if (!string.IsNullOrWhiteSpace(campaignName))
-                {
-                    <small>@campaignName</small>
-                }
+                <small>Campaign Intelligence</small>
             </span>
         </a>
 
@@ -310,8 +307,23 @@
 
         </nav>
 
+        @* The client's campaign name (Settings → System), one word per line. *@
         <div class="shell-sidebar-tagline" aria-hidden="true">
-            People<br />Insights<br />Progress
+            @{
+                // "Campaign Intelligence" is the default when no name has been set.
+                var taglineWords = (string.IsNullOrWhiteSpace(campaignName) || campaignName == "Campaign Intelligence"
+                        ? "People Insights Progress"
+                        : campaignName)
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            }
+            @for (var w = 0; w < taglineWords.Length; w++)
+            {
+                @taglineWords[w]
+                if (w < taglineWords.Length - 1)
+                {
+                    <br />
+                }
+            }
         </div>
 
     </aside>
