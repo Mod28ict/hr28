@@ -12,7 +12,7 @@ public interface IVoterService
         Guid userId,
         int page,
         int pageSize,
-        string? searchTerm);
+        VoterListFilter filter);
 
     Task<List<VoterDto>> SearchVotersAsync(
         Guid userId,

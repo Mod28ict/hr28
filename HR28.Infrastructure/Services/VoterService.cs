@@ -483,7 +483,7 @@ public class VoterService : IVoterService
             Guid userId,
             int page,
             int pageSize,
-            string? searchTerm)
+            VoterListFilter filter)
     {
         page = page < 1
             ? 1
@@ -502,14 +502,36 @@ public class VoterService : IVoterService
 
         query = query.AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(
-            searchTerm))
+        // Filters narrow the user's areas; they can never widen them.
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
-            var term = searchTerm.Trim();
+            var term = Limit(filter.SearchTerm);
 
             query = query.Where(v =>
                 v.NationalId.Contains(term) ||
-                v.FullName.Contains(term));
+                v.FullName.Contains(term) ||
+                v.MobileNumber.Contains(term) ||
+                (v.Island != null && v.Island.Name.Contains(term)) ||
+                v.RegisteredIsland.Contains(term));
+        }
+
+        if (filter.ConstituencyId.HasValue)
+            query = query.Where(v => v.ConstituencyId == filter.ConstituencyId.Value);
+
+        if (filter.IslandId.HasValue)
+            query = query.Where(v => v.IslandId == filter.IslandId.Value);
+
+        if (!string.IsNullOrWhiteSpace(filter.House))
+        {
+            var house = Limit(filter.House);
+            query = query.Where(v => v.Address.Contains(house));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Status) &&
+            SupportStatuses.Contains(filter.Status.Trim()))
+        {
+            var status = filter.Status.Trim();
+            query = query.Where(v => v.SupportStatus == status);
         }
 
         var totalCount =
@@ -548,4 +570,13 @@ public class VoterService : IVoterService
         };
     }
 
+    public static readonly string[] SupportStatuses =
+        { "Supporter", "Undecided", "Neutral", "Opponent" };
+
+    /// <summary>Trims search text and caps its length so a huge value can't slow the query.</summary>
+    private static string Limit(string value)
+    {
+        var trimmed = value.Trim();
+        return trimmed.Length > 100 ? trimmed[..100] : trimmed;
+    }
 }

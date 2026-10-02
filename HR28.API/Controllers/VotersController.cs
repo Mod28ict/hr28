@@ -37,7 +37,11 @@ public class VotersController : ControllerBase
     public async Task<IActionResult> GetVoters(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        [FromQuery] string? searchTerm = null)
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] Guid? constituencyId = null,
+        [FromQuery] Guid? islandId = null,
+        [FromQuery] string? house = null,
+        [FromQuery] string? status = null)
     {
         var userIdValue =
             User.FindFirst(
@@ -56,7 +60,14 @@ public class VotersController : ControllerBase
                 userId,
                 page,
                 pageSize,
-                searchTerm);
+                new VoterListFilter
+                {
+                    SearchTerm = searchTerm,
+                    ConstituencyId = constituencyId,
+                    IslandId = islandId,
+                    House = house,
+                    Status = status
+                });
 
         return Ok(result);
     }

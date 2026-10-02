@@ -66,7 +66,11 @@ public class VotersController : Controller
     public async Task<IActionResult> Index(
         int page = 1,
         int pageSize = 20,
-        string? searchTerm = null)
+        string? searchTerm = null,
+        Guid? constituencyId = null,
+        Guid? islandId = null,
+        string? house = null,
+        string? status = null)
     {
         var token =
             HttpContext.Session.GetString(
@@ -79,26 +83,72 @@ public class VotersController : Controller
                 "Auth");
         }
 
-        var result =
-            await _dashboardService.GetVotersAsync(
-                token,
-                page,
-                pageSize,
-                searchTerm);
-
-        if (result == null)
+        var filter = new VoterListFilterModel
         {
-            result =
-                new PagedResult<VoterSearchDto>
-                {
-                    Page = 1,
-                    PageSize = pageSize
-                };
+            SearchTerm = searchTerm?.Trim(),
+            ConstituencyId = constituencyId,
+            // An island only makes sense inside the chosen constituency.
+            IslandId = constituencyId.HasValue ? islandId : null,
+            House = house?.Trim(),
+            Status = VoterListFilterModel.Statuses.Contains(status) ? status : null,
+            PageSize = pageSize is 10 or 20 or 50 or 100 ? pageSize : 20
+        };
+
+        // Only constituencies and islands inside the user's areas are offered.
+        var constituencies = await _apiClient.GetAsync<List<LookupDto>>(
+            "Constituencies/in-scope", token);
+
+        if (constituencies.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
         }
 
-        ViewBag.SearchTerm = searchTerm;
+        filter.Constituencies = constituencies.Data ?? new();
 
-        return View(result);
+        if (filter.ConstituencyId.HasValue)
+        {
+            var islands = await _apiClient.GetAsync<List<LookupDto>>(
+                $"Constituencies/{filter.ConstituencyId}/islands/in-scope", token);
+
+            filter.Islands = (islands.Data ?? new()).OrderBy(i => i.Name).ToList();
+        }
+
+        var result = await _apiClient.GetAsync<PagedResult<VoterSearchDto>>(
+            $"Voters?page={Math.Max(1, page)}" + filter.ToApiQuery(),
+            token);
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!result.Success)
+            ViewBag.ErrorMessage = result.Message;
+
+        ViewBag.Filter = filter;
+        ViewBag.SearchTerm = filter.SearchTerm;
+
+        return View(result.Data ?? new PagedResult<VoterSearchDto>
+        {
+            Page = 1,
+            PageSize = filter.PageSize
+        });
+    }
+
+    /// <summary>Islands of a constituency inside the user's areas, for the island filter.</summary>
+    [HttpGet]
+    public async Task<IActionResult> IslandsInScope(Guid constituencyId)
+    {
+        var result = await _apiClient.GetAsync<List<LookupDto>>(
+            $"Constituencies/{constituencyId}/islands/in-scope",
+            HttpContext.Session.GetString("JwtToken"));
+
+        if (!result.Success)
+            return StatusCode((int)result.StatusCode);
+
+        return Json((result.Data ?? new()).OrderBy(i => i.Name));
     }
 
 

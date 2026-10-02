@@ -4,6 +4,16 @@
     ViewData["Title"] = "Voters";
 
     var searchTerm = ViewBag.SearchTerm as string ?? string.Empty;
+    var filter = ViewBag.Filter as HR28.Web.Models.VoterListFilterModel ?? new HR28.Web.Models.VoterListFilterModel();
+    var errorMessage = ViewBag.ErrorMessage as string;
+
+    // Page links keep the search and filters.
+    Dictionary<string, string> PageRoute(int pageNumber)
+    {
+        var values = filter.RouteValues();
+        values["page"] = pageNumber.ToString();
+        return values;
+    }
 
     var userRole = Context.Session.GetString("UserRole");
     var isAdministrator = HR28.Web.Services.Hr28Roles.IsAdministrator(userRole);
@@ -39,7 +49,9 @@
                 <h1 class="ui-title">Voters</h1>
                 <p class="ui-sub">
                     @Model.TotalCount.ToString("N0")
-                    @(string.IsNullOrWhiteSpace(searchTerm) ? "voters within your assigned scope" : "voters match your search")
+                    @(filter.IsNarrowed
+                        ? (Model.TotalCount == 1 ? "voter matches your search and filters" : "voters match your search and filters")
+                        : (Model.TotalCount == 1 ? "voter within your assigned scope" : "voters within your assigned scope"))
                 </p>
             </div>
         </div>
@@ -64,47 +76,39 @@
 
     <section class="ui-card">
 
-        <div class="ui-toolbar">
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="ui-alert is-red" role="alert">
+                <partial name="_Icon" model='"alert"' />
+                <span>@errorMessage</span>
+            </div>
+        }
 
-            <form asp-action="Index" method="get" class="ui-grow" role="search">
-                <input type="hidden" name="page" value="1" />
-                <input type="hidden" name="pageSize" value="@Model.PageSize" />
+        <form asp-action="Index" method="get" role="search" id="h28VoterFilters">
 
+            <div class="ui-toolbar">
                 <div class="ui-search">
                     <partial name="_Icon" model='"search"' />
                     <label for="voterSearch" class="visually-hidden">Search voters</label>
                     <input type="search"
                            id="voterSearch"
                            name="searchTerm"
-                           value="@searchTerm"
+                           value="@filter.SearchTerm"
+                           maxlength="100"
                            class="ui-input"
-                           placeholder="Search by National ID or name" />
+                           placeholder="Search by name, National ID, phone or island" />
                 </div>
 
                 <button type="submit" class="ui-btn ui-btn-primary">Search</button>
 
-                @if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    <a asp-action="Index"
-                       asp-route-pageSize="@Model.PageSize"
-                       class="ui-btn ui-btn-secondary">
-                        Clear
-                    </a>
-                }
-            </form>
-
-            <form asp-action="Index" method="get">
-                <input type="hidden" name="page" value="1" />
-                <input type="hidden" name="searchTerm" value="@searchTerm" />
-
                 <label for="voterPageSize" class="visually-hidden">Rows per page</label>
                 <select name="pageSize"
                         id="voterPageSize"
-                        class="ui-select"
+                        class="ui-select ui-select-auto"
                         onchange="this.form.requestSubmit()">
                     @foreach (var size in new[] { 10, 20, 50, 100 })
                     {
-                        if (Model.PageSize == size)
+                        if (filter.PageSize == size)
                         {
                             <option value="@size" selected>@size per page</option>
                         }
@@ -114,17 +118,96 @@
                         }
                     }
                 </select>
-            </form>
+            </div>
 
-        </div>
+            <div class="ui-filter-row">
+                <div class="ui-filter">
+                    <label for="filterConstituency" class="ui-label">Constituency</label>
+                    <select id="filterConstituency" name="constituencyId" class="ui-select">
+                        <option value="">All constituencies</option>
+                        @foreach (var c in filter.Constituencies)
+                        {
+                            if (filter.ConstituencyId == c.Id)
+                            {
+                                <option value="@c.Id" selected>@c.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@c.Id">@c.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="ui-filter">
+                    <label for="filterIsland" class="ui-label">Island</label>
+                    <select id="filterIsland"
+                            name="islandId"
+                            class="ui-select"
+                            data-islands-url="@Url.Action("IslandsInScope", "Voters")"
+                            disabled="@(!filter.ConstituencyId.HasValue)">
+                        <option value="">@(filter.ConstituencyId.HasValue ? "All islands" : "Choose a constituency first")</option>
+                        @foreach (var i in filter.Islands)
+                        {
+                            if (filter.IslandId == i.Id)
+                            {
+                                <option value="@i.Id" selected>@i.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@i.Id">@i.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="ui-filter">
+                    <label for="filterHouse" class="ui-label">House</label>
+                    <input type="text"
+                           id="filterHouse"
+                           name="house"
+                           value="@filter.House"
+                           maxlength="100"
+                           class="ui-input"
+                           placeholder="House name" />
+                </div>
+
+                <div class="ui-filter">
+                    <label for="filterStatus" class="ui-label">Status</label>
+                    <select id="filterStatus" name="status" class="ui-select">
+                        <option value="">All statuses</option>
+                        @foreach (var st in HR28.Web.Models.VoterListFilterModel.Statuses)
+                        {
+                            if (filter.Status == st)
+                            {
+                                <option value="@st" selected>@st</option>
+                            }
+                            else
+                            {
+                                <option value="@st">@st</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="ui-filter ui-filter-actions">
+                    <button type="submit" class="ui-btn ui-btn-secondary">Apply filters</button>
+                    @if (filter.IsNarrowed)
+                    {
+                        <a asp-action="Index" asp-route-pageSize="@filter.PageSize" class="ui-btn ui-btn-ghost">Clear all</a>
+                    }
+                </div>
+            </div>
+
+        </form>
 
         @if (!Model.Items.Any())
         {
             <div class="ui-empty">
                 <partial name="_Icon" model='"search"' />
-                @(string.IsNullOrWhiteSpace(searchTerm)
-                    ? "No voters found within your assigned scope."
-                    : "No voters match your search.")
+                @(filter.IsNarrowed
+                    ? "No voters match your search and filters."
+                    : "No voters found within your assigned scope.")
             </div>
         }
         else
@@ -222,9 +305,7 @@
                 {
                     <a class="ui-page-btn"
                        asp-action="Index"
-                       asp-route-page="@(Model.Page - 1)"
-                       asp-route-pageSize="@Model.PageSize"
-                       asp-route-searchTerm="@searchTerm">‹ Previous</a>
+                       asp-all-route-data="PageRoute(Model.Page - 1)">‹ Previous</a>
                 }
                 else
                 {
@@ -235,9 +316,7 @@
                 {
                     <a class="ui-page-btn"
                        asp-action="Index"
-                       asp-route-page="1"
-                       asp-route-pageSize="@Model.PageSize"
-                       asp-route-searchTerm="@searchTerm">1</a>
+                       asp-all-route-data="PageRoute(1)">1</a>
 
                     if (firstVisiblePage > 2)
                     {
@@ -255,9 +334,7 @@
                     {
                         <a class="ui-page-btn"
                            asp-action="Index"
-                           asp-route-page="@pageNumber"
-                           asp-route-pageSize="@Model.PageSize"
-                           asp-route-searchTerm="@searchTerm">@pageNumber</a>
+                           asp-all-route-data="PageRoute(pageNumber)">@pageNumber</a>
                     }
                 }
 
@@ -270,18 +347,14 @@
 
                     <a class="ui-page-btn"
                        asp-action="Index"
-                       asp-route-page="@Model.TotalPages"
-                       asp-route-pageSize="@Model.PageSize"
-                       asp-route-searchTerm="@searchTerm">@Model.TotalPages.ToString("N0")</a>
+                       asp-all-route-data="PageRoute(Model.TotalPages)">@Model.TotalPages.ToString("N0")</a>
                 }
 
                 @if (Model.HasNextPage)
                 {
                     <a class="ui-page-btn"
                        asp-action="Index"
-                       asp-route-page="@(Model.Page + 1)"
-                       asp-route-pageSize="@Model.PageSize"
-                       asp-route-searchTerm="@searchTerm">Next ›</a>
+                       asp-all-route-data="PageRoute(Model.Page + 1)">Next ›</a>
                 }
                 else
                 {
@@ -294,3 +367,49 @@
     </section>
 
 </div>
+
+@section Scripts
+{
+    <script>
+        (function () {
+            var constituency = document.getElementById("filterConstituency");
+            var island = document.getElementById("filterIsland");
+
+            if (!constituency || !island) return;
+
+            function reset(text, disabled) {
+                island.innerHTML = "";
+                var first = document.createElement("option");
+                first.value = "";
+                first.textContent = text;
+                island.appendChild(first);
+                island.disabled = disabled;
+            }
+
+            // Islands follow the chosen constituency (only islands inside the user's areas).
+            constituency.addEventListener("change", function () {
+                if (!constituency.value) {
+                    reset("Choose a constituency first", true);
+                    return;
+                }
+
+                reset("Loading islands…", true);
+
+                fetch(island.dataset.islandsUrl + "?constituencyId=" + encodeURIComponent(constituency.value), {
+                    headers: { "Accept": "application/json" }
+                })
+                    .then(function (r) { return r.ok ? r.json() : []; })
+                    .then(function (islands) {
+                        reset("All islands", false);
+                        islands.forEach(function (i) {
+                            var option = document.createElement("option");
+                            option.value = i.id;
+                            option.textContent = i.name;
+                            island.appendChild(option);
+                        });
+                    })
+                    .catch(function () { reset("All islands", false); });
+            });
+        })();
+    </script>
+}
