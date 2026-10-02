@@ -1,11 +1,13 @@
-﻿using HR28.Application.DTOs.Users;
+﻿using HR28.API.Extensions;
+using HR28.Application.DTOs.Users;
 using HR28.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HR28.API.Controllers;
 
-[Authorize]
+// Account management is limited to Super Administrators (matches the web app's Users menu).
+[Authorize(Policy = AuthorizationPolicies.SuperAdministrator)]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase

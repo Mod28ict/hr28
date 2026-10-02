@@ -17,4 +17,10 @@ public class InfluencerDto
     public Guid? IslandId { get; set; }
 
     public string Remarks { get; set; } = string.Empty;
+
+    public string ConstituencyName { get; set; } = string.Empty;
+
+    public string? IslandName { get; set; }
+
+    public int LinkedVoters { get; set; }
 }

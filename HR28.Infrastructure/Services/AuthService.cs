@@ -11,13 +11,16 @@ public class AuthService : IAuthService
 {
     private readonly HR28DbContext _dbContext;
     private readonly ITokenService _tokenService;
+    private readonly ISystemSettingsService _settingsService;
 
     public AuthService(
         HR28DbContext dbContext,
-        ITokenService tokenService)
+        ITokenService tokenService,
+        ISystemSettingsService settingsService)
     {
         _dbContext = dbContext;
         _tokenService = tokenService;
+        _settingsService = settingsService;
     }
 
     public async Task<bool> GenerateOtpAsync(
@@ -32,12 +35,14 @@ public class AuthService : IAuthService
 
         var otp = OtpGenerator.Generate();
 
+        var settings = await _settingsService.GetAsync();
+
         var otpRequest = new OtpRequest
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
             OtpCode = otp,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(5),
+            ExpiresAt = DateTime.UtcNow.AddMinutes(settings.OtpExpiryMinutes),
             FailedAttempts = 0,
             IsUsed = false,
             CreatedAt = DateTime.UtcNow
@@ -101,6 +106,17 @@ public class AuthService : IAuthService
             };
         }
 
+        var maxAttempts = (await _settingsService.GetAsync()).OtpMaxAttempts;
+
+        if (otpRequest.FailedAttempts >= maxAttempts)
+        {
+            return new LoginResponseDto
+            {
+                Success = false,
+                Message = "Too many incorrect attempts. Please request a new OTP."
+            };
+        }
+
         if (otpRequest.OtpCode != request.OtpCode)
         {
             otpRequest.FailedAttempts++;
@@ -110,7 +126,9 @@ public class AuthService : IAuthService
             return new LoginResponseDto
             {
                 Success = false,
-                Message = "Invalid OTP."
+                Message = otpRequest.FailedAttempts >= maxAttempts
+                    ? "Too many incorrect attempts. Please request a new OTP."
+                    : "Invalid OTP."
             };
         }
 

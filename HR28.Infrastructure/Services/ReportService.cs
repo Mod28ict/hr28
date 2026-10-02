@@ -1,4 +1,4 @@
-﻿using HR28.Application.DTOs.Reports;
+using HR28.Application.DTOs.Reports;
 using HR28.Application.Interfaces;
 using HR28.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -8,156 +8,138 @@ namespace HR28.Infrastructure.Services;
 public class ReportService : IReportingService
 {
     private readonly HR28DbContext _dbContext;
+    private readonly IAccessScopeService _accessScopeService;
 
     public ReportService(
-        HR28DbContext dbContext)
+        HR28DbContext dbContext,
+        IAccessScopeService accessScopeService)
     {
         _dbContext = dbContext;
+        _accessScopeService = accessScopeService;
     }
 
     public async Task<List<ConstituencySummaryDto>>
-        GetConstituencySummaryAsync()
+        GetConstituencySummaryAsync(Guid userId)
     {
-        var constituencies =
-            await _dbContext.Constituencies
-                .ToListAsync();
+        var scope = await _accessScopeService.GetAsync(userId);
 
-        var result =
-            new List<ConstituencySummaryDto>();
+        var voters = _dbContext.Voters.AsNoTracking().InScope(scope);
 
-        foreach (var constituency in constituencies)
-        {
-            var voterIds = await _dbContext.Voters
-                .Where(v =>
-                    v.ConstituencyId ==
-                    constituency.Id)
-                .Select(v => v.Id)
-                .ToListAsync();
-            var totalVoters = voterIds.Count;
+        var constituencies = await _dbContext.Constituencies
+            .AsNoTracking()
+            .InScope(scope)
+            .Select(c => new { c.Id, c.Name })
+            .ToListAsync();
 
-            var supporters =
-                await _dbContext.Voters
-                    .CountAsync(v =>
-                        v.ConstituencyId == constituency.Id &&
-                        v.SupportStatus == "Supporter");
+        // One grouped query per measure instead of several queries per constituency.
+        var statusCounts = await voters
+            .GroupBy(v => new { v.ConstituencyId, v.SupportStatus })
+            .Select(g => new { g.Key.ConstituencyId, g.Key.SupportStatus, Count = g.Count() })
+            .ToListAsync();
 
-            var supportPercentage =
-                totalVoters == 0
-                    ? 0
-                    : Math.Round(
-                        (decimal)supporters /
-                        totalVoters * 100,
-                        2);
+        var influencerCounts = await _dbContext.Influencers
+            .AsNoTracking()
+            .InScope(scope)
+            .GroupBy(i => i.ConstituencyId)
+            .Select(g => new { ConstituencyId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.ConstituencyId, x => x.Count);
 
-            var influencers =
-                await _dbContext.Influencers
-                    .CountAsync(i =>
-                        i.ConstituencyId ==
-                        constituency.Id);
+        var encounterCounts = await _dbContext.Encounters
+            .Join(voters, e => e.VoterId, v => v.Id, (e, v) => v.ConstituencyId)
+            .GroupBy(id => id)
+            .Select(g => new { ConstituencyId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.ConstituencyId, x => x.Count);
 
-            var encounters =
-                await _dbContext.Encounters
-                    .CountAsync(e =>
-                        voterIds.Contains(e.VoterId));
+        var pledgeCounts = await _dbContext.Pledges
+            .Join(voters, p => p.VoterId, v => v.Id, (p, v) => v.ConstituencyId)
+            .GroupBy(id => id)
+            .Select(g => new { ConstituencyId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.ConstituencyId, x => x.Count);
 
-            var pledges =
-                await _dbContext.Pledges
-                    .CountAsync(p =>
-                        voterIds.Contains(p.VoterId));
+        int StatusCount(Guid constituencyId, string status) =>
+            statusCounts
+                .Where(x => x.ConstituencyId == constituencyId && x.SupportStatus == status)
+                .Sum(x => x.Count);
 
-            result.Add(
-                new ConstituencySummaryDto
+        var result = constituencies
+            .Select(c =>
+            {
+                var total = statusCounts
+                    .Where(x => x.ConstituencyId == c.Id)
+                    .Sum(x => x.Count);
+
+                var supporters = StatusCount(c.Id, "Supporter");
+                var encounters = encounterCounts.GetValueOrDefault(c.Id);
+                var pledges = pledgeCounts.GetValueOrDefault(c.Id);
+
+                return new ConstituencySummaryDto
                 {
-                    ConstituencyId = constituency.Id,
-                    ConstituencyName = constituency.Name,
-
-                    TotalVoters = totalVoters,
-
+                    ConstituencyId = c.Id,
+                    ConstituencyName = c.Name,
+                    TotalVoters = total,
                     Supporters = supporters,
-
-                    SupportPercentage = supportPercentage,
-
-                    Opponents =
-                        await _dbContext.Voters
-                            .CountAsync(v =>
-                                v.ConstituencyId ==
-                                constituency.Id &&
-                                v.SupportStatus ==
-                                "Opponent"),
-
-                    Undecided =
-                        await _dbContext.Voters
-                            .CountAsync(v =>
-                                v.ConstituencyId ==
-                                constituency.Id &&
-                                v.SupportStatus ==
-                                "Undecided"),
-
-                    Neutral =
-                        await _dbContext.Voters
-                            .CountAsync(v =>
-                                v.ConstituencyId ==
-                                constituency.Id &&
-                                v.SupportStatus ==
-                                "Neutral"),
-
-                    TotalInfluencers =
-                        await _dbContext.Influencers
-                            .CountAsync(i =>
-                                i.ConstituencyId ==
-                                constituency.Id),
-
-                    TotalEncounters =
-                        await _dbContext.Encounters
-                            .CountAsync(e =>
-                                voterIds.Contains(
-                                    e.VoterId)),
-
-                    TotalPledges =
-                        await _dbContext.Pledges
-                            .CountAsync(p =>
-                                voterIds.Contains(
-                                    p.VoterId))
-                });
-        }
-
-        return result
+                    Opponents = StatusCount(c.Id, "Opponent"),
+                    Undecided = StatusCount(c.Id, "Undecided"),
+                    Neutral = StatusCount(c.Id, "Neutral"),
+                    SupportPercentage = total == 0
+                        ? 0
+                        : Math.Round((decimal)supporters / total * 100, 2),
+                    TotalInfluencers = influencerCounts.GetValueOrDefault(c.Id),
+                    TotalEncounters = encounters,
+                    TotalPledges = pledges,
+                    // Recorded interactions with voters in this constituency.
+                    EngagementScore = encounters + pledges
+                };
+            })
             .OrderByDescending(x => x.TotalVoters)
+            .ThenBy(x => x.ConstituencyName)
             .ToList();
+
+        return result;
     }
+
     public async Task<PledgeStatusSummaryDto>
-        GetPledgeStatusSummaryAsync()
+        GetPledgeStatusSummaryAsync(Guid userId)
     {
+        var scope = await _accessScopeService.GetAsync(userId);
+
+        var counts = await _dbContext.Pledges
+            .AsNoTracking()
+            .InScope(scope, _dbContext.Voters)
+            .GroupBy(p => p.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Status, x => x.Count);
+
         return new PledgeStatusSummaryDto
         {
-            Pending = await _dbContext.Pledges
-                .CountAsync(x => x.Status == "Open"),
-
-            InProgress = await _dbContext.Pledges
-                .CountAsync(x => x.Status == "In Progress"),
-
-            Completed = await _dbContext.Pledges
-                .CountAsync(x => x.Status == "Completed"),
-
-            Cancelled = await _dbContext.Pledges
-                .CountAsync(x => x.Status == "Cancelled")
+            Pending = counts.GetValueOrDefault("Open"),
+            InProgress = counts.GetValueOrDefault("In Progress"),
+            Completed = counts.GetValueOrDefault("Completed"),
+            Cancelled = counts.GetValueOrDefault("Cancelled")
         };
     }
+
     public async Task<List<TopInfluencerDto>>
-        GetTopInfluencersAsync(int top = 10)
+        GetTopInfluencersAsync(Guid userId, int top = 10)
     {
+        var scope = await _accessScopeService.GetAsync(userId);
+
+        var voterIds = _dbContext.Voters.InScope(scope).Select(v => v.Id);
+
         return await _dbContext.Influencers
+            .AsNoTracking()
+            .InScope(scope)
             .Select(i => new TopInfluencerDto
             {
                 InfluencerId = i.Id,
                 FullName = i.FullName,
 
-                LinkedVoters =
-                    _dbContext.VoterInfluencers
-                        .Count(v =>
-                            v.InfluencerId == i.Id)
+                // Only count voters the user is allowed to see.
+                LinkedVoters = i.Voters.Count(link => voterIds.Contains(link.VoterId))
             })
+            .Where(x => x.LinkedVoters > 0)
             .OrderByDescending(x => x.LinkedVoters)
+            .ThenBy(x => x.FullName)
             .Take(top)
             .ToListAsync();
     }

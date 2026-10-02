@@ -1,4 +1,4 @@
-﻿namespace HR28.Application.DTOs.Dashboard;
+namespace HR28.Application.DTOs.Dashboard;
 
 public class RecentActivityDto
 {
@@ -11,4 +11,8 @@ public class RecentActivityDto
     public string? EntityId { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public string ActorName { get; set; } = string.Empty;
+
+    public string? EntityLabel { get; set; }
 }

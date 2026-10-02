@@ -1,4 +1,5 @@
-﻿using HR28.Application.DTOs.Islands;
+﻿using HR28.API.Extensions;
+using HR28.Application.DTOs.Islands;
 using HR28.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,6 +37,7 @@ public class IslandsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = AuthorizationPolicies.Administrator)]
     public async Task<IActionResult> Create(
         CreateIslandDto dto)
     {
@@ -45,6 +47,7 @@ public class IslandsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Policy = AuthorizationPolicies.Administrator)]
     public async Task<IActionResult> Update(
         Guid id,
         UpdateIslandDto dto)
@@ -59,6 +62,7 @@ public class IslandsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = AuthorizationPolicies.Administrator)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var success =

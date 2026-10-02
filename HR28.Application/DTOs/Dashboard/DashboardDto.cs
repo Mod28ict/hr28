@@ -27,4 +27,7 @@ public class DashboardDto
     public int OpenPledges { get; set; }
 
     public int CompletedPledges { get; set; }
+
+    /// <summary>True when the figures are national rather than limited to a scope.</summary>
+    public bool IsAdministrator { get; set; }
 }

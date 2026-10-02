@@ -186,6 +186,17 @@ public class HR28DbContext : DbContext
         modelBuilder.Entity<Voter>()
             .HasIndex(v => v.AtollCode);
 
+        // --------------------------------------------------
+        // System settings (key/value)
+        // --------------------------------------------------
+
+        modelBuilder.Entity<SystemSetting>(entity =>
+        {
+            entity.HasKey(s => s.Key);
+            entity.Property(s => s.Key).HasMaxLength(100);
+            entity.Property(s => s.Value).HasMaxLength(500);
+        });
+
         /*
          * Do not add the unique Constituency.Code index yet.
          *
@@ -244,6 +255,9 @@ public class HR28DbContext : DbContext
 
     public DbSet<VoterInfluencer> VoterInfluencers =>
         Set<VoterInfluencer>();
+
+    public DbSet<SystemSetting> SystemSettings =>
+        Set<SystemSetting>();
 
    
 

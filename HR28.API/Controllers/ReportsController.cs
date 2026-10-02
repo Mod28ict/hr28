@@ -1,4 +1,5 @@
-﻿using HR28.Application.Interfaces;
+using HR28.API.Extensions;
+using HR28.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,30 +22,40 @@ public class ReportsController : ControllerBase
     public async Task<IActionResult>
         GetConstituencySummary()
     {
-        var result =
-            await _reportService
-                .GetConstituencySummaryAsync();
+        var userId = User.GetUserId();
 
-        return Ok(result);
+        if (userId == null)
+            return Unauthorized();
+
+        return Ok(await _reportService
+            .GetConstituencySummaryAsync(userId.Value));
     }
+
     [HttpGet("pledge-status-summary")]
     public async Task<IActionResult>
-    GetPledgeStatusSummary()
+        GetPledgeStatusSummary()
     {
-        var result =
-            await _reportService
-                .GetPledgeStatusSummaryAsync();
+        var userId = User.GetUserId();
 
-        return Ok(result);
+        if (userId == null)
+            return Unauthorized();
+
+        return Ok(await _reportService
+            .GetPledgeStatusSummaryAsync(userId.Value));
     }
+
     [HttpGet("top-influencers")]
     public async Task<IActionResult>
-        GetTopInfluencers()
+        GetTopInfluencers([FromQuery] int top = 10)
     {
-        var result =
-            await _reportService
-                .GetTopInfluencersAsync();
+        var userId = User.GetUserId();
 
-        return Ok(result);
+        if (userId == null)
+            return Unauthorized();
+
+        top = Math.Clamp(top, 1, 50);
+
+        return Ok(await _reportService
+            .GetTopInfluencersAsync(userId.Value, top));
     }
 }

@@ -5,4 +5,6 @@ public class IslandDto
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Atoll { get; set; } = string.Empty;
+    public Guid? ConstituencyId { get; set; }
+    public string ConstituencyName { get; set; } = string.Empty;
 }

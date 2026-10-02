@@ -1,3 +1,5 @@
+using HR28.API.Extensions;
+using HR28.API.Middleware;
 using HR28.Application.Interfaces;
 using HR28.Infrastructure.Data;
 using HR28.Infrastructure.Data.Seed;
@@ -28,6 +30,10 @@ builder.Services.AddScoped<IConstituencyService, ConstituencyService>();
 builder.Services.AddScoped<IIslandService, IslandService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<IReportingService, ReportService>();
+builder.Services.AddScoped<IAccessScopeService, AccessScopeService>();
+builder.Services.AddScoped<IAuditTrailService, AuditTrailService>();
+builder.Services.AddScoped<ISystemSettingsService, SystemSettingsService>();
+builder.Services.AddHr28AuthorizationPolicies();
 builder.Services
     .AddAuthentication(
         JwtBearerDefaults.AuthenticationScheme)
@@ -100,6 +106,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<ApiExceptionMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
