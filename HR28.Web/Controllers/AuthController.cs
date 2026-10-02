@@ -107,10 +107,4 @@ public class AuthController : Controller
             "Index",
             "Dashboard");
     }
-    public IActionResult ClearSession()
-    {
-        HttpContext.Session.Clear();
-
-        return Content("Session Cleared");
-    }
 }

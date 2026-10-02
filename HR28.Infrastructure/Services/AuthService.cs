@@ -13,17 +13,20 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly ISystemSettingsService _settingsService;
     private readonly IAuthorizationCodeHasher _codeHasher;
+    private readonly ISmsSender _smsSender;
 
     public AuthService(
         HR28DbContext dbContext,
         ITokenService tokenService,
         ISystemSettingsService settingsService,
-        IAuthorizationCodeHasher codeHasher)
+        IAuthorizationCodeHasher codeHasher,
+        ISmsSender smsSender)
     {
         _dbContext = dbContext;
         _tokenService = tokenService;
         _settingsService = settingsService;
         _codeHasher = codeHasher;
+        _smsSender = smsSender;
     }
 
     /// <summary>Finds an active user by authorization code (compared by keyed hash only).</summary>
@@ -113,8 +116,23 @@ public class AuthService : IAuthService
 
         await _dbContext.SaveChangesAsync();
 
-        Console.WriteLine(
-            $"OTP for {user.FullName}: {otp}");
+        var sent = await _smsSender.SendAsync(
+            user.MobileNumber,
+            $"HR28 code: {otp}. It expires in {settings.OtpExpiryMinutes} minutes. " +
+            "Never share this code. HR28 staff will never ask for it.");
+
+        if (!sent)
+        {
+            // A code nobody received must not stay usable.
+            otpRequest.IsUsed = true;
+            await _dbContext.SaveChangesAsync();
+
+            return new GenerateOtpResultDto
+            {
+                Success = false,
+                Message = "We couldn't send your code right now. Please try again later or contact your administrator."
+            };
+        }
 
         return new GenerateOtpResultDto
         {

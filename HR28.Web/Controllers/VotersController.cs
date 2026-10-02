@@ -1,10 +1,12 @@
-﻿using HR28.Web.Models;
+﻿using HR28.Web.Filters;
+using HR28.Web.Models;
 using HR28.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
 
 namespace HR28.Web.Controllers;
 
+[SessionAuthorize]
 public class VotersController : Controller
 {
     private readonly DashboardService _dashboardService;
@@ -196,7 +198,9 @@ public class VotersController : Controller
 
             };
 
-        ViewBag.IsSuperAdmin = true;
+        // Only administrators may move a voter to another area (the API enforces this too).
+        ViewBag.IsSuperAdmin = Hr28Roles.IsAdministrator(
+            HttpContext.Session.GetString("UserRole"));
         return View(model);
     }
     [HttpPost]
@@ -219,7 +223,8 @@ public class VotersController : Controller
 
         if (!success)
         {
-            ViewBag.IsSuperAdmin = true;
+            ViewBag.IsSuperAdmin = Hr28Roles.IsAdministrator(
+                HttpContext.Session.GetString("UserRole"));
 
             return View(model);
         }

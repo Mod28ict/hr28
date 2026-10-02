@@ -253,8 +253,10 @@ Status as of 2026-10-02 (update when an item changes):
    possible, including on 429).
 5. Authentication hardening — **partly done:** 6-digit secure OTP, hashed
    authorization codes, attempt limits, cooldown, lockout, per-IP rate limits,
-   inactive users blocked, anti-forgery on login forms. Still to do: SMS sender
-   (with warning text and per-phone limits), step-up codes for exports/user
+   inactive users blocked, anti-forgery on login forms, SMS text with the
+   "never share" warning (dev sender only), voter area changes limited to
+   administrators in API and UI. Still to do: real SMS provider (with per-phone
+   limits), step-up codes for exports/user
    management, trusted devices, login alerts, session timeouts/admin sign-out,
    passkeys (deferred).
 6. OWASP ASVS L2 review — **not started** as a formal pass.
@@ -265,12 +267,14 @@ Status as of 2026-10-02 (update when an item changes):
 8. Regression tests — **not started; there is no test project yet.**
 
 Known open issues (fix or confirm with the owner):
-- OTP is written to the console in every environment (`AuthService`); should be
-  Development only, via a fake SMS sender.
-- `GET /Auth/ClearSession` logs anyone out from a link; remove or make it POST.
-- Web `VotersController` sets `ViewBag.IsSuperAdmin = true` for everyone, so the Edit
-  page lets any user change a voter's area (API still blocks out-of-scope moves).
-- No security headers (CSP, nosniff, frame protection, Referrer-Policy) yet.
+- No real SMS provider yet. `ISmsSender`: Development writes the message to the API
+  log (`DevelopmentSmsSender`); other environments use `UnconfiguredSmsSender`, which
+  refuses to send, so sign-in will not work outside Development until a provider is
+  connected.
+- The web Content-Security-Policy still allows `'unsafe-inline'` scripts and styles
+  (sign-in pages and layout use inline blocks). Move them to files or nonces, then
+  remove it. Other security headers and Secure/HttpOnly/SameSite cookies are in place.
+- `GET /Auth/Logout` can be triggered by a link (low risk; consider POST).
 - Report downloads are scoped, rate-limited and audited but have no step-up code.
 - `Users.AuthorizationCode` (plain, now always empty) can be dropped in a migration.
 - Dev data to tidy: "Collector Demo" holds three roles incl. National Administrator;

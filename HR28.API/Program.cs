@@ -34,6 +34,13 @@ builder.Services.AddScoped<IAccessScopeService, AccessScopeService>();
 builder.Services.AddScoped<IAuditTrailService, AuditTrailService>();
 builder.Services.AddScoped<ISystemSettingsService, SystemSettingsService>();
 
+// Development: SMS is written to the log (never sent). Elsewhere, sending fails
+// safely until a real provider is connected; codes are never logged.
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddSingleton<ISmsSender, DevelopmentSmsSender>();
+else
+    builder.Services.AddSingleton<ISmsSender, UnconfiguredSmsSender>();
+
 // Authorization codes are stored as a keyed hash. The key comes from User Secrets
 // (development) or Key Vault (production); startup fails if it is missing.
 builder.Services.AddSingleton<IAuthorizationCodeHasher>(
@@ -114,6 +121,32 @@ if (app.Environment.IsDevelopment())
 
 // Must run first so rate limits see the real client IP, not the web server's.
 app.UseForwardedHeaders();
+
+// The API returns JSON only: forbid framing, sniffing and any page content.
+// Swagger (Development only) needs scripts, so it is left out of the strict policy.
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        var headers = context.Response.Headers;
+
+        headers["X-Content-Type-Options"] = "nosniff";
+        headers["X-Frame-Options"] = "DENY";
+        headers["Referrer-Policy"] = "no-referrer";
+
+        if (!context.Request.Path.StartsWithSegments("/swagger"))
+            headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'";
+
+        return Task.CompletedTask;
+    });
+
+    await next();
+});
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
 
 app.UseHttpsRedirection();
 

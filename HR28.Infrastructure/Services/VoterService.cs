@@ -220,6 +220,17 @@ public class VoterService : IVoterService
         if (voter == null)
             throw new KeyNotFoundException("Voter not found.");
 
+        // Constituency and island are protected fields: only administrators may change them.
+        var movingArea =
+            voter.ConstituencyId != request.ConstituencyId ||
+            voter.IslandId != request.IslandId;
+
+        if (movingArea && !scope.IsAdministrator)
+        {
+            throw new HR28.Application.Common.AccessDeniedException(
+                "Only an Administrator can move a voter to another constituency or island.");
+        }
+
         if (!scope.Allows(request.ConstituencyId, request.IslandId))
         {
             throw new HR28.Application.Common.AccessDeniedException(

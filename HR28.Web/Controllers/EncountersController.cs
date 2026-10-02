@@ -1,9 +1,11 @@
-﻿using HR28.Web.Models;
+﻿using HR28.Web.Filters;
+using HR28.Web.Models;
 using HR28.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HR28.Web.Controllers;
 
+[SessionAuthorize]
 public class EncountersController : Controller
 {
     private readonly DashboardService _dashboardService;
