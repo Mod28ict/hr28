@@ -19,9 +19,23 @@ public class AuthController : Controller
         return View();
     }
 
+    /// <summary>
+    /// An old bookmark or link to sign-out lands safely on the dashboard instead
+    /// of an error page; it does not sign anyone out.
+    /// </summary>
+    [HttpGet]
+    [ActionName("Logout")]
+    public IActionResult LogoutLink() => RedirectToAction("Index", "Dashboard");
+
+    /// <summary>
+    /// POST only (anti-forgery checked site-wide). Clears the session, which holds
+    /// the API token, and removes the session cookie from the browser.
+    /// </summary>
+    [HttpPost]
     public IActionResult Logout()
     {
         HttpContext.Session.Clear();
+        Response.Cookies.Delete("HR28.Session");
 
         return RedirectToAction(
             "Login",

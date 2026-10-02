@@ -15,10 +15,30 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Older .xls voter lists use legacy code pages; the Excel reader needs them registered.
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+// Secrets never live in committed files. Development: the connection string uses
+// Windows sign-in (appsettings.Development.json) and the JWT key is in User Secrets.
+// Production: both come from Azure Key Vault / app settings. Fail fast if missing.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "ConnectionStrings:DefaultConnection is not configured. " +
+        "Set it in appsettings.Development.json (Windows sign-in, no password) or Key Vault.");
+}
+
+var jwtKey = builder.Configuration["Jwt:Key"];
+
+if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32)
+{
+    throw new InvalidOperationException(
+        "Jwt:Key is missing or shorter than 32 bytes. " +
+        "Set it with 'dotnet user-secrets' (development) or Key Vault (production).");
+}
+
 // Add services to the container.
 builder.Services.AddDbContext<HR28DbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IVoterService, VoterService>();
@@ -73,8 +93,7 @@ builder.Services
 
                 IssuerSigningKey =
                     new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(
-                            builder.Configuration["Jwt:Key"]!)),
+                        Encoding.UTF8.GetBytes(jwtKey)),
 
                 ClockSkew = TimeSpan.Zero
             };
@@ -182,6 +201,14 @@ using (var scope = app.Services.CreateScope())
     {
         app.Logger.LogInformation(
             "Converted {Count} authorization codes to secure storage.", converted);
+    }
+
+    var clearedOtps = await AuthorizationCodeBackfill.ClearPlainOtpCodesAsync(dbContext);
+
+    if (clearedOtps > 0)
+    {
+        app.Logger.LogInformation(
+            "Erased {Count} SMS codes stored before hashing.", clearedOtps);
     }
 }
 

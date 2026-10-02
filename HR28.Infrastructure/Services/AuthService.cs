@@ -101,11 +101,15 @@ public class AuthService : IAuthService
 
         var settings = await _settingsService.GetAsync();
 
+        var otpRequestId = Guid.NewGuid();
+
         var otpRequest = new OtpRequest
         {
-            Id = Guid.NewGuid(),
+            Id = otpRequestId,
             UserId = user.Id,
-            OtpCode = otp,
+
+            // Only a keyed hash is stored; the digits exist only in the SMS.
+            OtpCode = _codeHasher.HashOtp(otpRequestId, otp),
             ExpiresAt = DateTime.UtcNow.AddMinutes(settings.OtpExpiryMinutes),
             FailedAttempts = 0,
             IsUsed = false,
@@ -141,13 +145,17 @@ public class AuthService : IAuthService
         };
     }
 
-    /// <summary>Constant-time comparison so response timing doesn't leak how many digits matched.</summary>
-    private static bool CodesMatch(string expected, string? actual)
+    /// <summary>
+    /// Hashes the entered code the same way and compares in constant time,
+    /// so response timing doesn't leak anything about the stored hash.
+    /// </summary>
+    private bool CodesMatch(OtpRequest otpRequest, string? entered)
     {
-        var a = System.Text.Encoding.UTF8.GetBytes(expected ?? string.Empty);
-        var b = System.Text.Encoding.UTF8.GetBytes((actual ?? string.Empty).Trim());
+        var expected = System.Text.Encoding.ASCII.GetBytes(otpRequest.OtpCode ?? string.Empty);
+        var actual = System.Text.Encoding.ASCII.GetBytes(
+            _codeHasher.HashOtp(otpRequest.Id, entered ?? string.Empty));
 
-        return System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(a, b);
+        return System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(expected, actual);
     }
 
     public async Task<LoginResponseDto> VerifyOtpAsync(
@@ -182,7 +190,7 @@ public class AuthService : IAuthService
         if (otpRequest.FailedAttempts >= maxAttempts)
             return Fail("Too many wrong codes. Go back and ask for a new code.");
 
-        if (!CodesMatch(otpRequest.OtpCode, request.OtpCode))
+        if (!CodesMatch(otpRequest, request.OtpCode))
         {
             otpRequest.FailedAttempts++;
 

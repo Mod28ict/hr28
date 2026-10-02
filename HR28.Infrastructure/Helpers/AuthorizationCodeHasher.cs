@@ -42,4 +42,15 @@ public class AuthorizationCodeHasher : IAuthorizationCodeHasher
 
         return Convert.ToHexString(hash);
     }
+
+    public string HashOtp(Guid otpRequestId, string otp)
+    {
+        using var hmac = new HMACSHA256(_key);
+
+        // The "otp|" prefix and request ID keep these hashes separate from
+        // authorization code hashes and unique per code request.
+        var input = $"otp|{otpRequestId:N}|{(otp ?? string.Empty).Trim()}";
+
+        return Convert.ToHexString(hmac.ComputeHash(Encoding.UTF8.GetBytes(input)));
+    }
 }

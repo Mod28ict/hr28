@@ -395,10 +395,13 @@
                     </li>
                     <li><hr class="dropdown-divider" /></li>
                     <li>
-                        <a class="dropdown-item text-danger" asp-controller="Auth" asp-action="Logout">
-                            <partial name="_Icon" model='"logout"' />
-                            Sign out
-                        </a>
+                        @* A form, not a link: another site cannot sign people out, and the anti-forgery token is checked. *@
+                        <form asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
+                            <button type="submit" class="dropdown-item text-danger">
+                                <partial name="_Icon" model='"logout"' />
+                                Sign out
+                            </button>
+                        </form>
                     </li>
                 </ul>
             </div>

@@ -159,6 +159,8 @@ strong despite that:
 - SMS codes (implemented): 6 digits from `RandomNumberGenerator`, expiry set by the
   Administrator in Settings → System (default 5 min, 1–15), **single use** (atomic
   consume), constant-time comparison, max attempts per code (setting, default 5).
+  Stored only as an HMAC-SHA256 bound to the code request (`HashOtp`, same key as
+  authorization codes); the digits exist only in the SMS. Sign out is a POST form.
 - Rate limits (implemented): per IP 10 code requests and 20 code checks per 5 minutes;
   per account 60s between requests, 5 codes per hour, and 10 wrong codes in a row
   locks sign-in for 15 minutes. Per user: 120 searches/min, 20 report downloads/hour,
@@ -208,10 +210,14 @@ strong despite that:
 
 - Secrets live in User Secrets (development) and Azure Key Vault via managed identity
   (production). Never in committed files.
-- Required secrets for `HR28.API`: `Security:AuthorizationCodeKey` (base64, ≥32 bytes;
-  the API refuses to start without it). Still to move out of `appsettings.json`:
-  `ConnectionStrings:DefaultConnection` and `Jwt:Key` (both are committed today and
-  must be rotated when moved).
+- Required secrets for `HR28.API` (the API refuses to start without them):
+  `Security:AuthorizationCodeKey` (base64, ≥32 bytes) and `Jwt:Key` (≥32 bytes; rotated
+  2026-10-02, the old committed key no longer works). Set both with
+  `dotnet user-secrets --project HR28.API` in development, Key Vault in production.
+- `ConnectionStrings:DefaultConnection`: development uses Windows sign-in (no password)
+  in `appsettings.Development.json`; production sets it in Key Vault / app settings.
+  `appsettings.json` holds no secrets. The old `sa` password is still in Git history:
+  change it on the SQL Server (the app no longer uses it).
 - Azure SQL: firewall restricted to the app; no public database access.
 - Keep NuGet packages free of known vulnerabilities.
 
@@ -306,13 +312,10 @@ Known open issues (fix or confirm with the owner):
 - The web Content-Security-Policy still allows `'unsafe-inline'` scripts and styles
   (sign-in pages and layout use inline blocks). Move them to files or nonces, then
   remove it. Other security headers and Secure/HttpOnly/SameSite cookies are in place.
-- `GET /Auth/Logout` can be triggered by a link (low risk; consider POST).
 - Report downloads are scoped, rate-limited and audited but have no step-up code.
 - Influencer edit/delete with granted rights is built but not yet tested end to end
   with a signed-in non-Administrator. No right is granted to any role yet.
 - `Users.AuthorizationCode` (plain, now always empty) can be dropped in a migration.
-- SMS codes are stored as plain digits in `OtpRequests.OtpCode` (short-lived, single
-  use). Store a keyed hash like authorization codes.
 - Dev data to tidy: "Collector Demo" holds three roles incl. National Administrator;
   Mariyam Waheed's area pairs Henveiru West with Galolhu.
 

@@ -11,4 +11,10 @@ public interface IAuthorizationCodeHasher
 
     /// <summary>Hex HMAC-SHA256 of the normalized code.</summary>
     string Hash(string code);
+
+    /// <summary>
+    /// Hex HMAC-SHA256 of an SMS code, bound to the code request it belongs to.
+    /// Stored instead of the digits, so the database never holds a usable code.
+    /// </summary>
+    string HashOtp(Guid otpRequestId, string otp);
 }

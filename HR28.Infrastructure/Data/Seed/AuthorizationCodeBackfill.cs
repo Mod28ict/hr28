@@ -43,4 +43,16 @@ public static class AuthorizationCodeBackfill
 
         return users.Count;
     }
+
+    /// <summary>
+    /// Erases SMS codes stored as plain digits before codes were hashed, and marks
+    /// them used. Hashes are 64 hex characters; anything else is a legacy code.
+    /// Safe to run on every startup. Anyone mid-sign-in just asks for a new code.
+    /// </summary>
+    public static Task<int> ClearPlainOtpCodesAsync(HR28DbContext context) =>
+        context.OtpRequests
+            .Where(o => o.OtpCode != "" && o.OtpCode.Length != 64)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(o => o.OtpCode, "")
+                .SetProperty(o => o.IsUsed, true));
 }
