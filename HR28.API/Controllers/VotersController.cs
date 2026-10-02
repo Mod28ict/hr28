@@ -1,4 +1,5 @@
-﻿using HR28.Application.DTOs.Voters;
+﻿using HR28.API.Extensions;
+using HR28.Application.DTOs.Voters;
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -119,6 +120,7 @@ await _voterService.GetVoterByIdAsync(
 
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = AuthorizationPolicies.Administrator)]
     public async Task<IActionResult> DeleteVoter(Guid id)
     {
         await _voterService.DeleteVoterAsync(id);
@@ -174,7 +176,7 @@ await _voterService.GetVoterByIdAsync(
 
         var result =
             await _voterService
-                .GetRecentAsync(count);
+                .GetRecentAsync(userId, Math.Clamp(count, 1, 50));
 
         return Ok(result);
     }

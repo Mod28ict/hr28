@@ -78,6 +78,23 @@ public class AccessScopeService : IAccessScopeService
 /// </summary>
 public static class ScopeQueryExtensions
 {
+    /// <summary>
+    /// Throws KeyNotFoundException (→ 404) if the voter is missing or outside the scope,
+    /// so out-of-scope records look the same as records that don't exist.
+    /// </summary>
+    public static async Task EnsureVoterInScopeAsync(
+        this HR28DbContext dbContext,
+        AccessScope scope,
+        Guid voterId)
+    {
+        var visible = await dbContext.Voters
+            .InScope(scope)
+            .AnyAsync(v => v.Id == voterId);
+
+        if (!visible)
+            throw new KeyNotFoundException("Voter not found.");
+    }
+
     public static IQueryable<Voter> InScope(
         this IQueryable<Voter> query,
         AccessScope scope)

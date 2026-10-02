@@ -25,7 +25,9 @@ public interface IVoterService
     Task DeleteVoterAsync(
         Guid id);
 
+    /// <summary>Most recently added voters within the user's scope.</summary>
     Task<List<VoterDto>> GetRecentAsync(
+        Guid userId,
         int count = 10);
 
     Task<VoterDto?> GetVoterByIdAsync(

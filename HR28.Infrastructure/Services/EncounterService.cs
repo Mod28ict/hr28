@@ -1,4 +1,5 @@
 ﻿using HR28.Application.DTOs.Encounters;
+using HR28.Application.Common;
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using HR28.Infrastructure.Data;
@@ -12,14 +13,18 @@ public class EncounterService : IEncounterService
     private readonly HR28DbContext _dbContext;
     private readonly IAuditService _auditService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IAccessScopeService _accessScopeService;
+
     public EncounterService(
         HR28DbContext dbContext,
         IAuditService auditService,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IAccessScopeService accessScopeService)
     {
         _dbContext = dbContext;
         _auditService = auditService;
         _httpContextAccessor = httpContextAccessor;
+        _accessScopeService = accessScopeService;
     }
     private Guid? GetCurrentUserId()
     {
@@ -38,6 +43,10 @@ public class EncounterService : IEncounterService
         Guid userId,
         CreateEncounterDto request)
     {
+        var scope = await _accessScopeService.GetAsync(userId);
+
+        await _dbContext.EnsureVoterInScopeAsync(scope, request.VoterId);
+
         var encounter = new Encounter
         {
             Id = Guid.NewGuid(),
@@ -75,6 +84,13 @@ public class EncounterService : IEncounterService
     public async Task<List<EncounterDto>>
         GetByVoterIdAsync(Guid voterId)
     {
+        var userId = GetCurrentUserId()
+            ?? throw new AccessDeniedException("You must be signed in.");
+
+        await _dbContext.EnsureVoterInScopeAsync(
+            await _accessScopeService.GetAsync(userId),
+            voterId);
+
         return await _dbContext.Encounters
             .Where(e => e.VoterId == voterId)
             .OrderByDescending(e => e.EncounterDate)

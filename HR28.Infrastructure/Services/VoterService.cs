@@ -30,14 +30,26 @@ public class VoterService : IVoterService
     }
 
 
+    private readonly IAccessScopeService _accessScopeService;
+
     public VoterService(
         HR28DbContext dbContext,
         IAuditService auditService,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IAccessScopeService accessScopeService)
     {
         _dbContext = dbContext;
         _auditService = auditService;
         _httpContextAccessor = httpContextAccessor;
+        _accessScopeService = accessScopeService;
+    }
+
+    private async Task<HR28.Application.DTOs.Access.AccessScope> GetCurrentScopeAsync()
+    {
+        var userId = GetCurrentUserId()
+            ?? throw new HR28.Application.Common.AccessDeniedException("You must be signed in.");
+
+        return await _accessScopeService.GetAsync(userId);
     }
     private Guid? GetCurrentUserId()
     {
@@ -55,6 +67,20 @@ public class VoterService : IVoterService
     public async Task<VoterDto> CreateVoterAsync(
         CreateVoterDto request)
     {
+        var scope = await GetCurrentScopeAsync();
+
+        if (!scope.Allows(request.ConstituencyId, request.IslandId))
+        {
+            throw new HR28.Application.Common.AccessDeniedException(
+                "You can only add voters within your assigned area.");
+        }
+
+        if (await _dbContext.Voters.AnyAsync(v => v.NationalId == request.NationalId))
+        {
+            throw new HR28.Application.Common.BusinessRuleException(
+                $"A voter with National ID {request.NationalId} already exists.");
+        }
+
         var voter = new Voter
         {
             Id = Guid.NewGuid(),
@@ -184,11 +210,28 @@ public class VoterService : IVoterService
     Guid id,
     UpdateVoterDto request)
     {
+        var scope = await GetCurrentScopeAsync();
+
+        // Only voters inside the scope can be found; others behave as not found.
         var voter = await _dbContext.Voters
+            .InScope(scope)
             .FirstOrDefaultAsync(v => v.Id == id);
 
         if (voter == null)
-            throw new Exception("Voter not found.");
+            throw new KeyNotFoundException("Voter not found.");
+
+        if (!scope.Allows(request.ConstituencyId, request.IslandId))
+        {
+            throw new HR28.Application.Common.AccessDeniedException(
+                "You can only move voters within your assigned area.");
+        }
+
+        if (voter.NationalId != request.NationalId &&
+            await _dbContext.Voters.AnyAsync(v => v.Id != id && v.NationalId == request.NationalId))
+        {
+            throw new HR28.Application.Common.BusinessRuleException(
+                $"Another voter already has National ID {request.NationalId}.");
+        }
 
         voter.NationalId = request.NationalId;
         voter.FullName = request.FullName;
@@ -213,7 +256,7 @@ public class VoterService : IVoterService
             .FirstOrDefaultAsync(v => v.Id == id);
 
         if (voter == null)
-            throw new Exception("Voter not found.");
+            throw new KeyNotFoundException("Voter not found.");
 
         _dbContext.Voters.Remove(voter);
 
@@ -322,9 +365,13 @@ public class VoterService : IVoterService
     // Keep your existing influencer,
     // encounter and pledge queries below.
     public async Task<List<VoterDto>> GetRecentAsync(
+        Guid userId,
         int count = 10)
     {
-        return await _dbContext.Voters
+        var query = await GetAuthorizedVoterQueryAsync(userId);
+
+        return await query
+            .AsNoTracking()
             .OrderByDescending(v => v.CreatedAt)
             .Take(count)
             .Select(v => new VoterDto
@@ -336,6 +383,8 @@ public class VoterService : IVoterService
                 MobileNumber = v.MobileNumber,
                 ConstituencyId = v.ConstituencyId,
                 IslandId = v.IslandId,
+                ConstituencyName = v.Constituency != null ? v.Constituency.Name : string.Empty,
+                IslandName = v.Island != null ? v.Island.Name : string.Empty,
                 Remarks = v.Remarks,
                 SupportStatus = v.SupportStatus
             })

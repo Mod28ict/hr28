@@ -1,4 +1,5 @@
-﻿using HR28.Application.DTOs.Pledges;
+﻿using HR28.Application.Common;
+using HR28.Application.DTOs.Pledges;
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using HR28.Infrastructure.Data;
@@ -13,15 +14,28 @@ public class PledgeService : IPledgeService
     private readonly HR28DbContext _dbContext;
     private readonly IAuditService _auditService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IAccessScopeService _accessScopeService;
 
     public PledgeService(
         HR28DbContext dbContext,
         IAuditService auditService,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IAccessScopeService accessScopeService)
     {
         _dbContext = dbContext;
         _auditService = auditService;
         _httpContextAccessor = httpContextAccessor;
+        _accessScopeService = accessScopeService;
+    }
+
+    private async Task EnsureVoterInScopeAsync(Guid voterId)
+    {
+        var userId = GetCurrentUserId()
+            ?? throw new AccessDeniedException("You must be signed in.");
+
+        await _dbContext.EnsureVoterInScopeAsync(
+            await _accessScopeService.GetAsync(userId),
+            voterId);
     }
 
     private Guid? GetCurrentUserId()
@@ -41,6 +55,8 @@ public class PledgeService : IPledgeService
         Guid userId,
         CreatePledgeDto request)
     {
+        await EnsureVoterInScopeAsync(request.VoterId);
+
         var pledge = new Pledge
         {
             Id = Guid.NewGuid(),
@@ -83,6 +99,8 @@ public class PledgeService : IPledgeService
     public async Task<List<PledgeDto>>
         GetByVoterIdAsync(Guid voterId)
     {
+        await EnsureVoterInScopeAsync(voterId);
+
         return await _dbContext.Pledges
             .Where(p => p.VoterId == voterId)
             .OrderByDescending(p => p.PledgeDate)
@@ -111,8 +129,10 @@ public class PledgeService : IPledgeService
 
         if (pledge == null)
         {
-            throw new Exception("Pledge not found.");
+            throw new KeyNotFoundException("Pledge not found.");
         }
+
+        await EnsureVoterInScopeAsync(pledge.VoterId);
 
         pledge.Status = request.Status;
         pledge.ResolutionNotes = request.ResolutionNotes;
