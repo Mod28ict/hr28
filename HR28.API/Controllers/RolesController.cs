@@ -26,11 +26,14 @@ public class RolesController : ControllerBase
                 .Select(r => new
                 {
                     r.Id,
-                    r.Name
+                    r.Name,
+                    r.Description
                 })
-                .OrderBy(r => r.Name)
                 .ToListAsync();
 
-        return Ok(roles);
+        // Highest authority first, so the assignment screen reads top-down.
+        return Ok(roles
+            .OrderBy(r => HR28.Application.DTOs.Users.RoleOrder.Rank(r.Name))
+            .ThenBy(r => r.Name));
     }
 }

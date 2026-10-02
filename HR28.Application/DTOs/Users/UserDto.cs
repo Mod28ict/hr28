@@ -25,7 +25,14 @@ public class UserDto
     public bool IsActive { get; set; }
 
     public DateTime? LastLoginAt { get; set; }
+    /// <summary>The user's highest-authority role (kept for screens that show one).</summary>
     public string? RoleName { get; set; }
+
+    /// <summary>All of the user's roles, highest authority first.</summary>
+    public List<string> Roles { get; set; } = new();
+
+    /// <summary>All of the user's areas.</summary>
+    public List<UserScopeDto> Scopes { get; set; } = new();
 
     public string? ConstituencyName { get; set; }
 

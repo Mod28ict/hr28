@@ -118,7 +118,12 @@
                             <p class="ui-sub">@(string.IsNullOrWhiteSpace(a.Designation) ? HR28.Web.Services.Hr28Roles.DisplayName(a.RoleName) : $"{a.Designation} · {HR28.Web.Services.Hr28Roles.DisplayName(a.RoleName)}")</p>
                         </div>
                     </div>
-                    <span class="ui-pill @(a.IsAdministrator ? "is-blue" : "is-violet")">@HR28.Web.Services.Hr28Roles.DisplayName(a.RoleName)</span>
+                    <div class="ui-chip-row">
+                        @foreach (var r in (a.Roles.Count > 0 ? a.Roles : new List<string> { a.RoleName }))
+                        {
+                            <span class="ui-pill @(a.IsAdministrator ? "is-blue" : "is-violet")">@HR28.Web.Services.Hr28Roles.DisplayName(r)</span>
+                        }
+                    </div>
                 </div>
 
                 <dl class="ui-details">

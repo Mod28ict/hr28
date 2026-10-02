@@ -28,7 +28,11 @@ public class MyAccountDto
 
     public string Email { get; set; } = string.Empty;
 
+    /// <summary>Highest-authority role, for display.</summary>
     public string RoleName { get; set; } = string.Empty;
+
+    /// <summary>All roles; the web app combines their permissions.</summary>
+    public List<string> Roles { get; set; } = new();
 
     public bool IsAdministrator { get; set; }
 

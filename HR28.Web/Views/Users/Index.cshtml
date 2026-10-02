@@ -104,8 +104,8 @@
                             <th>User</th>
                             <th>National ID</th>
                             <th>Contact</th>
-                            <th>Role</th>
-                            <th>Scope</th>
+                            <th>Roles</th>
+                            <th>Areas</th>
                             <th>Status</th>
                             <th><span class="visually-hidden">Actions</span></th>
                         </tr>
@@ -116,19 +116,21 @@
                         {
                             var name = string.IsNullOrWhiteSpace(user.FullName) ? "Unnamed user" : user.FullName;
 
-                            var role = user.RoleName ?? string.Empty;
-                            var roleKey = role.ToLowerInvariant();
-                            var roleTone =
-                                string.IsNullOrWhiteSpace(role) ? "is-amber" :
-                                roleKey.Contains("super") ? "is-violet" :
-                                roleKey.Contains("national") ? "is-blue" :
-                                roleKey.Contains("reporter") ? "is-cyan" :
-                                "is-muted";
+                            var roles = user.Roles.Count > 0
+                                ? user.Roles
+                                : (string.IsNullOrWhiteSpace(user.RoleName) ? new List<string>() : new List<string> { user.RoleName });
 
-                            var scope = string.IsNullOrWhiteSpace(user.ConstituencyName)
-                                ? string.Empty
-                                : user.ConstituencyName +
-                                  (string.IsNullOrWhiteSpace(user.IslandName) ? "" : " / " + user.IslandName);
+                            string RoleTone(string role)
+                            {
+                                var key = role.ToLowerInvariant();
+                                return key.Contains("super") ? "is-violet" :
+                                       key.Contains("national") ? "is-blue" :
+                                       key.Contains("reporter") ? "is-cyan" :
+                                       "is-muted";
+                            }
+
+                            var isAdminUser = HR28.Web.Services.Hr28Roles.IsAdministrator(
+                                HR28.Web.Services.Hr28Roles.ToSession(roles));
 
                             <tr>
                                 <td>
@@ -155,19 +157,37 @@
                                 </td>
 
                                 <td>
-                                    <span class="ui-pill @roleTone">
-                                        @HR28.Web.Services.Hr28Roles.DisplayName(role)
-                                    </span>
+                                    <div class="ui-chip-row">
+                                        @if (!roles.Any())
+                                        {
+                                            <span class="ui-pill is-amber">No role</span>
+                                        }
+                                        @foreach (var r in roles)
+                                        {
+                                            <span class="ui-pill @RoleTone(r)">@HR28.Web.Services.Hr28Roles.DisplayName(r)</span>
+                                        }
+                                    </div>
                                 </td>
 
-                                <td style="min-width: 140px;">
-                                    @if (string.IsNullOrWhiteSpace(scope))
+                                <td style="min-width: 160px;">
+                                    @if (isAdminUser)
+                                    {
+                                        <span class="ui-muted">All areas</span>
+                                    }
+                                    else if (!user.Scopes.Any())
                                     {
                                         <span class="ui-faint">Not assigned</span>
                                     }
                                     else
                                     {
-                                        @scope
+                                        foreach (var s in user.Scopes.Take(2))
+                                        {
+                                            <div style="font-size: 13px;">@s.Label</div>
+                                        }
+                                        if (user.Scopes.Count > 2)
+                                        {
+                                            <a asp-action="AssignScope" asp-route-id="@user.Id" class="ui-link" style="font-size: 12px;">+@(user.Scopes.Count - 2) more</a>
+                                        }
                                     }
                                 </td>
 
@@ -182,13 +202,13 @@
                                         <a asp-action="AssignRole"
                                            asp-route-id="@user.Id"
                                            class="ui-btn ui-btn-soft is-violet ui-btn-sm">
-                                            Role
+                                            Roles
                                         </a>
 
                                         <a asp-action="AssignScope"
                                            asp-route-id="@user.Id"
                                            class="ui-btn ui-btn-soft is-cyan ui-btn-sm">
-                                            Scope
+                                            Areas
                                         </a>
 
                                         <form asp-action="ResetCode"

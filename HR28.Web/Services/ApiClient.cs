@@ -138,6 +138,9 @@ public class ApiClient
     public Task<ApiResult<T>> PostAsync<T>(string path, object body, string? token) =>
         SendAsync<T>(HttpMethod.Post, path, body, token);
 
+    public Task<ApiResult<object>> DeleteAsync(string path, string? token) =>
+        SendAsync<object>(HttpMethod.Delete, path, null, token);
+
     public Task<ApiResult<T>> PutAsync<T>(string path, object body, string? token) =>
         SendAsync<T>(HttpMethod.Put, path, body, token);
 

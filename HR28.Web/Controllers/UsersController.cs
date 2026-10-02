@@ -13,9 +13,8 @@ public class UsersController : Controller
     private readonly ApiClient _apiClient;
     private bool IsSuperAdmin()
     {
-        return HttpContext.Session.GetString(
-            "UserRole")
-            == "Super Administrator";
+        return Hr28Roles.IsSuperAdministrator(
+            HttpContext.Session.GetString("UserRole"));
     }
 
     public UsersController(
@@ -164,28 +163,41 @@ public class UsersController : Controller
             HttpContext.Session.GetString(
                 "JwtToken");
 
-        var user =
-            (await _dashboardService
-                .GetUsersAsync(token))
-            ?.FirstOrDefault(x => x.Id == id);
+        var user = await _apiClient.GetAsync<UserDto>($"Users/{id}", token);
 
-        var model =
-            new UserAccessViewModel
-            {
-                UserId = id,
-                UserName =
-                    user?.FullName ?? string.Empty,
-                Roles =
-                    await _dashboardService
-                        .GetRolesAsync(token)
-                    ?? new()
-            };
+        if (user.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!user.Success || user.Data == null)
+        {
+            TempData["FlashError"] = "That user could not be found.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var roles = await _dashboardService.GetRolesAsync(token) ?? new();
+
+        var model = new UserRolesViewModel
+        {
+            UserId = id,
+            UserName = user.Data.FullName,
+            Roles = roles,
+            SelectedRoleIds = roles
+                .Where(r => user.Data.Roles.Contains(r.Name))
+                .Select(r => r.Id)
+                .ToList()
+        };
 
         return View(model);
     }
+
+    /// <summary>Saves the ticked roles. Permissions are the combination of all of them.</summary>
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> AssignRole(
-        UserAccessViewModel model)
+        UserRolesViewModel model)
     {
         if (!IsSuperAdmin())
         {
@@ -197,19 +209,15 @@ public class UsersController : Controller
             HttpContext.Session.GetString(
                 "JwtToken");
 
-        if (model.RoleId == null)
+        if (model.SelectedRoleIds.Count == 0)
         {
-            ModelState.AddModelError(string.Empty, "Please choose a role.");
+            ModelState.AddModelError(string.Empty, "Tick at least one role.");
         }
         else
         {
-            var result = await _apiClient.PostAsync<object>(
-                $"Users/{model.UserId}/role",
-                new AssignRoleDto
-                {
-                    UserId = model.UserId,
-                    RoleId = model.RoleId.Value
-                },
+            var result = await _apiClient.PutAsync<object>(
+                $"Users/{model.UserId}/roles",
+                new { roleIds = model.SelectedRoleIds },
                 token);
 
             if (result.IsUnauthorized)
@@ -221,7 +229,7 @@ public class UsersController : Controller
             if (result.Success)
             {
                 TempData["SuccessMessage"] =
-                    $"{model.UserName}'s role was updated. The change applies straight away.";
+                    $"{model.UserName}'s roles were updated. The change applies straight away.";
 
                 return RedirectToAction(nameof(Index));
             }
@@ -257,37 +265,42 @@ public class UsersController : Controller
                 "Auth");
         }
 
-        var user =
-            (await _dashboardService
-                .GetUsersAsync(token))
-            ?.FirstOrDefault(x => x.Id == id);
+        var user = await _apiClient.GetAsync<UserDto>($"Users/{id}", token);
 
-        if (user == null)
+        if (user.IsUnauthorized)
         {
-            return NotFound();
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
         }
 
-        var model =
-            new UserAccessViewModel
-            {
-                UserId = user.Id,
-                UserName = user.FullName,
+        if (!user.Success || user.Data == null)
+        {
+            TempData["FlashError"] = "That user could not be found.";
+            return RedirectToAction(nameof(Index));
+        }
 
-                Constituencies =
-                    await _dashboardService
-                        .GetConstituenciesAsync(token)
-                    ?? new(),
-
-                Islands = new()
-            };
+        var model = new UserAreasViewModel
+        {
+            UserId = user.Data.Id,
+            UserName = user.Data.FullName,
+            Scopes = user.Data.Scopes,
+            IsAdministrator = Hr28Roles.IsAdministrator(Hr28Roles.ToSession(user.Data.Roles)),
+            Constituencies =
+                await _dashboardService
+                    .GetConstituenciesAsync(token)
+                ?? new()
+        };
 
         return View(model);
     }
 
+    /// <summary>Adds one area (a whole constituency, or one island in it).</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AssignScope(
-        UserAccessViewModel model)
+        Guid userId,
+        Guid? constituencyId,
+        Guid? islandId)
     {
         if (!IsSuperAdmin())
         {
@@ -295,86 +308,62 @@ public class UsersController : Controller
                 "Index",
                 "Dashboard");
         }
-        var token =
-            HttpContext.Session.GetString("JwtToken");
 
-        if (string.IsNullOrWhiteSpace(token))
+        if (constituencyId == null)
+        {
+            TempData["FlashError"] = "Choose a constituency to add.";
+            return RedirectToAction(nameof(AssignScope), new { id = userId });
+        }
+
+        var result = await _apiClient.PostAsync<UserScopeDto>(
+            $"Users/{userId}/scopes",
+            new { constituencyId, islandId },
+            HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (result.Success)
+            TempData["SuccessMessage"] = $"Added {result.Data?.Label}. The change applies straight away.";
+        else
+            TempData["FlashError"] = result.Message;
+
+        return RedirectToAction(nameof(AssignScope), new { id = userId });
+    }
+
+    /// <summary>Removes one area from the user.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveScope(Guid userId, Guid scopeId, string? label)
+    {
+        if (!IsSuperAdmin())
         {
             return RedirectToAction(
-                "Login",
-                "Auth");
+                "Index",
+                "Dashboard");
         }
 
-        if (!model.ConstituencyId.HasValue)
+        var result = await _apiClient.DeleteAsync(
+            $"Users/{userId}/scopes/{scopeId}",
+            HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
         {
-            ModelState.AddModelError(
-                nameof(model.ConstituencyId),
-                "Please select a constituency.");
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
         }
 
-        if (!ModelState.IsValid)
-        {
-            await PopulateScopeLookupsAsync(
-                model,
-                token);
+        if (result.Success)
+            TempData["SuccessMessage"] = $"Removed {label}. The change applies straight away.";
+        else
+            TempData["FlashError"] = result.Message;
 
-            return View(model);
-        }
-
-        var success =
-            await _dashboardService
-                .AssignScopeAsync(
-                    new AssignScopeDto
-                    {
-                        UserId = model.UserId,
-                        ConstituencyId =
-                            model.ConstituencyId,
-                        IslandId =
-                            model.IslandId
-                    },
-                    token);
-
-        if (!success)
-        {
-            ModelState.AddModelError(
-                string.Empty,
-                "The scope could not be assigned.");
-
-            await PopulateScopeLookupsAsync(
-                model,
-                token);
-
-            return View(model);
-        }
-
-        TempData["SuccessMessage"] =
-            $"Scope assigned successfully to {model.UserName}.";
-
-
-
-        return RedirectToAction(
-            nameof(Index));
+        return RedirectToAction(nameof(AssignScope), new { id = userId });
     }
 
-    private async Task PopulateScopeLookupsAsync(
-        UserAccessViewModel model,
-        string token)
-    {
-        model.Constituencies =
-            await _dashboardService
-                .GetConstituenciesAsync(token)
-            ?? new();
-
-        model.Islands =
-            model.ConstituencyId.HasValue
-            && model.ConstituencyId.Value != Guid.Empty
-                ? await _dashboardService
-                    .GetIslandsByConstituencyAsync(
-                        model.ConstituencyId.Value,
-                        token)
-                    ?? new()
-                : new();
-    }
     [HttpGet]
     public async Task<IActionResult> GetIslands(
         Guid constituencyId)

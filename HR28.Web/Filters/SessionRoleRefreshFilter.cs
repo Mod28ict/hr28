@@ -51,7 +51,12 @@ public class SessionRoleRefreshFilter : IAsyncActionFilter
 
         if (account.Success && account.Data != null)
         {
-            session.SetString("UserRole", account.Data.RoleName ?? string.Empty);
+            session.SetString(
+                "UserRole",
+                Hr28Roles.ToSession(
+                    account.Data.Roles.Count > 0
+                        ? account.Data.Roles
+                        : new[] { account.Data.RoleName }));
             session.SetString("UserName", account.Data.FullName ?? string.Empty);
         }
 

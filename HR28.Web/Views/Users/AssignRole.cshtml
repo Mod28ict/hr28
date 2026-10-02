@@ -1,7 +1,18 @@
-@model HR28.Web.Models.Users.UserAccessViewModel
+@model HR28.Web.Models.Users.UserRolesViewModel
 
 @{
-    ViewData["Title"] = "Assign Role";
+    ViewData["Title"] = "Roles";
+
+    // Plain-language summaries shown under each role (falls back to the stored description).
+    var explain = new Dictionary<string, string>
+    {
+        ["Super Administrator"] = "Manages users, roles, areas and settings. Sees everything.",
+        ["National Administrator"] = "Sees and works with every record in every constituency.",
+        ["Constituency Administrator"] = "Works with records in the constituencies assigned to this user.",
+        ["Island Administrator"] = "Works with records on the islands assigned to this user.",
+        ["Collector"] = "Adds and updates voters, encounters and pledges in their areas.",
+        ["Reporter"] = "Views reports for their areas. Cannot change records on its own."
+    };
 }
 
 <div class="ui-page is-narrow">
@@ -11,10 +22,10 @@
             <span class="ui-head-icon is-violet"><partial name="_Icon" model='"shield"' /></span>
             <div>
                 <nav class="ui-crumb" aria-label="Breadcrumb">
-                    <a asp-action="Index">Users</a> <span aria-hidden="true">/</span> <span>Assign role</span>
+                    <a asp-action="Index">Users</a> <span aria-hidden="true">/</span> <span>Roles</span>
                 </nav>
-                <h1 class="ui-title">Assign Role</h1>
-                <p class="ui-sub">Roles decide what a user can do. Their scope decides which records it applies to.</p>
+                <h1 class="ui-title">Roles for @Model.UserName</h1>
+                <p class="ui-sub">Tick every role this person needs. They get the combined permissions of all ticked roles.</p>
             </div>
         </div>
     </header>
@@ -24,36 +35,47 @@
         <form method="post">
 
             <input asp-for="UserId" type="hidden" />
+            <input asp-for="UserName" type="hidden" />
 
             <div asp-validation-summary="ModelOnly" class="ui-summary"></div>
 
-            <div class="ui-field">
-                <span class="ui-label">User</span>
-                <div class="ui-person" style="padding: 12px 14px; border-radius: 12px; background: var(--ui-subtle);">
-                    <span class="ui-avatar" aria-hidden="true"><partial name="_Icon" model='"user"' /></span>
-                    <strong>@Model.UserName</strong>
-                </div>
-            </div>
+            <fieldset>
+                <legend class="ui-label">Roles</legend>
 
-            <div class="ui-field">
-                <label asp-for="RoleId" class="ui-label">Role</label>
-
-                <select asp-for="RoleId" class="ui-select">
-                    <option value="">Select Role</option>
-
+                <div class="ui-check-list">
                     @foreach (var role in Model.Roles)
                     {
-                        <option value="@role.Id">@HR28.Web.Services.Hr28Roles.DisplayName(role.Name)</option>
-                    }
-                </select>
+                        var isChecked = Model.SelectedRoleIds.Contains(role.Id);
+                        var text = explain.TryGetValue(role.Name, out var plain)
+                            ? plain
+                            : role.Description;
 
-                <span asp-validation-for="RoleId" class="ui-error"></span>
+                        <label class="ui-check-card">
+                            <input type="checkbox"
+                                   name="SelectedRoleIds"
+                                   value="@role.Id"
+                                   checked="@isChecked" />
+                            <span>
+                                <strong>@HR28.Web.Services.Hr28Roles.DisplayName(role.Name)</strong>
+                                @if (!string.IsNullOrWhiteSpace(text))
+                                {
+                                    <small>@text</small>
+                                }
+                            </span>
+                        </label>
+                    }
+                </div>
+            </fieldset>
+
+            <div class="ui-note is-muted" style="margin-top: 18px;">
+                <partial name="_Icon" model='"info"' />
+                <span>Roles decide <strong style="display: inline;">what</strong> someone can do. Their areas decide <strong style="display: inline;">where</strong>. Set areas from the Users list.</span>
             </div>
 
             <div class="ui-form-actions">
                 <button type="submit" class="ui-btn ui-btn-primary">
                     <partial name="_Icon" model='"check"' />
-                    Save role
+                    Save roles
                 </button>
 
                 <a asp-action="Index" class="ui-btn ui-btn-secondary">Cancel</a>

@@ -204,12 +204,11 @@ public class AuthService : IAuthService
         user.FailedLoginAttempts = 0;
         user.LockedUntilUtc = null;
         await _dbContext.SaveChangesAsync();
-        var roleName =
-    await _dbContext.UserRoles
-        .Where(x => x.UserId == user.Id)
-        .Select(x => x.Role.Name)
-        .FirstOrDefaultAsync()
-    ?? string.Empty;
+        var roles = HR28.Application.DTOs.Users.RoleOrder.Sort(
+            await _dbContext.UserRoles
+                .Where(x => x.UserId == user.Id)
+                .Select(x => x.Role.Name)
+                .ToListAsync());
 
 
         return new LoginResponseDto
@@ -220,7 +219,8 @@ public class AuthService : IAuthService
 
             UserId = user.Id,
             FullName = user.FullName,
-            RoleName = roleName
+            RoleName = roles.FirstOrDefault() ?? string.Empty,
+            Roles = roles
         };
     }
 }

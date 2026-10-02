@@ -1087,6 +1087,103 @@ a.ui-page-btn:hover {
         background: var(--tone);
     }
 
+/* ---------- Checkbox cards (roles) ---------- */
+
+.ui-check-list {
+    display: grid;
+    gap: 10px;
+}
+
+.ui-check-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 12px;
+    background: var(--ui-surface);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+    .ui-check-card:hover {
+        border-color: #a9b6c9;
+    }
+
+    .ui-check-card:has(input:checked) {
+        border-color: var(--ui-blue);
+        background: var(--ui-blue-soft);
+    }
+
+    .ui-check-card:has(input:focus-visible) {
+        outline: 3px solid #60a5fa;
+        outline-offset: 2px;
+    }
+
+    .ui-check-card input {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 18px;
+        margin-top: 2px;
+        accent-color: var(--ui-blue);
+    }
+
+    .ui-check-card strong {
+        display: block;
+        font-size: 15px;
+    }
+
+    .ui-check-card small {
+        display: block;
+        margin-top: 2px;
+        color: var(--ui-muted);
+        font-size: 13px;
+    }
+
+fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+/* ---------- Area list ---------- */
+
+.ui-area-list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+    .ui-area-list li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--ui-border);
+    }
+
+        .ui-area-list li:last-child {
+            border-bottom: 0;
+        }
+
+    .ui-area-list strong {
+        display: block;
+        font-size: 15px;
+    }
+
+    .ui-area-list small {
+        display: block;
+        font-size: 12px;
+    }
+
+.ui-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
 /* ---------- Tabs ---------- */
 
 .ui-tabs {

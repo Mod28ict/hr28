@@ -87,9 +87,13 @@ public class AuthController : Controller
         HttpContext.Session.SetString(
             "JwtToken",
             response.Token);
+        // All roles, so menus reflect the combination of the user's permissions.
         HttpContext.Session.SetString(
             "UserRole",
-            response.RoleName);
+            Hr28Roles.ToSession(
+                response.Roles.Count > 0
+                    ? response.Roles
+                    : new[] { response.RoleName }));
 
         HttpContext.Session.SetString(
             "UserName",

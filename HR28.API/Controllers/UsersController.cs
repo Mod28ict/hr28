@@ -74,6 +74,37 @@ public class UsersController : ControllerBase
         return Ok(new { authorizationCode = code });
     }
 
+    /// <summary>Sets all of a user's roles at once (at least one).</summary>
+    [HttpPut("{userId}/roles")]
+    public async Task<IActionResult> SetRoles(
+        Guid userId,
+        [FromBody] SetRolesDto request)
+    {
+        await _userService.SetRolesAsync(userId, request.RoleIds);
+
+        return NoContent();
+    }
+
+    /// <summary>Adds an area: a whole constituency, or one island in it.</summary>
+    [HttpPost("{userId}/scopes")]
+    public async Task<IActionResult> AddScope(
+        Guid userId,
+        [FromBody] AssignScopeDto request)
+    {
+        return Ok(await _userService.AddScopeAsync(
+            userId,
+            request.ConstituencyId,
+            request.IslandId));
+    }
+
+    [HttpDelete("{userId}/scopes/{scopeId}")]
+    public async Task<IActionResult> RemoveScope(Guid userId, Guid scopeId)
+    {
+        await _userService.RemoveScopeAsync(userId, scopeId);
+
+        return NoContent();
+    }
+
     [HttpPost("{userId}/role")]
     public async Task<IActionResult> AssignRole(
         Guid userId,

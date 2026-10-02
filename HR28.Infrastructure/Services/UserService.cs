@@ -155,98 +155,115 @@ public class UserService : IUserService
 
     public async Task<List<UserDto>> GetUsersAsync()
     {
-        return await _dbContext.Users
-            .Select(user => new UserDto
-            {
-                Id = user.Id,
-                NationalId = user.NationalId,
-                FullName = user.FullName,
-                Address = user.Address,
-                MobileNumber = user.MobileNumber,
-                Email = user.Email,
-                Designation = user.Designation,
-                IsActive = user.IsActive,
-                LastLoginAt = user.LastLoginAt,
-
-                RoleName =
-                    user.UserRoles
-                        .Select(x => x.Role.Name)
-                        .FirstOrDefault(),
-
-                ConstituencyName =
-                    user.UserScopes
-                        .Select(x => x.Constituency.Name)
-                        .FirstOrDefault(),
-
-                IslandName =
-                    user.UserScopes
-                        .Select(x => x.Island.Name)
-                        .FirstOrDefault()
-            })
-            .ToListAsync();
+        return await QueryUsersAsync(_dbContext.Users);
     }
 
     public async Task<UserDto?> GetUserByIdAsync(Guid id)
     {
-        return await _dbContext.Users
-            .Where(user => user.Id == id)
-            .Select(user => new UserDto
+        return (await QueryUsersAsync(_dbContext.Users.Where(u => u.Id == id)))
+            .FirstOrDefault();
+    }
+
+    /// <summary>Loads users with all their roles and areas (no codes).</summary>
+    private static async Task<List<UserDto>> QueryUsersAsync(IQueryable<User> users)
+    {
+        var rows = await users
+            .AsNoTracking()
+            .OrderBy(u => u.FullName)
+            .Select(user => new
             {
-                Id = user.Id,
-                NationalId = user.NationalId,
-                FullName = user.FullName,
-                Address = user.Address,
-                MobileNumber = user.MobileNumber,
-                Email = user.Email,
-                Designation = user.Designation,
-                IsActive = user.IsActive,
-                LastLoginAt = user.LastLoginAt,
-
-                RoleName =
-                    user.UserRoles
-                        .Select(x => x.Role.Name)
-                        .FirstOrDefault(),
-
-                ConstituencyName =
-                    user.UserScopes
-                        .Select(x => x.Constituency.Name)
-                        .FirstOrDefault(),
-
-                IslandName =
-                    user.UserScopes
-                        .Select(x => x.Island.Name)
-                        .FirstOrDefault()
+                user.Id,
+                user.NationalId,
+                user.FullName,
+                user.Address,
+                user.MobileNumber,
+                user.Email,
+                user.Designation,
+                user.IsActive,
+                user.LastLoginAt,
+                Roles = user.UserRoles.Select(x => x.Role.Name).ToList(),
+                Scopes = user.UserScopes
+                    .Select(s => new UserScopeDto
+                    {
+                        Id = s.Id,
+                        ConstituencyId = s.ConstituencyId,
+                        ConstituencyName = s.Constituency != null ? s.Constituency.Name : string.Empty,
+                        IslandId = s.IslandId,
+                        IslandName = s.Island != null ? s.Island.Name : null
+                    })
+                    .ToList()
             })
-            .FirstOrDefaultAsync();
+            .ToListAsync();
+
+        return rows.Select(r =>
+        {
+            var roles = RoleOrder.Sort(r.Roles);
+            var scopes = r.Scopes
+                .OrderBy(s => s.ConstituencyName)
+                .ThenBy(s => s.IslandName)
+                .ToList();
+
+            return new UserDto
+            {
+                Id = r.Id,
+                NationalId = r.NationalId,
+                FullName = r.FullName,
+                Address = r.Address,
+                MobileNumber = r.MobileNumber,
+                Email = r.Email,
+                Designation = r.Designation,
+                IsActive = r.IsActive,
+                LastLoginAt = r.LastLoginAt,
+                Roles = roles,
+                RoleName = roles.FirstOrDefault(),
+                Scopes = scopes,
+                ConstituencyName = scopes.FirstOrDefault()?.ConstituencyName,
+                IslandName = scopes.FirstOrDefault()?.IslandName
+            };
+        }).ToList();
     }
     /// <summary>
     /// Sets the user's role, replacing any previous role (the screen offers a single
     /// choice). Previously this only added roles, so a demoted user kept old rights.
     /// </summary>
-    public async Task AssignRoleAsync(
-    Guid userId,
-    Guid roleId)
+    public Task AssignRoleAsync(Guid userId, Guid roleId) =>
+        SetRolesAsync(userId, new[] { roleId });
+
+    /// <summary>
+    /// Replaces the user's roles with exactly this set. Permissions are the
+    /// combination of all roles. At least one role is required, and the last
+    /// active Administrator cannot lose that role.
+    /// </summary>
+    public async Task SetRolesAsync(Guid userId, IReadOnlyCollection<Guid> roleIds)
     {
-        var role = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Id == roleId)
-            ?? throw new BusinessRuleException("Please choose a valid role.");
+        var wanted = roleIds.Distinct().ToList();
+
+        if (wanted.Count == 0)
+            throw new BusinessRuleException("Choose at least one role.");
 
         if (!await _dbContext.Users.AnyAsync(u => u.Id == userId))
             throw new KeyNotFoundException("User not found.");
+
+        var roles = await _dbContext.Roles
+            .Where(r => wanted.Contains(r.Id))
+            .ToListAsync();
+
+        if (roles.Count != wanted.Count)
+            throw new BusinessRuleException("One of the chosen roles is not valid. Please reload the page.");
 
         var current = await _dbContext.UserRoles
             .Include(x => x.Role)
             .Where(x => x.UserId == userId)
             .ToListAsync();
 
-        if (current.Count == 1 && current[0].RoleId == roleId)
+        var removed = current.Where(c => !wanted.Contains(c.RoleId)).ToList();
+        var added = roles.Where(r => current.All(c => c.RoleId != r.Id)).ToList();
+
+        if (removed.Count == 0 && added.Count == 0)
             return;
 
         // Never remove the last active Administrator, or nobody could manage users.
-        var losingSuperAdmin =
-            current.Any(x => x.Role.Name == AccessScopeService.SuperAdministratorRole) &&
-            role.Name != AccessScopeService.SuperAdministratorRole;
-
-        if (losingSuperAdmin)
+        if (removed.Any(x => x.Role.Name == AccessScopeService.SuperAdministratorRole))
         {
             var otherSuperAdmins = await _dbContext.UserRoles.CountAsync(x =>
                 x.UserId != userId &&
@@ -260,73 +277,150 @@ public class UserService : IUserService
             }
         }
 
-        var oldNames = string.Join(", ", current.Select(x => x.Role.Name).OrderBy(n => n));
+        _dbContext.UserRoles.RemoveRange(removed);
 
-        _dbContext.UserRoles.RemoveRange(current);
-        _dbContext.UserRoles.Add(new UserRole
-        {
-            UserId = userId,
-            RoleId = roleId
-        });
+        foreach (var role in added)
+            _dbContext.UserRoles.Add(new UserRole { UserId = userId, RoleId = role.Id });
 
         await _dbContext.SaveChangesAsync();
 
         _accessScopeService.Invalidate(userId);
 
+        var changes = new List<string>();
+
+        if (added.Count > 0)
+            changes.Add("added " + string.Join(", ", RoleOrder.Sort(added.Select(r => r.Name))));
+
+        if (removed.Count > 0)
+            changes.Add("removed " + string.Join(", ", RoleOrder.Sort(removed.Select(r => r.Role.Name))));
+
         await _auditService.LogAsync(
             GetCurrentUserId(),
-            $"Role changed from \"{(oldNames.Length == 0 ? "none" : oldNames)}\" to \"{role.Name}\"",
+            "Roles changed: " + string.Join("; ", changes),
             "User",
             userId.ToString());
     }
 
+    /// <summary>Kept for the old single-scope endpoint: now adds an area.</summary>
     public async Task AssignScopeAsync(
         Guid userId,
         Guid? constituencyId,
         Guid? islandId)
     {
+        await AddScopeAsync(userId, constituencyId, islandId);
+    }
+
+    /// <summary>
+    /// Adds one area (a whole constituency, or one island in it). A user can
+    /// have many; they see records in any of them.
+    /// </summary>
+    public async Task<UserScopeDto> AddScopeAsync(Guid userId, Guid? constituencyId, Guid? islandId)
+    {
+        if (constituencyId == null)
+            throw new BusinessRuleException("Please choose a constituency.");
+
         if (!await _dbContext.Users.AnyAsync(u => u.Id == userId))
             throw new KeyNotFoundException("User not found.");
 
-        var existingScope = await _dbContext.UserScopes
-            .Include(x => x.Constituency)
-            .Include(x => x.Island)
-            .FirstOrDefaultAsync(x => x.UserId == userId);
+        var constituencyName = await _dbContext.Constituencies
+            .Where(c => c.Id == constituencyId)
+            .Select(c => c.Name)
+            .FirstOrDefaultAsync()
+            ?? throw new BusinessRuleException("Please choose a valid constituency.");
 
-        string Describe(string? constituency, string? island) =>
-            constituency == null
-                ? "none"
-                : island == null ? $"{constituency} (all islands)" : $"{island}, {constituency}";
+        string? islandName = null;
 
-        var oldScope = Describe(existingScope?.Constituency?.Name, existingScope?.Island?.Name);
-
-        if (existingScope != null)
+        if (islandId != null)
         {
-            existingScope.ConstituencyId = constituencyId;
-            existingScope.IslandId = islandId;
+            var belongs =
+                await _dbContext.ConstituencyIslands.AnyAsync(ci =>
+                    ci.ConstituencyId == constituencyId && ci.IslandId == islandId) ||
+                await _dbContext.Islands.AnyAsync(i =>
+                    i.Id == islandId && i.ConstituencyId == constituencyId);
+
+            if (!belongs)
+                throw new BusinessRuleException("That island is not part of the chosen constituency.");
+
+            islandName = await _dbContext.Islands
+                .Where(i => i.Id == islandId)
+                .Select(i => i.Name)
+                .FirstAsync();
         }
-        else
+
+        var existing = await _dbContext.UserScopes
+            .Where(s => s.UserId == userId && s.ConstituencyId == constituencyId)
+            .ToListAsync();
+
+        if (existing.Any(s => s.IslandId == null))
         {
-            _dbContext.UserScopes.Add(new UserScope
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                ConstituencyId = constituencyId,
-                IslandId = islandId
-            });
+            throw new BusinessRuleException(islandId == null
+                ? $"{constituencyName} is already assigned."
+                : $"{constituencyName} is already assigned with all its islands, which includes {islandName}.");
         }
+
+        if (islandId != null && existing.Any(s => s.IslandId == islandId))
+            throw new BusinessRuleException($"{islandName} is already assigned.");
+
+        // Adding the whole constituency makes single-island areas in it unnecessary.
+        var replaced = islandId == null ? existing : new List<UserScope>();
+        _dbContext.UserScopes.RemoveRange(replaced);
+
+        var scope = new UserScope
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            ConstituencyId = constituencyId,
+            IslandId = islandId
+        };
+
+        _dbContext.UserScopes.Add(scope);
 
         await _dbContext.SaveChangesAsync();
 
         _accessScopeService.Invalidate(userId);
 
-        var newScope = Describe(
-            constituencyId == null ? null : await _dbContext.Constituencies.Where(c => c.Id == constituencyId).Select(c => c.Name).FirstOrDefaultAsync(),
-            islandId == null ? null : await _dbContext.Islands.Where(i => i.Id == islandId).Select(i => i.Name).FirstOrDefaultAsync());
+        var dto = new UserScopeDto
+        {
+            Id = scope.Id,
+            ConstituencyId = constituencyId,
+            ConstituencyName = constituencyName,
+            IslandId = islandId,
+            IslandName = islandName
+        };
 
         await _auditService.LogAsync(
             GetCurrentUserId(),
-            $"Scope changed from \"{oldScope}\" to \"{newScope}\"",
+            $"Area added: {dto.Label}" +
+                (replaced.Count > 0 ? $" (replaces {replaced.Count} single-island area{(replaced.Count == 1 ? "" : "s")} in it)" : ""),
+            "User",
+            userId.ToString());
+
+        return dto;
+    }
+
+    public async Task RemoveScopeAsync(Guid userId, Guid scopeId)
+    {
+        var scope = await _dbContext.UserScopes
+            .Include(s => s.Constituency)
+            .Include(s => s.Island)
+            .FirstOrDefaultAsync(s => s.Id == scopeId && s.UserId == userId)
+            ?? throw new KeyNotFoundException("Area not found.");
+
+        var label = new UserScopeDto
+        {
+            ConstituencyName = scope.Constituency?.Name ?? string.Empty,
+            IslandName = scope.Island?.Name
+        }.Label;
+
+        _dbContext.UserScopes.Remove(scope);
+
+        await _dbContext.SaveChangesAsync();
+
+        _accessScopeService.Invalidate(userId);
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            $"Area removed: {label}",
             "User",
             userId.ToString());
     }

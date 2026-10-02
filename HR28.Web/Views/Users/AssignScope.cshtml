@@ -1,145 +1,183 @@
-@model HR28.Web.Models.Users.UserAccessViewModel
+@model HR28.Web.Models.Users.UserAreasViewModel
 
 @{
-    ViewData["Title"] = "Assign Scope";
+    ViewData["Title"] = "Areas";
 }
 
 <div class="ui-page is-narrow">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ui-alert is-green" role="status">
+            <partial name="_Icon" model='"check-circle"' />
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
 
     <header class="ui-head">
         <div class="ui-head-main">
             <span class="ui-head-icon is-cyan"><partial name="_Icon" model='"globe"' /></span>
             <div>
                 <nav class="ui-crumb" aria-label="Breadcrumb">
-                    <a asp-action="Index">Users</a> <span aria-hidden="true">/</span> <span>Assign scope</span>
+                    <a asp-action="Index">Users</a> <span aria-hidden="true">/</span> <span>Areas</span>
                 </nav>
-                <h1 class="ui-title">Assign Scope</h1>
-                <p class="ui-sub">Configure the geographic area whose records this user can access.</p>
+                <h1 class="ui-title">Areas for @Model.UserName</h1>
+                <p class="ui-sub">This person sees records in any of these areas. Add as many as they need.</p>
             </div>
         </div>
     </header>
 
+    @if (Model.IsAdministrator)
+    {
+        <div class="ui-note">
+            <partial name="_Icon" model='"info"' />
+            <span>This person has an administrator role, so they already see every area. Areas below only matter if that role is removed.</span>
+        </div>
+    }
+
+    <!-- Current areas -->
     <section class="ui-card ui-card-lg">
+        <div class="ui-card-head">
+            <h2>Current areas <span class="ui-count is-cyan">@Model.Scopes.Count</span></h2>
+        </div>
+
+        @if (!Model.Scopes.Any())
+        {
+            <div class="ui-empty">
+                <partial name="_Icon" model='"map-pin"' />
+                No areas yet. Until you add one, this person won't see any voters or influencers.
+            </div>
+        }
+        else
+        {
+            <ul class="ui-area-list">
+                @foreach (var scope in Model.Scopes)
+                {
+                    <li>
+                        <span class="ui-avatar is-cyan" style="width: 34px; height: 34px; flex-basis: 34px; color: var(--tone); background: var(--tone-soft);" aria-hidden="true">
+                            <partial name="_Icon" model='"map-pin"' />
+                        </span>
+                        <span style="flex: 1; min-width: 0;">
+                            <strong>@(scope.IslandName ?? scope.ConstituencyName)</strong>
+                            <small class="ui-muted">
+                                @(scope.IslandName == null ? "Whole constituency, all islands" : $"Island in {scope.ConstituencyName}")
+                            </small>
+                        </span>
+
+                        <form asp-action="RemoveScope" method="post" class="h28-remove-area" data-label="@scope.Label">
+                            <input type="hidden" name="userId" value="@Model.UserId" />
+                            <input type="hidden" name="scopeId" value="@scope.Id" />
+                            <input type="hidden" name="label" value="@scope.Label" />
+                            <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm" aria-label="Remove @scope.Label">
+                                <partial name="_Icon" model='"trash"' />
+                                Remove
+                            </button>
+                        </form>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <!-- Add an area -->
+    <section class="ui-card ui-card-lg">
+        <div class="ui-card-head">
+            <h2>Add an area</h2>
+        </div>
 
         <form asp-action="AssignScope" method="post">
-
-            @Html.AntiForgeryToken()
-
-            <div asp-validation-summary="ModelOnly" class="ui-summary"></div>
-
-            <input asp-for="UserId" type="hidden" />
-            <input asp-for="UserName" type="hidden" />
-
-            <div class="ui-field">
-                <span class="ui-label">User</span>
-                <div class="ui-person" style="padding: 12px 14px; border-radius: 12px; background: var(--ui-subtle);">
-                    <span class="ui-avatar" aria-hidden="true"><partial name="_Icon" model='"user"' /></span>
-                    <strong>@Model.UserName</strong>
-                </div>
-            </div>
+            <input type="hidden" name="userId" value="@Model.UserId" />
 
             <div class="ui-grid-2">
                 <div class="ui-field">
                     <label for="ConstituencyDropdown" class="ui-label">Constituency</label>
-
-                    <select asp-for="ConstituencyId"
-                            id="ConstituencyDropdown"
-                            class="ui-select">
+                    <select id="ConstituencyDropdown" name="constituencyId" class="ui-select" required>
                         <option value="">Select Constituency</option>
-
-                        @foreach (var constituency in Model.Constituencies)
+                        @foreach (var c in Model.Constituencies)
                         {
-                            <option value="@constituency.Id">@constituency.Name</option>
+                            <option value="@c.Id">@c.Name</option>
                         }
                     </select>
-
-                    <span asp-validation-for="ConstituencyId" class="ui-error"></span>
                 </div>
 
                 <div class="ui-field">
                     <label for="IslandDropdown" class="ui-label">
                         Island <span class="ui-optional">(optional)</span>
                     </label>
-
-                    <select asp-for="IslandId"
-                            id="IslandDropdown"
-                            class="ui-select">
-                        <option value="">All islands in constituency</option>
-
-                        @foreach (var island in Model.Islands)
-                        {
-                            <option value="@island.Id">@island.Name</option>
-                        }
+                    <select id="IslandDropdown" name="islandId" class="ui-select" disabled>
+                        <option value="">All islands in the constituency</option>
                     </select>
-
-                    <div class="ui-hint" id="h28IslandHint">Leave blank to grant access to the entire constituency.</div>
-
-                    <span asp-validation-for="IslandId" class="ui-error"></span>
+                    <div class="ui-hint" id="h28IslandHint">Leave as "All islands" to give access to the whole constituency.</div>
                 </div>
             </div>
 
             <div class="ui-form-actions">
                 <button type="submit" class="ui-btn ui-btn-primary">
-                    <partial name="_Icon" model='"check"' />
-                    Assign scope
+                    <partial name="_Icon" model='"plus"' />
+                    Add area
                 </button>
 
-                <a asp-action="Index" class="ui-btn ui-btn-secondary">Cancel</a>
+                <a asp-action="Index" class="ui-btn ui-btn-secondary">Done</a>
             </div>
-
         </form>
-
     </section>
 
 </div>
 
 @section Scripts
 {
-    <partial name="_ValidationScriptsPartial" />
-
     <script>
         $(function () {
-            const constituencyDropdown = $('#ConstituencyDropdown');
-            const islandDropdown = $('#IslandDropdown');
-            const hint = $('#h28IslandHint');
-            const defaultHint = hint.text();
+            var $constituency = $('#ConstituencyDropdown');
+            var $island = $('#IslandDropdown');
+            var $hint = $('#h28IslandHint');
+            var defaultHint = $hint.text();
 
-            function resetIslands() {
-                islandDropdown
-                    .empty()
-                    .append($('<option>').val('').text('All islands in constituency'));
+            if (typeof $.fn.select2 === 'function') {
+                $constituency.select2({ placeholder: 'Search constituency', width: '100%' });
+                $island.select2({ placeholder: 'All islands in the constituency', width: '100%', allowClear: true });
             }
 
-            constituencyDropdown.on('change', function () {
-                const constituencyId = $(this).val();
+            function resetIslands() {
+                $island.empty()
+                    .append($('<option>').val('').text('All islands in the constituency'))
+                    .prop('disabled', true)
+                    .trigger('change');
+            }
+
+            $constituency.on('change', function () {
+                var id = $(this).val();
 
                 resetIslands();
-                islandDropdown.prop('disabled', true);
-                hint.text(defaultHint);
+                $hint.text(defaultHint);
 
-                if (!constituencyId) {
-                    return;
-                }
+                if (!id) return;
 
-                hint.text('Loading islands…');
+                $hint.text('Loading islands…');
 
-                $.getJSON('@Url.Action("GetIslands", "Users")', { constituencyId: constituencyId })
+                $.getJSON('@Url.Action("GetIslands", "Users")', { constituencyId: id })
                     .done(function (data) {
                         $.each(data, function (_, island) {
-                            islandDropdown.append($('<option>').val(island.id).text(island.name));
+                            $island.append($('<option>').val(island.id).text(island.name));
                         });
 
-                        islandDropdown.prop('disabled', false);
-                        hint.text(defaultHint);
+                        $island.prop('disabled', false).trigger('change');
+                        $hint.text(defaultHint);
                     })
                     .fail(function () {
-                        hint.text('Could not load islands. Please try again.');
+                        $hint.text('Could not load islands. You can still add the whole constituency.');
                     });
             });
 
-            if (!constituencyDropdown.val()) {
-                islandDropdown.prop('disabled', true);
-            }
+            // Confirm before removing an area.
+            document.querySelectorAll('.h28-remove-area').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    if (!window.confirm('Remove ' + form.dataset.label + '?\n\nThis person will stop seeing records there straight away.')) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                });
+            });
         });
     </script>
 }

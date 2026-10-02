@@ -36,6 +36,8 @@ public class MyAccountDto
 
     public string RoleName { get; set; } = string.Empty;
 
+    public List<string> Roles { get; set; } = new();
+
     public bool IsAdministrator { get; set; }
 
     public List<string> Scopes { get; set; } = new();

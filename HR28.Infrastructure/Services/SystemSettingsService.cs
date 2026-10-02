@@ -174,7 +174,8 @@ public class SystemSettingsService : ISystemSettingsService
             Designation = user.Designation,
             MobileNumber = user.MobileNumber,
             Email = user.Email,
-            RoleName = user.RoleName ?? string.Empty,
+            RoleName = HR28.Application.DTOs.Users.RoleOrder.Sort(scope.Roles).FirstOrDefault() ?? string.Empty,
+            Roles = HR28.Application.DTOs.Users.RoleOrder.Sort(scope.Roles),
             IsAdministrator = scope.IsAdministrator,
             Scopes = scopeLines,
             LastLoginAt = user.LastLoginAt
