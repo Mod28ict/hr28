@@ -1,0 +1,203 @@
+/* =========================================================
+   HR28 sign-in pages: frosted-glass card floating over the
+   dark campaign background. Loaded after each page's own
+   <style> block (Login, VerifyOtp) and overrides it.
+   ========================================================= */
+
+/* One continuous dark background behind both columns */
+body {
+    background: #061323;
+}
+
+.auth-page {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 18% 18%, rgba(59, 130, 246, 0.30), transparent 30%),
+        radial-gradient(circle at 78% 30%, rgba(99, 102, 241, 0.22), transparent 32%),
+        radial-gradient(circle at 80% 82%, rgba(14, 165, 233, 0.20), transparent 36%),
+        linear-gradient(145deg, #061323 0%, #0a1e37 52%, #123f78 100%);
+}
+
+    /* Faint grid across the whole page */
+    .auth-page::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0.18;
+        background-image:
+            linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 70px 70px;
+        pointer-events: none;
+    }
+
+/* The left column no longer paints its own background (the page does) */
+.hero-panel {
+    background: transparent;
+}
+
+    .hero-panel::before {
+        display: none;
+    }
+
+/* Right column: transparent, with soft coloured light behind the glass */
+.login-panel,
+.verification-panel {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+}
+
+    .login-panel::before,
+    .verification-panel::before,
+    .login-panel::after,
+    .verification-panel::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        pointer-events: none;
+    }
+
+    .login-panel::before,
+    .verification-panel::before {
+        top: 14%;
+        right: 12%;
+        width: 300px;
+        height: 300px;
+        background: rgba(59, 130, 246, 0.55);
+    }
+
+    .login-panel::after,
+    .verification-panel::after {
+        bottom: 12%;
+        left: 8%;
+        width: 260px;
+        height: 260px;
+        background: rgba(56, 189, 248, 0.35);
+    }
+
+/* The glass card */
+.login-wrapper,
+.verification-wrapper {
+    position: relative;
+    z-index: 1;
+    padding: 40px 38px 30px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 28px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.70));
+    box-shadow:
+        0 30px 80px rgba(2, 8, 23, 0.55),
+        0 2px 0 rgba(255, 255, 255, 0.7) inset,
+        0 0 0 1px rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(22px) saturate(160%);
+    animation:
+        fadeInRight 0.9s ease,
+        authGlassFloat 7s ease-in-out 0.9s infinite;
+}
+
+.verification-wrapper {
+    max-width: 520px;
+}
+
+    /* Light catching the top edge of the glass */
+    .login-wrapper::before,
+    .verification-wrapper::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 24px;
+        right: 24px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+        pointer-events: none;
+    }
+
+@keyframes authGlassFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+/* Inner pieces sit on glass, so soften their own backgrounds */
+.security-notice {
+    border-color: rgba(191, 219, 254, 0.9);
+    background: rgba(239, 246, 255, 0.75);
+}
+
+.code-reference {
+    background: rgba(248, 250, 252, 0.75);
+}
+
+.login-footer,
+.verification-footer {
+    color: #64748b;
+}
+
+/* Six code boxes always fit inside the card */
+.otp-row {
+    gap: 8px;
+}
+
+.otp-input {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    max-width: 62px;
+}
+
+/* Tablet and phone: the hero text is hidden, the card stays on the dark background */
+@media (max-width: 850px) {
+    .login-panel,
+    .verification-panel {
+        background: transparent;
+    }
+
+    .login-wrapper,
+    .verification-wrapper {
+        padding: 32px 26px 26px;
+    }
+
+    .mobile-brand {
+        color: #0f172a;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-panel,
+    .verification-panel {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .login-wrapper,
+    .verification-wrapper {
+        padding: 26px 18px 22px;
+        border-radius: 22px;
+    }
+
+    .otp-row {
+        gap: 5px;
+    }
+}
+
+/* Browsers without backdrop blur: use a solid card so text stays readable */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .login-wrapper,
+    .verification-wrapper {
+        background: rgba(255, 255, 255, 0.96);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .login-wrapper,
+    .verification-wrapper {
+        animation: none;
+    }
+}
