@@ -43,7 +43,7 @@
 
                     @foreach (var role in Model.Roles)
                     {
-                        <option value="@role.Id">@role.Name</option>
+                        <option value="@role.Id">@HR28.Web.Services.Hr28Roles.DisplayName(role.Name)</option>
                     }
                 </select>
 

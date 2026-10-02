@@ -17,6 +17,16 @@ public static class Hr28Roles
     public static bool IsSuperAdministrator(string? role) =>
         role == SuperAdministrator;
 
+    /// <summary>
+    /// The name shown on screen. "Super Administrator" is the client's own
+    /// Administrator (the platform Owner works in Azure, not in the app);
+    /// the stored name is kept so existing data and checks keep working.
+    /// </summary>
+    public static string DisplayName(string? role) =>
+        string.IsNullOrWhiteSpace(role)
+            ? "No role"
+            : role == SuperAdministrator ? "Administrator" : role;
+
     /// <summary>Reporters only read reports; they do not work with voter records.</summary>
     public static bool CanManageRecords(string? role) =>
         role != Reporter;

@@ -197,32 +197,47 @@ public class UsersController : Controller
             HttpContext.Session.GetString(
                 "JwtToken");
 
-        var success =
-            await _dashboardService
-                .AssignRoleAsync(
-                    new AssignRoleDto
-                    {
-                        UserId = model.UserId,
-                        RoleId = model.RoleId!.Value
-                    },
-                    token);
-
-        if (!success)
+        if (model.RoleId == null)
         {
-            model.Roles =
-                await _dashboardService
-                    .GetRolesAsync(token)
-                ?? new();
+            ModelState.AddModelError(string.Empty, "Please choose a role.");
+        }
+        else
+        {
+            var result = await _apiClient.PostAsync<object>(
+                $"Users/{model.UserId}/role",
+                new AssignRoleDto
+                {
+                    UserId = model.UserId,
+                    RoleId = model.RoleId.Value
+                },
+                token);
 
-            return View(model);
+            if (result.IsUnauthorized)
+            {
+                HttpContext.Session.Clear();
+                return RedirectToAction("Login", "Auth");
+            }
+
+            if (result.Success)
+            {
+                TempData["SuccessMessage"] =
+                    $"{model.UserName}'s role was updated. The change applies straight away.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            // e.g. "This is the only Administrator..."
+            ModelState.AddModelError(string.Empty, result.Message);
         }
 
-        TempData["SuccessMessage"] =
-            "Role assigned successfully.";
+        model.Roles =
+            await _dashboardService
+                .GetRolesAsync(token)
+            ?? new();
 
-        return RedirectToAction(
-            nameof(Index));
+        return View(model);
     }
+
     [HttpGet]
     public async Task<IActionResult> AssignScope(Guid id)
     {

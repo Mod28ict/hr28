@@ -1,3 +1,4 @@
+using HR28.Application.Common;
 using HR28.Application.DTOs.Users;
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
@@ -15,17 +16,20 @@ public class UserService : IUserService
     private readonly IAuthorizationCodeHasher _codeHasher;
     private readonly IAuditService _auditService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IAccessScopeService _accessScopeService;
 
     public UserService(
         HR28DbContext dbContext,
         IAuthorizationCodeHasher codeHasher,
         IAuditService auditService,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IAccessScopeService accessScopeService)
     {
         _dbContext = dbContext;
         _codeHasher = codeHasher;
         _auditService = auditService;
         _httpContextAccessor = httpContextAccessor;
+        _accessScopeService = accessScopeService;
     }
 
     private Guid? GetCurrentUserId()
@@ -215,18 +219,50 @@ public class UserService : IUserService
             })
             .FirstOrDefaultAsync();
     }
+    /// <summary>
+    /// Sets the user's role, replacing any previous role (the screen offers a single
+    /// choice). Previously this only added roles, so a demoted user kept old rights.
+    /// </summary>
     public async Task AssignRoleAsync(
     Guid userId,
     Guid roleId)
     {
-        var existing = await _dbContext.UserRoles
-            .AnyAsync(x =>
-                x.UserId == userId &&
-                x.RoleId == roleId);
+        var role = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Id == roleId)
+            ?? throw new BusinessRuleException("Please choose a valid role.");
 
-        if (existing)
+        if (!await _dbContext.Users.AnyAsync(u => u.Id == userId))
+            throw new KeyNotFoundException("User not found.");
+
+        var current = await _dbContext.UserRoles
+            .Include(x => x.Role)
+            .Where(x => x.UserId == userId)
+            .ToListAsync();
+
+        if (current.Count == 1 && current[0].RoleId == roleId)
             return;
 
+        // Never remove the last active Administrator, or nobody could manage users.
+        var losingSuperAdmin =
+            current.Any(x => x.Role.Name == AccessScopeService.SuperAdministratorRole) &&
+            role.Name != AccessScopeService.SuperAdministratorRole;
+
+        if (losingSuperAdmin)
+        {
+            var otherSuperAdmins = await _dbContext.UserRoles.CountAsync(x =>
+                x.UserId != userId &&
+                x.User.IsActive &&
+                x.Role.Name == AccessScopeService.SuperAdministratorRole);
+
+            if (otherSuperAdmins == 0)
+            {
+                throw new BusinessRuleException(
+                    "This is the only Administrator. Make another user an Administrator first.");
+            }
+        }
+
+        var oldNames = string.Join(", ", current.Select(x => x.Role.Name).OrderBy(n => n));
+
+        _dbContext.UserRoles.RemoveRange(current);
         _dbContext.UserRoles.Add(new UserRole
         {
             UserId = userId,
@@ -234,14 +270,35 @@ public class UserService : IUserService
         });
 
         await _dbContext.SaveChangesAsync();
+
+        _accessScopeService.Invalidate(userId);
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            $"Role changed from \"{(oldNames.Length == 0 ? "none" : oldNames)}\" to \"{role.Name}\"",
+            "User",
+            userId.ToString());
     }
+
     public async Task AssignScopeAsync(
         Guid userId,
         Guid? constituencyId,
         Guid? islandId)
     {
+        if (!await _dbContext.Users.AnyAsync(u => u.Id == userId))
+            throw new KeyNotFoundException("User not found.");
+
         var existingScope = await _dbContext.UserScopes
+            .Include(x => x.Constituency)
+            .Include(x => x.Island)
             .FirstOrDefaultAsync(x => x.UserId == userId);
+
+        string Describe(string? constituency, string? island) =>
+            constituency == null
+                ? "none"
+                : island == null ? $"{constituency} (all islands)" : $"{island}, {constituency}";
+
+        var oldScope = Describe(existingScope?.Constituency?.Name, existingScope?.Island?.Name);
 
         if (existingScope != null)
         {
@@ -260,6 +317,18 @@ public class UserService : IUserService
         }
 
         await _dbContext.SaveChangesAsync();
+
+        _accessScopeService.Invalidate(userId);
+
+        var newScope = Describe(
+            constituencyId == null ? null : await _dbContext.Constituencies.Where(c => c.Id == constituencyId).Select(c => c.Name).FirstOrDefaultAsync(),
+            islandId == null ? null : await _dbContext.Islands.Where(i => i.Id == islandId).Select(i => i.Name).FirstOrDefaultAsync());
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            $"Scope changed from \"{oldScope}\" to \"{newScope}\"",
+            "User",
+            userId.ToString());
     }
 
 }

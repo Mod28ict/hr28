@@ -8,7 +8,17 @@ public class AccessScope
 {
     public Guid UserId { get; init; }
 
+    /// <summary>False if the account is missing or deactivated: no access at all.</summary>
+    public bool IsActive { get; init; }
+
+    /// <summary>The user's current roles, read from the database (not the login token).</summary>
+    public IReadOnlyList<string> Roles { get; init; } = Array.Empty<string>();
+
+    /// <summary>Sees every record (Super or National Administrator).</summary>
     public bool IsAdministrator { get; init; }
+
+    /// <summary>The client's Administrator (stored as "Super Administrator"): manages users, roles and scopes.</summary>
+    public bool IsSuperAdministrator { get; init; }
 
     /// <summary>Constituencies the user can see in full (scope with no island).</summary>
     public IReadOnlyList<Guid> ConstituencyIds { get; init; } = Array.Empty<Guid>();

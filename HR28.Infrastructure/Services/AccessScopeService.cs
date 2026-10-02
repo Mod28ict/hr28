@@ -3,6 +3,7 @@ using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using HR28.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace HR28.Infrastructure.Services;
 
@@ -15,26 +16,63 @@ public class AccessScopeService : IAccessScopeService
         "National Administrator"
     };
 
-    private readonly HR28DbContext _dbContext;
+    public const string SuperAdministratorRole = "Super Administrator";
 
-    public AccessScopeService(HR28DbContext dbContext)
+    // Short enough that a change made on another server instance shows up quickly;
+    // on this instance Invalidate() makes it immediate.
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
+
+    private readonly HR28DbContext _dbContext;
+    private readonly IMemoryCache _cache;
+
+    public AccessScopeService(HR28DbContext dbContext, IMemoryCache cache)
     {
         _dbContext = dbContext;
+        _cache = cache;
     }
+
+    private static string CacheKey(Guid userId) => $"access-scope:{userId}";
+
+    public void Invalidate(Guid userId) => _cache.Remove(CacheKey(userId));
 
     public async Task<AccessScope> GetAsync(Guid userId)
     {
-        var isAdministrator = await _dbContext.UserRoles
-            .AnyAsync(ur =>
-                ur.UserId == userId &&
-                AdministratorRoles.Contains(ur.Role.Name));
+        if (_cache.TryGetValue(CacheKey(userId), out AccessScope? cached) && cached != null)
+            return cached;
+
+        var scope = await LoadAsync(userId);
+
+        _cache.Set(CacheKey(userId), scope, CacheDuration);
+
+        return scope;
+    }
+
+    private async Task<AccessScope> LoadAsync(Guid userId)
+    {
+        var isActive = await _dbContext.Users
+            .AnyAsync(u => u.Id == userId && u.IsActive);
+
+        // A deactivated or deleted account gets no roles and no records.
+        if (!isActive)
+            return new AccessScope { UserId = userId, IsActive = false };
+
+        var roles = await _dbContext.UserRoles
+            .Where(ur => ur.UserId == userId)
+            .Select(ur => ur.Role.Name)
+            .Distinct()
+            .ToListAsync();
+
+        var isAdministrator = roles.Any(r => AdministratorRoles.Contains(r));
 
         if (isAdministrator)
         {
             return new AccessScope
             {
                 UserId = userId,
-                IsAdministrator = true
+                IsActive = true,
+                Roles = roles,
+                IsAdministrator = true,
+                IsSuperAdministrator = roles.Contains(SuperAdministratorRole)
             };
         }
 
@@ -65,6 +103,8 @@ public class AccessScopeService : IAccessScopeService
         return new AccessScope
         {
             UserId = userId,
+            IsActive = true,
+            Roles = roles,
             IsAdministrator = false,
             ConstituencyIds = constituencyIds,
             IslandIds = islandIds,
