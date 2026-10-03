@@ -270,6 +270,12 @@
                 </a>
             }
 
+            <a class="@NavClass(currentController == "Encounters")"
+               asp-controller="Encounters" asp-action="Index">
+                <partial name="_Icon" model='"calendar"' />
+                <span>Encounters</span>
+            </a>
+
             <a class="@NavClass(currentController == "Pledges")"
                asp-controller="Pledges" asp-action="Index">
                 <partial name="_Icon" model='"handshake"' />

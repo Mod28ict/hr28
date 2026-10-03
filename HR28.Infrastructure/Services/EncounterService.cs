@@ -203,4 +203,76 @@ public class EncounterService : IEncounterService
 
         return ToDto(encounter);
     }
+
+    public async Task<HR28.Application.DTOs.Common.PagedResult<EncounterListItemDto>> GetListAsync(
+        int page,
+        int pageSize,
+        EncounterListFilter filter)
+    {
+        var userId = GetCurrentUserId()
+            ?? throw new AccessDeniedException("You must be signed in.");
+
+        var scope = await _accessScopeService.GetAsync(userId);
+
+        page = Math.Max(1, page);
+        pageSize = pageSize is < 1 or > 100 ? 20 : pageSize;
+
+        // Only encounters for voters inside the user's areas.
+        var query = _dbContext.Encounters
+            .AsNoTracking()
+            .InScope(scope, _dbContext.Voters);
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            var term = filter.SearchTerm.Trim();
+            term = term.Length > 100 ? term[..100] : term;
+
+            query = query.Where(e =>
+                e.Voter.FullName.Contains(term) ||
+                e.Voter.NationalId.Contains(term) ||
+                e.Notes.Contains(term));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.EncounterType) && EncounterTypes.Contains(filter.EncounterType.Trim()))
+        {
+            var type = filter.EncounterType.Trim();
+            query = query.Where(e => e.EncounterType == type);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Outcome) && Outcomes.Contains(filter.Outcome.Trim()))
+        {
+            var outcome = filter.Outcome.Trim();
+            query = query.Where(e => e.Outcome == outcome);
+        }
+
+        var total = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(e => e.EncounterDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(e => new EncounterListItemDto
+            {
+                Id = e.Id,
+                EncounterDate = e.EncounterDate,
+                EncounterType = e.EncounterType,
+                Outcome = e.Outcome,
+                Notes = e.Notes,
+                VoterId = e.VoterId,
+                VoterName = e.Voter.FullName,
+                VoterNationalId = e.Voter.NationalId,
+                IslandName = e.Voter.Island != null ? e.Voter.Island.Name : string.Empty,
+                ConstituencyName = e.Voter.Constituency != null ? e.Voter.Constituency.Name : string.Empty,
+                RecordedBy = e.RecordedByUser.FullName
+            })
+            .ToListAsync();
+
+        return new HR28.Application.DTOs.Common.PagedResult<EncounterListItemDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = total
+        };
+    }
 }

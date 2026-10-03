@@ -16,4 +16,10 @@ public interface IEncounterService
 
     /// <summary>Needs the Encounters.Edit right and the voter in the user's areas. Audited.</summary>
     Task<EncounterDto> UpdateAsync(Guid id, UpdateEncounterDto request);
+
+    /// <summary>Encounters for voters inside the user's areas, newest first, paged.</summary>
+    Task<HR28.Application.DTOs.Common.PagedResult<EncounterListItemDto>> GetListAsync(
+        int page,
+        int pageSize,
+        EncounterListFilter filter);
 }

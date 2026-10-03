@@ -18,6 +18,38 @@ public class EncountersController : AppController
         _apiClient = apiClient;
     }
 
+    /// <summary>All encounters inside the user's areas, with who they were with and the outcome.</summary>
+    [HttpGet]
+    public async Task<IActionResult> Index(
+        int page = 1,
+        int pageSize = 20,
+        string? searchTerm = null,
+        string? type = null,
+        string? outcome = null)
+    {
+        var filter = new EncounterListFilterModel
+        {
+            SearchTerm = searchTerm?.Trim(),
+            Type = EncounterListFilterModel.Types.Contains(type) ? type : null,
+            Outcome = EncounterListFilterModel.Outcomes.Any(o => o.Value == outcome) ? outcome : null,
+            PageSize = pageSize is 10 or 20 or 50 or 100 ? pageSize : 20
+        };
+
+        var result = await _apiClient.GetAsync<PagedResult<EncounterListItemDto>>(
+            $"Encounters?page={Math.Max(1, page)}" + filter.ToApiQuery(),
+            Token);
+
+        if (HandleApiFailure(result) is { } redirect)
+            return redirect;
+
+        if (!result.Success)
+            ViewBag.ErrorMessage = result.Message;
+
+        ViewBag.Filter = filter;
+
+        return View(result.Data ?? new PagedResult<EncounterListItemDto> { Page = 1, PageSize = filter.PageSize });
+    }
+
     private const string NoEditRight =
         "You don't have permission to edit encounters. Ask your Administrator.";
 

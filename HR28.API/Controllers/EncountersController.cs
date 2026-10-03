@@ -4,6 +4,7 @@ using HR28.Application.DTOs.Encounters;
 using HR28.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace HR28.API.Controllers;
 
@@ -33,6 +34,27 @@ public class EncountersController : ControllerBase
             .CreateAsync(userId, request);
 
         return Ok(result);
+    }
+
+    /// <summary>All encounters inside the user's areas (paged, filterable). Rate-limited like voter search.</summary>
+    [HttpGet]
+    [EnableRateLimiting(RateLimitPolicies.Search)]
+    public async Task<IActionResult> GetList(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] string? type = null,
+        [FromQuery] string? outcome = null)
+    {
+        return Ok(await _encounterService.GetListAsync(
+            page,
+            pageSize,
+            new EncounterListFilter
+            {
+                SearchTerm = searchTerm,
+                EncounterType = type,
+                Outcome = outcome
+            }));
     }
 
     [HttpGet("voter/{voterId}")]

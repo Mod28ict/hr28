@@ -188,50 +188,55 @@
     <!-- KPI CARDS -->
     <section class="hd-kpis" aria-label="Key figures">
 
-        <div class="hd-kpi is-blue">
+        <a class="hd-kpi is-blue is-link" asp-controller="Voters" asp-action="Index" title="See all voters">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"users"' /></span>
             <div>
                 <div class="hd-kpi-label">Total Voters</div>
                 <div class="hd-kpi-value">@totalVoters.ToString("N0")</div>
                 <div class="hd-kpi-foot">In your scope</div>
             </div>
-        </div>
+            <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
+        </a>
 
-        <div class="hd-kpi is-green">
+        <a class="hd-kpi is-green is-link" asp-controller="Voters" asp-action="Index" asp-route-status="Supporter" title="See supporters">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"user-check"' /></span>
             <div>
                 <div class="hd-kpi-label">Supporters</div>
                 <div class="hd-kpi-value">@dashboard.Supporters.ToString("N0")</div>
                 <div class="hd-kpi-foot"><b>@PctText(dashboard.Supporters, totalVoters)</b> of voters</div>
             </div>
-        </div>
+            <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
+        </a>
 
-        <div class="hd-kpi is-amber">
+        <a class="hd-kpi is-amber is-link" asp-controller="Voters" asp-action="Index" asp-route-status="Undecided" title="See undecided voters">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"help"' /></span>
             <div>
                 <div class="hd-kpi-label">Undecided</div>
                 <div class="hd-kpi-value">@dashboard.Undecided.ToString("N0")</div>
                 <div class="hd-kpi-foot"><b>@PctText(dashboard.Undecided, totalVoters)</b> of voters</div>
             </div>
-        </div>
+            <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
+        </a>
 
-        <div class="hd-kpi is-red">
+        <a class="hd-kpi is-red is-link" asp-controller="Voters" asp-action="Index" asp-route-status="Opponent" title="See opposition voters">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"user-x"' /></span>
             <div>
                 <div class="hd-kpi-label">Opposition</div>
                 <div class="hd-kpi-value">@dashboard.Opponents.ToString("N0")</div>
                 <div class="hd-kpi-foot"><b>@PctText(dashboard.Opponents, totalVoters)</b> of voters</div>
             </div>
-        </div>
+            <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
+        </a>
 
-        <div class="hd-kpi is-violet">
+        <a class="hd-kpi is-violet is-link" asp-controller="Encounters" asp-action="Index" title="See all encounters">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"calendar"' /></span>
             <div>
                 <div class="hd-kpi-label">Encounters</div>
                 <div class="hd-kpi-value">@dashboard.TotalEncounters.ToString("N0")</div>
                 <div class="hd-kpi-foot">Recorded to date</div>
             </div>
-        </div>
+            <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
+        </a>
 
         <a class="hd-kpi is-green is-link" asp-controller="Pledges" asp-action="Index" title="See all pledges">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"handshake"' /></span>
@@ -243,36 +248,53 @@
             <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
         </a>
 
-        <div class="hd-kpi is-violet">
+        <a class="hd-kpi is-violet is-link" asp-controller="Influencers" asp-action="Index" title="See all influencers">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"star"' /></span>
             <div>
                 <div class="hd-kpi-label">Influencers</div>
                 <div class="hd-kpi-value">@dashboard.TotalInfluencers.ToString("N0")</div>
                 <div class="hd-kpi-foot">Community connectors</div>
             </div>
-        </div>
+            <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
+        </a>
 
         @if (isAdministrator)
         {
-            <div class="hd-kpi is-blue">
-                <span class="hd-kpi-icon"><partial name="_Icon" model='"user"' /></span>
-                <div>
-                    <div class="hd-kpi-label">Users</div>
-                    <div class="hd-kpi-value">@dashboard.TotalUsers.ToString("N0")</div>
-                    <div class="hd-kpi-foot">@dashboard.TotalRoles.ToString("N0") access roles</div>
+            if (isSuperAdmin)
+            {
+                <a class="hd-kpi is-blue is-link" asp-controller="Users" asp-action="Index" title="Manage users">
+                    <span class="hd-kpi-icon"><partial name="_Icon" model='"user"' /></span>
+                    <div>
+                        <div class="hd-kpi-label">Users</div>
+                        <div class="hd-kpi-value">@dashboard.TotalUsers.ToString("N0")</div>
+                        <div class="hd-kpi-foot">@dashboard.TotalRoles.ToString("N0") access roles</div>
+                    </div>
+                    <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
+                </a>
+            }
+            else
+            {
+                <div class="hd-kpi is-blue">
+                    <span class="hd-kpi-icon"><partial name="_Icon" model='"user"' /></span>
+                    <div>
+                        <div class="hd-kpi-label">Users</div>
+                        <div class="hd-kpi-value">@dashboard.TotalUsers.ToString("N0")</div>
+                        <div class="hd-kpi-foot">@dashboard.TotalRoles.ToString("N0") access roles</div>
+                    </div>
                 </div>
-            </div>
+            }
         }
         else
         {
-            <div class="hd-kpi is-blue">
+            <a class="hd-kpi is-blue is-link" asp-controller="Voters" asp-action="Index" title="See voters in your area">
                 <span class="hd-kpi-icon"><partial name="_Icon" model='"map-pin"' /></span>
                 <div>
                     <div class="hd-kpi-label">Your area</div>
                     <div class="hd-kpi-value">@dashboard.TotalIslands.ToString("N0")</div>
                     <div class="hd-kpi-foot">islands in @dashboard.TotalConstituencies.ToString("N0") @(dashboard.TotalConstituencies == 1 ? "constituency" : "constituencies")</div>
                 </div>
-            </div>
+                <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
+            </a>
         }
 
     </section>
