@@ -21,6 +21,10 @@ public class VoterListFilterModel
 
     public List<LookupDto> Islands { get; set; } = new();
 
+    /// <summary>"Dhaandhoo Dhaairaa (G03)", or just the name when there is no code.</summary>
+    public static string Label(LookupDto item) =>
+        string.IsNullOrWhiteSpace(item.Code) ? item.Name : $"{item.Name} ({item.Code.Trim()})";
+
     /// <summary>True when any filter (not the plain search) is set.</summary>
     public bool HasFilters =>
         ConstituencyId.HasValue || IslandId.HasValue ||

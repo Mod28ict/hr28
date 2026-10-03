@@ -44,7 +44,7 @@ public class ConstituenciesController : ControllerBase
         var visible = all
             .Where(c => scope.IsAdministrator || scope.VisibleConstituencyIds.Contains(c.Id))
             .OrderBy(c => c.Name)
-            .Select(c => new LookupDto { Id = c.Id, Name = c.Name });
+            .Select(c => new LookupDto { Id = c.Id, Name = c.Name, Code = c.Code });
 
         return Ok(visible);
     }

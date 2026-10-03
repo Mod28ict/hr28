@@ -129,11 +129,11 @@
                         {
                             if (filter.ConstituencyId == c.Id)
                             {
-                                <option value="@c.Id" selected>@c.Name</option>
+                                <option value="@c.Id" selected>@HR28.Web.Models.VoterListFilterModel.Label(c)</option>
                             }
                             else
                             {
-                                <option value="@c.Id">@c.Name</option>
+                                <option value="@c.Id">@HR28.Web.Models.VoterListFilterModel.Label(c)</option>
                             }
                         }
                     </select>
@@ -371,45 +371,49 @@
 @section Scripts
 {
     <script>
-        (function () {
-            var constituency = document.getElementById("filterConstituency");
-            var island = document.getElementById("filterIsland");
+        (function ($) {
+            var $constituency = $("#filterConstituency");
+            var $island = $("#filterIsland");
 
-            if (!constituency || !island) return;
+            if (!$constituency.length || !$island.length) return;
 
-            function reset(text, disabled) {
-                island.innerHTML = "";
-                var first = document.createElement("option");
-                first.value = "";
-                first.textContent = text;
-                island.appendChild(first);
-                island.disabled = disabled;
+            var searchable = typeof $.fn.select2 === "function";
+
+            // Type-to-search inside the dropdowns (by name or constituency code).
+            if (searchable) {
+                $constituency.select2({ width: "100%", placeholder: "All constituencies", allowClear: true });
+
+                // No placeholder here, so the box shows its first option:
+                // "Choose a constituency first" while disabled, "All islands" once loaded.
+                $island.select2({ width: "100%" });
+            }
+
+            function resetIslands(text, disabled) {
+                $island.empty().append($("<option>", { value: "", text: text }));
+                $island.prop("disabled", disabled).trigger("change.select2");
             }
 
             // Islands follow the chosen constituency (only islands inside the user's areas).
-            constituency.addEventListener("change", function () {
-                if (!constituency.value) {
-                    reset("Choose a constituency first", true);
+            $constituency.on("change", function () {
+                var id = $constituency.val();
+
+                if (!id) {
+                    resetIslands("Choose a constituency first", true);
                     return;
                 }
 
-                reset("Loading islands…", true);
+                resetIslands("Loading islands…", true);
 
-                fetch(island.dataset.islandsUrl + "?constituencyId=" + encodeURIComponent(constituency.value), {
-                    headers: { "Accept": "application/json" }
-                })
-                    .then(function (r) { return r.ok ? r.json() : []; })
-                    .then(function (islands) {
-                        reset("All islands", false);
-                        islands.forEach(function (i) {
-                            var option = document.createElement("option");
-                            option.value = i.id;
-                            option.textContent = i.name;
-                            island.appendChild(option);
+                $.getJSON($island.data("islandsUrl"), { constituencyId: id })
+                    .done(function (islands) {
+                        resetIslands("All islands", false);
+                        $.each(islands, function (_, i) {
+                            $island.append($("<option>", { value: i.id, text: i.name }));
                         });
+                        $island.trigger("change.select2");
                     })
-                    .catch(function () { reset("All islands", false); });
+                    .fail(function () { resetIslands("All islands", false); });
             });
-        })();
+        })(window.jQuery);
     </script>
 }
