@@ -146,6 +146,52 @@ public class InfluencersController : AppController
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>
+    /// Voters linked to an influencer. Influencers are global; the list shows only voters
+    /// inside the user's areas and counts the rest.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> Voters(
+        Guid id,
+        int page = 1,
+        int pageSize = 20,
+        string? searchTerm = null,
+        Guid? constituencyId = null,
+        string? status = null,
+        string? relationship = null)
+    {
+        var filter = new LinkedVoterFilterModel
+        {
+            SearchTerm = searchTerm?.Trim(),
+            ConstituencyId = constituencyId,
+            Status = VoterListFilterModel.Statuses.Contains(status) ? status : null,
+            Relationship = string.IsNullOrWhiteSpace(relationship) ? null : relationship.Trim(),
+            PageSize = pageSize is 10 or 20 or 50 or 100 ? pageSize : 20
+        };
+
+        var result = await _apiClient.GetAsync<InfluencerVotersDto>(
+            $"Influencers/{id}/voters?page={Math.Max(1, page)}" + filter.ToApiQuery(),
+            Token);
+
+        if (HandleApiFailure(result) is { } redirect)
+            return redirect;
+
+        if (!result.Success || result.Data == null)
+        {
+            TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
+                ? "That influencer could not be found."
+                : result.Message;
+            return RedirectToAction(nameof(Index));
+        }
+
+        var constituencies = await _apiClient.GetAsync<List<LookupDto>>("Constituencies/in-scope", Token);
+        filter.Constituencies = constituencies.Data ?? new();
+
+        ViewBag.Filter = filter;
+
+        return View(result.Data);
+    }
+
     /// <summary>Islands of a constituency that the user may use (for the cascade).</summary>
     [HttpGet]
     public async Task<IActionResult> IslandsInScope(Guid constituencyId)

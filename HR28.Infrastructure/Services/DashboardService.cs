@@ -63,7 +63,7 @@ public class DashboardService : IDashboardService
             TotalConstituencies = await _dbContext.Constituencies.InScope(scope).CountAsync(),
             TotalIslands = islandCount,
 
-            TotalInfluencers = await _dbContext.Influencers.InScope(scope).CountAsync(),
+            TotalInfluencers = await _dbContext.Influencers.CountAsync(), // influencers are global
             TotalEncounters = await _dbContext.Encounters.InScope(scope, _dbContext.Voters).CountAsync(),
             TotalPledges = await pledges.CountAsync(),
             OpenPledges = await pledges.CountAsync(x => x.Status == "Open"),

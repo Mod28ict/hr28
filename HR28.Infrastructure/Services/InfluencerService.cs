@@ -60,19 +60,16 @@ public class InfluencerService : IInfluencerService
             throw new KeyNotFoundException();
     }
 
-    private async Task EnsureInfluencerInScopeAsync(AccessScope scope, Guid influencerId)
+    // Influencers are global (owner decision, 2026-10-03): everyone sees all of them.
+    // Voters stay limited to the user's areas.
+    private async Task EnsureInfluencerExistsAsync(Guid influencerId)
     {
-        var visible = await _dbContext.Influencers
-            .InScope(scope)
-            .AnyAsync(i => i.Id == influencerId);
-
-        if (!visible)
+        if (!await _dbContext.Influencers.AnyAsync(i => i.Id == influencerId))
             throw new KeyNotFoundException();
     }
 
     /// <summary>Checks shared by create and edit. Returns the cleaned National ID and name.</summary>
     private async Task<(string NationalId, string FullName)> ValidateAsync(
-        AccessScope scope,
         CreateInfluencerDto request,
         Guid? existingId)
     {
@@ -105,8 +102,6 @@ public class InfluencerService : IInfluencerService
                 throw new BusinessRuleException("The selected island does not belong to the selected constituency.");
         }
 
-        if (!scope.Allows(request.ConstituencyId, request.IslandId))
-            throw new AccessDeniedException("You can only place influencers within your assigned area.");
 
         var duplicate = await _dbContext.Influencers
             .AnyAsync(i => i.NationalId == nationalId && i.Id != existingId);
@@ -120,9 +115,7 @@ public class InfluencerService : IInfluencerService
     public async Task<InfluencerDto> CreateAsync(
         CreateInfluencerDto request)
     {
-        var scope = await GetCurrentScopeAsync();
-
-        var (nationalId, fullName) = await ValidateAsync(scope, request, null);
+        var (nationalId, fullName) = await ValidateAsync(request, null);
 
         var influencer = new Influencer
         {
@@ -155,11 +148,8 @@ public class InfluencerService : IInfluencerService
 
     public async Task<InfluencerDto> GetByIdAsync(Guid id)
     {
-        var scope = await GetCurrentScopeAsync();
-
         return await _dbContext.Influencers
             .AsNoTracking()
-            .InScope(scope)
             .Where(i => i.Id == id)
             .Select(ToDto())
             .FirstOrDefaultAsync()
@@ -173,14 +163,11 @@ public class InfluencerService : IInfluencerService
         if (!scope.HasPermission(PermissionCatalog.InfluencersEdit))
             throw new AccessDeniedException("You don't have permission to edit influencers. Ask your Administrator.");
 
-        // Must currently be in the user's areas (404 otherwise)...
         var influencer = await _dbContext.Influencers
-            .InScope(scope)
             .FirstOrDefaultAsync(i => i.Id == id)
             ?? throw new KeyNotFoundException("Influencer not found.");
 
-        // ...and the new area must be too.
-        var (nationalId, fullName) = await ValidateAsync(scope, request, id);
+        var (nationalId, fullName) = await ValidateAsync(request, id);
 
         var address = request.Address?.Trim() ?? string.Empty;
         var contact = request.ContactNumber?.Trim() ?? string.Empty;
@@ -226,7 +213,6 @@ public class InfluencerService : IInfluencerService
             throw new AccessDeniedException("You don't have permission to delete influencers. Ask your Administrator.");
 
         var influencer = await _dbContext.Influencers
-            .InScope(scope)
             .FirstOrDefaultAsync(i => i.Id == id)
             ?? throw new KeyNotFoundException("Influencer not found.");
 
@@ -254,11 +240,8 @@ public class InfluencerService : IInfluencerService
 
     public async Task<List<InfluencerDto>> GetAllAsync()
     {
-        var scope = await GetCurrentScopeAsync();
-
         return await _dbContext.Influencers
             .AsNoTracking()
-            .InScope(scope)
             .OrderBy(i => i.FullName)
             .Select(ToDto())
             .ToListAsync();
@@ -270,7 +253,7 @@ public class InfluencerService : IInfluencerService
         var scope = await GetCurrentScopeAsync();
 
         await EnsureVoterInScopeAsync(scope, request.VoterId);
-        await EnsureInfluencerInScopeAsync(scope, request.InfluencerId);
+        await EnsureInfluencerExistsAsync(request.InfluencerId);
 
         var existingLink =
             await _dbContext.VoterInfluencers
@@ -389,4 +372,97 @@ public class InfluencerService : IInfluencerService
             IslandName = i.Island != null ? i.Island.Name : null,
             LinkedVoters = i.Voters.Count
         };
+
+    public async Task<InfluencerVotersDto> GetLinkedVotersAsync(
+        Guid influencerId,
+        int page,
+        int pageSize,
+        LinkedVoterFilter filter)
+    {
+        var scope = await GetCurrentScopeAsync();
+
+        var influencer = await GetByIdAsync(influencerId);
+
+        page = Math.Max(1, page);
+        pageSize = pageSize is < 1 or > 100 ? 20 : pageSize;
+
+        var allLinks = _dbContext.VoterInfluencers
+            .AsNoTracking()
+            .Where(vi => vi.InfluencerId == influencerId);
+
+        // The influencer is global, but voters are only shown inside the user's areas.
+        var visibleVoterIds = _dbContext.Voters.InScope(scope).Select(v => v.Id);
+        var links = allLinks.Where(vi => visibleVoterIds.Contains(vi.VoterId));
+
+        var outside = await allLinks.CountAsync() - await links.CountAsync();
+
+        var relationshipTypes = await links
+            .Select(vi => vi.RelationshipType)
+            .Where(r => r != "")
+            .Distinct()
+            .OrderBy(r => r)
+            .ToListAsync();
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            var term = filter.SearchTerm.Trim();
+            term = term.Length > 100 ? term[..100] : term;
+
+            links = links.Where(vi =>
+                vi.Voter.FullName.Contains(term) ||
+                vi.Voter.NationalId.Contains(term) ||
+                vi.Voter.MobileNumber.Contains(term) ||
+                (vi.Voter.Island != null && vi.Voter.Island.Name.Contains(term)));
+        }
+
+        if (filter.ConstituencyId.HasValue)
+            links = links.Where(vi => vi.Voter.ConstituencyId == filter.ConstituencyId.Value);
+
+        if (!string.IsNullOrWhiteSpace(filter.Status))
+        {
+            var status = filter.Status.Trim();
+            links = links.Where(vi => vi.Voter.SupportStatus == status);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Relationship))
+        {
+            var relationship = filter.Relationship.Trim();
+            links = links.Where(vi => vi.RelationshipType == relationship);
+        }
+
+        var total = await links.CountAsync();
+
+        var items = await links
+            .OrderBy(vi => vi.Voter.FullName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(vi => new LinkedVoterDto
+            {
+                VoterId = vi.VoterId,
+                FullName = vi.Voter.FullName,
+                NationalId = vi.Voter.NationalId,
+                MobileNumber = vi.Voter.MobileNumber,
+                Address = vi.Voter.Address,
+                IslandName = vi.Voter.Island != null ? vi.Voter.Island.Name : string.Empty,
+                ConstituencyName = vi.Voter.Constituency != null ? vi.Voter.Constituency.Name : string.Empty,
+                SupportStatus = vi.Voter.SupportStatus,
+                RelationshipType = vi.RelationshipType,
+                LinkedAt = vi.LinkedAt
+            })
+            .ToListAsync();
+
+        return new InfluencerVotersDto
+        {
+            Influencer = influencer,
+            OutsideAreaCount = outside,
+            RelationshipTypes = relationshipTypes,
+            Voters = new HR28.Application.DTOs.Common.PagedResult<LinkedVoterDto>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = total
+            }
+        };
+    }
 }

@@ -1826,3 +1826,40 @@ fieldset {
     color: var(--ui-red);
     font-weight: 700;
 }
+
+/* A pill that opens a page (e.g. "12 linked voters") */
+a.ui-pill-link {
+    text-decoration: none;
+    transition: filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+    a.ui-pill-link:hover,
+    a.ui-pill-link:focus-visible {
+        filter: brightness(0.96);
+        box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 25%, transparent);
+    }
+
+.ui-filter-row.is-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+}
+
+@media (max-width: 1100px) {
+    .ui-filter-row.is-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .ui-filter-row.is-3 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Stat cards: let the colour tags win over the card's default blue. */
+.ui-stat.is-blue { --tone: var(--ui-blue); --tone-soft: var(--ui-blue-soft); }
+.ui-stat.is-green { --tone: var(--ui-green); --tone-soft: var(--ui-green-soft); }
+.ui-stat.is-amber { --tone: var(--ui-amber); --tone-soft: var(--ui-amber-soft); }
+.ui-stat.is-red { --tone: var(--ui-red); --tone-soft: var(--ui-red-soft); }
+.ui-stat.is-violet { --tone: var(--ui-violet); --tone-soft: var(--ui-violet-soft); }
+.ui-stat.is-cyan { --tone: var(--ui-cyan); --tone-soft: var(--ui-cyan-soft); }
+.ui-stat.is-muted { --tone: #8291a8; --tone-soft: #eef1f6; }

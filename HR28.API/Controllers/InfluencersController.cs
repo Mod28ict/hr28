@@ -4,6 +4,7 @@ using HR28.Application.Interfaces;
 using HR28.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace HR28.API.Controllers;
 
@@ -38,6 +39,31 @@ public class InfluencersController : ControllerBase
     }
 
     /// <summary>Needs the "Edit influencers" right and the influencer in the user's areas.</summary>
+    /// <summary>Voters linked to this influencer that the user may see (paged, filterable).</summary>
+    [HttpGet("{id:guid}/voters")]
+    [EnableRateLimiting(RateLimitPolicies.Search)]
+    public async Task<IActionResult> GetLinkedVoters(
+        Guid id,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] Guid? constituencyId = null,
+        [FromQuery] string? status = null,
+        [FromQuery] string? relationship = null)
+    {
+        return Ok(await _influencerService.GetLinkedVotersAsync(
+            id,
+            page,
+            pageSize,
+            new LinkedVoterFilter
+            {
+                SearchTerm = searchTerm,
+                ConstituencyId = constituencyId,
+                Status = status,
+                Relationship = relationship
+            }));
+    }
+
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(
         Guid id,

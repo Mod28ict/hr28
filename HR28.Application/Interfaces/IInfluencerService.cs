@@ -28,4 +28,13 @@ public interface IInfluencerService
     /// and their links to voters. Returns the deleted influencer's name.
     /// </summary>
     Task<string> DeleteAsync(Guid id);
+
+    /// <summary>
+    /// Voters linked to an influencer, limited to the user's areas (others are only counted).
+    /// </summary>
+    Task<InfluencerVotersDto> GetLinkedVotersAsync(
+        Guid influencerId,
+        int page,
+        int pageSize,
+        LinkedVoterFilter filter);
 }

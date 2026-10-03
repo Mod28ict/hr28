@@ -27,7 +27,11 @@ Solution file: `HR28.slnx` (.NET 10). Clean-architecture layering:
   `Filters/`, `Models/` view models).
 - Data: Entity Framework Core + SQL Server, schema managed with migrations.
 - Scope filtering: `AccessScopeService` + `ScopeQueryExtensions.InScope(...)` in
-  Infrastructure; use these for every query on voters, influencers, encounters and pledges.
+  Infrastructure; use these for every query on voters, encounters and pledges.
+  **Influencers are global** (owner decision, 2026-10-03): everyone sees every
+  influencer; edit/delete still need the granted rights. An influencer's linked
+  voters (Influencers → "N linked voters", API `GET api/influencers/{id}/voters`) are
+  listed only inside the user's areas; links outside them are counted, never shown.
 - Tests: **no test project exists yet.** Create one (e.g. `HR28.Tests`, xUnit) as part of
   Phase 1 regression tests and add it to `HR28.slnx`; until then `dotnet test` runs nothing.
 
@@ -120,8 +124,9 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
     (UserId, Permission) — migration `AddPermissions`; rollback:
     `dotnet ef database update HashAuthorizationCodes`.
   - Enforced on the server via `AccessScope.HasPermission(...)` (resolved live in
-    `AccessScopeService`; a role's rights change calls `InvalidateAll()`), **and** the
-    record must be inside the user's areas. The web app only hides buttons
+    `AccessScopeService`; a role's rights change calls `InvalidateAll()`), **and** for
+    voter-owned records (encounters) the voter must be inside the user's areas
+    (influencers are global, so their rights apply to every influencer). The web app only hides buttons
     (`Hr28Permissions.Has`, refreshed in the session about once a minute).
   - Granting/removing rights is audited ("Rights for role …", "Extra rights: …").
   - Influencer **delete is permanent** (owner decision): removes the influencer and

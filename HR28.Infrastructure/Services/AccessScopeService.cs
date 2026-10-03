@@ -176,23 +176,7 @@ public static class ScopeQueryExtensions
             (v.IslandId.HasValue && islandIds.Contains(v.IslandId.Value)));
     }
 
-    public static IQueryable<Influencer> InScope(
-        this IQueryable<Influencer> query,
-        AccessScope scope)
-    {
-        if (scope.IsAdministrator)
-            return query;
-
-        if (!scope.HasAnyScope)
-            return query.Where(_ => false);
-
-        var constituencyIds = scope.ConstituencyIds.ToList();
-        var islandIds = scope.IslandIds.ToList();
-
-        return query.Where(i =>
-            constituencyIds.Contains(i.ConstituencyId) ||
-            (i.IslandId.HasValue && islandIds.Contains(i.IslandId.Value)));
-    }
+    // No InScope for influencers: they are global (owner decision, 2026-10-03).
 
     public static IQueryable<Encounter> InScope(
         this IQueryable<Encounter> query,

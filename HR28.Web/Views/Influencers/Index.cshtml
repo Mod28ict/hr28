@@ -161,9 +161,12 @@
                             {
                                 <span class="ui-pill is-red">Duplicate National ID</span>
                             }
-                            <span class="ui-pill is-violet">
-                                @influencer.LinkedVoters linked @(influencer.LinkedVoters == 1 ? "voter" : "voters")
-                            </span>
+                            <a asp-action="Voters"
+                               asp-route-id="@influencer.Id"
+                               class="ui-pill is-violet ui-pill-link"
+                               title="See the voters linked to @name">
+                                @influencer.LinkedVoters linked @(influencer.LinkedVoters == 1 ? "voter" : "voters") ›
+                            </a>
                         </div>
 
                         @if (canEdit || canDelete)

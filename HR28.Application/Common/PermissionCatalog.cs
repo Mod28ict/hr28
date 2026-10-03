@@ -18,12 +18,12 @@ public static class PermissionCatalog
         new Entry(
             InfluencersEdit,
             "Edit influencers",
-            "Change an influencer's details and area (within the user's own areas).",
+            "Change any influencer's details and area (influencers are shared by everyone).",
             "Influencers"),
         new Entry(
             InfluencersDelete,
             "Delete influencers",
-            "Permanently delete an influencer and their links to voters (within the user's own areas).",
+            "Permanently delete any influencer and all their links to voters.",
             "Influencers"),
         new Entry(
             EncountersEdit,

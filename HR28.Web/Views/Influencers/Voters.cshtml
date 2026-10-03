@@ -1,0 +1,345 @@
+@model HR28.Web.Models.InfluencerVotersDto
+
+@{
+    var influencer = Model.Influencer;
+    var voters = Model.Voters;
+    var filter = ViewBag.Filter as HR28.Web.Models.LinkedVoterFilterModel ?? new HR28.Web.Models.LinkedVoterFilterModel();
+
+    var name = string.IsNullOrWhiteSpace(influencer.FullName) ? "Unnamed influencer" : influencer.FullName;
+    ViewData["Title"] = $"Voters linked to {name}";
+
+    var place = string.IsNullOrWhiteSpace(influencer.IslandName)
+        ? influencer.ConstituencyName
+        : $"{influencer.IslandName}, {influencer.ConstituencyName}";
+
+    var startRecord = voters.TotalCount == 0 ? 0 : ((voters.Page - 1) * voters.PageSize) + 1;
+    var endRecord = Math.Min(voters.Page * voters.PageSize, voters.TotalCount);
+    var firstVisiblePage = Math.Max(1, voters.Page - 2);
+    var lastVisiblePage = Math.Min(voters.TotalPages, voters.Page + 2);
+
+    Dictionary<string, string> PageRoute(int pageNumber)
+    {
+        var values = filter.RouteValues();
+        values["id"] = influencer.Id.ToString();
+        values["page"] = pageNumber.ToString();
+        return values;
+    }
+
+    string InitialsOf(string text) =>
+        string.Concat(text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
+}
+
+<div class="ui-page">
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-violet"><partial name="_Icon" model='"star"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a asp-action="Index">Influencers</a>
+                    <span aria-hidden="true">/</span> <span>Linked voters</span>
+                </nav>
+                <h1 class="ui-title">@name</h1>
+                <p class="ui-sub">
+                    <span class="ui-num">@influencer.NationalId</span>
+                    @if (!string.IsNullOrWhiteSpace(place))
+                    {
+                        @: · @place
+                    }
+                    @if (!string.IsNullOrWhiteSpace(influencer.ContactNumber))
+                    {
+                        @: · @influencer.ContactNumber
+                    }
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <section class="ui-stats is-3">
+        <div class="ui-stat is-violet">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"link"' /></span>
+            <div>
+                <div class="ui-stat-label">Linked voters</div>
+                <div class="ui-stat-value">@influencer.LinkedVoters.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="ui-stat is-blue">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"users"' /></span>
+            <div>
+                <div class="ui-stat-label">In your areas</div>
+                <div class="ui-stat-value">@((influencer.LinkedVoters - Model.OutsideAreaCount).ToString("N0"))</div>
+            </div>
+        </div>
+        <div class="ui-stat is-muted">
+            <span class="ui-stat-icon"><partial name="_Icon" model='"shield"' /></span>
+            <div>
+                <div class="ui-stat-label">Outside your areas</div>
+                <div class="ui-stat-value">@Model.OutsideAreaCount.ToString("N0")</div>
+                <div class="ui-stat-foot">Counted, not shown</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="ui-card">
+
+        <form asp-action="Voters" asp-route-id="@influencer.Id" method="get" role="search">
+
+            <div class="ui-toolbar">
+                <div class="ui-search">
+                    <partial name="_Icon" model='"search"' />
+                    <label for="linkedSearch" class="visually-hidden">Search linked voters</label>
+                    <input type="search"
+                           id="linkedSearch"
+                           name="searchTerm"
+                           value="@filter.SearchTerm"
+                           maxlength="100"
+                           class="ui-input"
+                           placeholder="Search by name, National ID, phone or island" />
+                </div>
+
+                <button type="submit" class="ui-btn ui-btn-primary">Search</button>
+
+                <label for="linkedPageSize" class="visually-hidden">Rows per page</label>
+                <select name="pageSize" id="linkedPageSize" class="ui-select ui-select-auto" onchange="this.form.requestSubmit()">
+                    @foreach (var size in new[] { 10, 20, 50, 100 })
+                    {
+                        if (filter.PageSize == size)
+                        {
+                            <option value="@size" selected>@size per page</option>
+                        }
+                        else
+                        {
+                            <option value="@size">@size per page</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="ui-filter-row is-3">
+                <div class="ui-filter">
+                    <label for="linkedConstituency" class="ui-label">Constituency</label>
+                    <select id="linkedConstituency" name="constituencyId" class="ui-select">
+                        <option value="">All constituencies</option>
+                        @foreach (var c in filter.Constituencies)
+                        {
+                            if (filter.ConstituencyId == c.Id)
+                            {
+                                <option value="@c.Id" selected>@HR28.Web.Models.VoterListFilterModel.Label(c)</option>
+                            }
+                            else
+                            {
+                                <option value="@c.Id">@HR28.Web.Models.VoterListFilterModel.Label(c)</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="ui-filter">
+                    <label for="linkedStatus" class="ui-label">Status</label>
+                    <select id="linkedStatus" name="status" class="ui-select">
+                        <option value="">All statuses</option>
+                        @foreach (var st in HR28.Web.Models.VoterListFilterModel.Statuses)
+                        {
+                            if (filter.Status == st)
+                            {
+                                <option value="@st" selected>@st</option>
+                            }
+                            else
+                            {
+                                <option value="@st">@st</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="ui-filter">
+                    <label for="linkedRelationship" class="ui-label">Relationship</label>
+                    <select id="linkedRelationship" name="relationship" class="ui-select">
+                        <option value="">All relationships</option>
+                        @foreach (var r in Model.RelationshipTypes)
+                        {
+                            if (filter.Relationship == r)
+                            {
+                                <option value="@r" selected>@r</option>
+                            }
+                            else
+                            {
+                                <option value="@r">@r</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="ui-filter ui-filter-actions">
+                    <button type="submit" class="ui-btn ui-btn-secondary">Apply filters</button>
+                    @if (filter.IsNarrowed)
+                    {
+                        <a asp-action="Voters" asp-route-id="@influencer.Id" asp-route-pageSize="@filter.PageSize" class="ui-btn ui-btn-ghost">Clear all</a>
+                    }
+                </div>
+            </div>
+
+        </form>
+
+        @if (!voters.Items.Any())
+        {
+            <div class="ui-empty">
+                <partial name="_Icon" model='"users"' />
+                @if (filter.IsNarrowed)
+                {
+                    @:No linked voters match your search and filters.
+                }
+                else if (Model.OutsideAreaCount > 0)
+                {
+                    @:This influencer's linked voters are all outside your areas.
+                }
+                else
+                {
+                    @:No voters are linked to this influencer yet. Link one from a voter's profile.
+                }
+            </div>
+        }
+        else
+        {
+            <div class="ui-meta">
+                Showing <strong>@startRecord.ToString("N0")</strong>
+                to <strong>@endRecord.ToString("N0")</strong>
+                of <strong>@voters.TotalCount.ToString("N0")</strong>
+                linked @(voters.TotalCount == 1 ? "voter" : "voters")
+            </div>
+
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th>Voter</th>
+                            <th>National ID</th>
+                            <th>Phone</th>
+                            <th>Island</th>
+                            <th>Relationship</th>
+                            <th>Status</th>
+                            <th class="ui-hide-sm">Linked</th>
+                            <th><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var v in voters.Items)
+                        {
+                            var voterName = string.IsNullOrWhiteSpace(v.FullName) ? "Unnamed voter" : v.FullName;
+                            var profileUrl = Url.Action("Profile", "Voters", new { id = v.VoterId });
+
+                            <tr class="ui-row-link" onclick="window.location='@profileUrl'">
+                                <td>
+                                    <div class="ui-person">
+                                        <span class="ui-avatar" aria-hidden="true">@InitialsOf(voterName)</span>
+                                        <span>
+                                            <strong>@voterName</strong>
+                                            @if (!string.IsNullOrWhiteSpace(v.Address))
+                                            {
+                                                <span class="ui-muted" style="display: block; font-size: 12px;">@v.Address</span>
+                                            }
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td class="ui-num ui-muted">@v.NationalId</td>
+
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(v.MobileNumber))
+                                    {
+                                        <a href="tel:@v.MobileNumber" class="ui-link ui-num" onclick="event.stopPropagation()">@v.MobileNumber</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="ui-faint">—</span>
+                                    }
+                                </td>
+
+                                <td style="min-width: 130px;">
+                                    @if (!string.IsNullOrWhiteSpace(v.IslandName))
+                                    {
+                                        <div>@v.IslandName</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="ui-faint">No island</div>
+                                    }
+                                    <div class="ui-muted" style="font-size: 12px;">@v.ConstituencyName</div>
+                                </td>
+
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(v.RelationshipType))
+                                    {
+                                        <span class="ui-tag">@v.RelationshipType</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ui-faint">—</span>
+                                    }
+                                </td>
+
+                                <td><partial name="_StatusPill" model="v.SupportStatus" /></td>
+
+                                <td class="ui-num ui-muted ui-hide-sm" style="white-space: nowrap;">@v.LinkedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+
+                                <td class="is-right">
+                                    <a asp-controller="Voters" asp-action="Profile" asp-route-id="@v.VoterId"
+                                       class="ui-btn ui-btn-secondary ui-btn-sm" onclick="event.stopPropagation()">View</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (voters.TotalPages > 1)
+        {
+            <nav class="ui-pager" aria-label="Linked voter pagination">
+                @if (voters.HasPreviousPage)
+                {
+                    <a class="ui-page-btn" asp-action="Voters" asp-all-route-data="PageRoute(voters.Page - 1)">‹ Previous</a>
+                }
+                else
+                {
+                    <span class="ui-page-btn is-disabled">‹ Previous</span>
+                }
+
+                @for (var pageNumber = firstVisiblePage; pageNumber <= lastVisiblePage; pageNumber++)
+                {
+                    if (pageNumber == voters.Page)
+                    {
+                        <span class="ui-page-btn is-current" aria-current="page">@pageNumber</span>
+                    }
+                    else
+                    {
+                        <a class="ui-page-btn" asp-action="Voters" asp-all-route-data="PageRoute(pageNumber)">@pageNumber</a>
+                    }
+                }
+
+                @if (voters.HasNextPage)
+                {
+                    <a class="ui-page-btn" asp-action="Voters" asp-all-route-data="PageRoute(voters.Page + 1)">Next ›</a>
+                }
+                else
+                {
+                    <span class="ui-page-btn is-disabled">Next ›</span>
+                }
+            </nav>
+        }
+
+    </section>
+
+</div>
+
+@section Scripts
+{
+    <script>
+        (function ($) {
+            // Type-to-search by constituency name or code.
+            if ($ && typeof $.fn.select2 === "function") {
+                $("#linkedConstituency").select2({ width: "100%", placeholder: "All constituencies", allowClear: true });
+            }
+        })(window.jQuery);
+    </script>
+}

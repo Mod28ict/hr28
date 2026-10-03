@@ -37,9 +37,9 @@ public class ReportService : IReportingService
             .Select(g => new { g.Key.ConstituencyId, g.Key.SupportStatus, Count = g.Count() })
             .ToListAsync();
 
+        // Influencers are global; rows are still limited to the user's constituencies.
         var influencerCounts = await _dbContext.Influencers
             .AsNoTracking()
-            .InScope(scope)
             .GroupBy(i => i.ConstituencyId)
             .Select(g => new { ConstituencyId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.ConstituencyId, x => x.Count);
@@ -126,9 +126,9 @@ public class ReportService : IReportingService
 
         var voterIds = _dbContext.Voters.InScope(scope).Select(v => v.Id);
 
+        // Influencers are global, but only linked voters the user may see are counted.
         return await _dbContext.Influencers
             .AsNoTracking()
-            .InScope(scope)
             .Select(i => new TopInfluencerDto
             {
                 InfluencerId = i.Id,
