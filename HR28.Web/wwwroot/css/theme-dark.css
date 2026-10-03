@@ -258,14 +258,19 @@ html[data-theme="dark"] {
         color: #b6caff;
     }
 
+    /* Quick action tiles: the light tints (e.g. #eefaf4) are for light mode only;
+       here each tile is the dark card colour with a faint wash of its own tone. */
     html[data-theme="dark"] .hd-action {
-        border-color: var(--hd-border);
+        border-color: color-mix(in srgb, var(--tone) 28%, var(--hd-border));
         color: var(--hd-text);
-        background: var(--tone-soft);
+        background: color-mix(in srgb, var(--tone) 12%, #131c2e);
     }
 
         html[data-theme="dark"] .hd-action:hover {
-            color: var(--hd-text);
+            border-color: color-mix(in srgb, var(--tone) 55%, var(--hd-border));
+            color: #ffffff;
+            background: color-mix(in srgb, var(--tone) 20%, #131c2e);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
         }
 
     /* ---------- Third-party: select2 + page loader ---------- */
