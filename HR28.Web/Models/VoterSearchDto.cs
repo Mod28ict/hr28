@@ -27,4 +27,10 @@ public class VoterSearchDto
 
     public int PledgeCount { get; set; }
 
+    public string ConstituencyCode { get; set; } = string.Empty;
+
+    /// <summary>"Kendhoo Dhaaira (F03)", or just the name when there is no code.</summary>
+    public string ConstituencyLabel =>
+        string.IsNullOrWhiteSpace(ConstituencyCode) ? ConstituencyName : $"{ConstituencyName} ({ConstituencyCode.Trim()})";
+
 }

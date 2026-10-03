@@ -17,6 +17,9 @@ public class VoterDto
     public Guid? IslandId { get; set; }
 
     public string Remarks { get; set; } = string.Empty;
+    /// <summary>Constituency code, e.g. "F03" (filled on the voter list; may be empty).</summary>
+    public string ConstituencyCode { get; set; } = string.Empty;
+
     /// <summary>Number of pledges recorded for this voter (filled on the voter list).</summary>
     public int PledgeCount { get; set; }
 

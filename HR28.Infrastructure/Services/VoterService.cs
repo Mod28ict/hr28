@@ -555,6 +555,7 @@ public class VoterService : IVoterService
                     IslandId = v.IslandId,
                     ConstituencyName = v.Constituency != null ? v.Constituency.Name : string.Empty,
                     IslandName = v.Island != null ? v.Island.Name : string.Empty,
+                    ConstituencyCode = v.Constituency != null && v.Constituency.Code != null ? v.Constituency.Code : string.Empty,
                     PledgeCount = v.Pledges.Count(),
                     Remarks = v.Remarks,
                     SupportStatus =
