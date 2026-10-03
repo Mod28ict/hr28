@@ -164,6 +164,25 @@ html[data-theme="dark"] {
         color: #ff8f9f;
     }
 
+    /* Pills (status, role, "Always", "N linked voters", ...): the light-mode
+       background (#eef1f6) is set on the pill itself, so replace it here with a
+       faint wash of the pill's own text colour. */
+    html[data-theme="dark"] .ui-pill,
+    html[data-theme="dark"] .hd-pill {
+        color: #b3bfd1;
+        background: color-mix(in srgb, currentColor 16%, transparent);
+    }
+
+    html[data-theme="dark"] a.ui-pill-link:hover,
+    html[data-theme="dark"] a.ui-pill-link:focus-visible {
+        filter: none;
+        background: color-mix(in srgb, currentColor 26%, transparent);
+    }
+
+    html[data-theme="dark"] .ui-btn-ghost:hover {
+        background: var(--ui-subtle);
+    }
+
     html[data-theme="dark"] .ui-pill.is-green,
     html[data-theme="dark"] .hd-pill.is-green { color: #5fe0aa; }
 
@@ -183,7 +202,7 @@ html[data-theme="dark"] {
     html[data-theme="dark"] .ui-pill.is-muted,
     html[data-theme="dark"] .hd-pill.is-muted {
         color: #b3bfd1;
-        background: var(--ui-subtle);
+        background: color-mix(in srgb, currentColor 16%, transparent);
     }
 
     html[data-theme="dark"] .ui-code-box {
