@@ -1088,3 +1088,16 @@ a.hd-kpi.is-link:focus-visible .hd-kpi-go {
     opacity: 1;
     transform: translateX(3px);
 }
+
+/* Long activity text ends in "..." instead of running past the card. */
+.hd-card {
+    min-width: 0;
+}
+
+.hd-list {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+    .hd-list li {
+        min-width: 0;
+    }

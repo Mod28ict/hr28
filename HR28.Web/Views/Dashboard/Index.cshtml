@@ -458,7 +458,7 @@
                         <li>
                             <span class="hd-list-icon @style.Tone"><partial name="_Icon" model="@style.Icon" /></span>
                             <span class="hd-list-text">
-                                <strong title="@activity.Action">
+                                <strong title="@(isAdministrator && !string.IsNullOrWhiteSpace(activity.ActorName) ? $"{activity.ActorName} · {activity.Action}" : activity.Action)">
                                     @if (isAdministrator && !string.IsNullOrWhiteSpace(activity.ActorName))
                                     {
                                         @activity.ActorName<text> · </text>
