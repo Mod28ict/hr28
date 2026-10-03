@@ -1,0 +1,281 @@
+@model HR28.Web.Models.PagedResult<HR28.Web.Models.PledgeListItemDto>
+
+@{
+    ViewData["Title"] = "Pledges";
+
+    var filter = ViewBag.Filter as HR28.Web.Models.PledgeListFilterModel ?? new HR28.Web.Models.PledgeListFilterModel();
+    var errorMessage = ViewBag.ErrorMessage as string;
+
+    // Reporters only read; the API refuses their changes too.
+    var canWrite = HR28.Web.Services.Hr28Roles.CanManageRecords(Context.Session.GetString("UserRole"));
+
+    var startRecord = Model.TotalCount == 0 ? 0 : ((Model.Page - 1) * Model.PageSize) + 1;
+    var endRecord = Math.Min(Model.Page * Model.PageSize, Model.TotalCount);
+    var firstVisiblePage = Math.Max(1, Model.Page - 2);
+    var lastVisiblePage = Math.Min(Model.TotalPages, Model.Page + 2);
+
+    string ToneOf(string status) =>
+        HR28.Web.Models.UpdatePledgeViewModel.Statuses.FirstOrDefault(s => s.Value == status).Tone ?? "is-muted";
+
+    // Status chips keep the search; page links keep everything.
+    Dictionary<string, string> ChipRoute(string? status, bool overdue)
+    {
+        var values = new Dictionary<string, string> { ["pageSize"] = filter.PageSize.ToString() };
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm)) values["searchTerm"] = filter.SearchTerm;
+        if (!string.IsNullOrWhiteSpace(status)) values["status"] = status;
+        if (overdue) values["overdue"] = "true";
+        return values;
+    }
+
+    Dictionary<string, string> PageRoute(int pageNumber)
+    {
+        var values = filter.RouteValues();
+        values["page"] = pageNumber.ToString();
+        return values;
+    }
+
+    string ChipClass(bool active) => active ? "ui-filter-chip is-active" : "ui-filter-chip";
+}
+
+<div class="ui-page">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ui-alert is-green" role="status">
+            <partial name="_Icon" model='"check-circle"' />
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-green"><partial name="_Icon" model='"handshake"' /></span>
+            <div>
+                <h1 class="ui-title">Pledges</h1>
+                <p class="ui-sub">
+                    @Model.TotalCount.ToString("N0")
+                    @(Model.TotalCount == 1 ? "pledge" : "pledges")
+                    @(filter.IsNarrowed ? "match your search and filters" : "for voters within your assigned scope")
+                </p>
+            </div>
+        </div>
+
+        <div class="ui-head-actions">
+            <a asp-controller="Reports" asp-action="Pledges" class="ui-btn ui-btn-secondary">
+                <partial name="_Icon" model='"chart"' />
+                Pledge summary
+            </a>
+        </div>
+    </header>
+
+    <section class="ui-card">
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="ui-alert is-red" role="alert">
+                <partial name="_Icon" model='"alert"' />
+                <span>@errorMessage</span>
+            </div>
+        }
+
+        <form asp-action="Index" method="get" role="search">
+            <input type="hidden" name="status" value="@filter.Status" />
+            @if (filter.Overdue)
+            {
+                <input type="hidden" name="overdue" value="true" />
+            }
+
+            <div class="ui-toolbar">
+                <div class="ui-search">
+                    <partial name="_Icon" model='"search"' />
+                    <label for="pledgeSearch" class="visually-hidden">Search pledges</label>
+                    <input type="search"
+                           id="pledgeSearch"
+                           name="searchTerm"
+                           value="@filter.SearchTerm"
+                           maxlength="100"
+                           class="ui-input"
+                           placeholder="Search by pledge, voter name or National ID" />
+                </div>
+
+                <button type="submit" class="ui-btn ui-btn-primary">Search</button>
+
+                <label for="pledgePageSize" class="visually-hidden">Rows per page</label>
+                <select name="pageSize" id="pledgePageSize" class="ui-select ui-select-auto" onchange="this.form.requestSubmit()">
+                    @foreach (var size in new[] { 10, 20, 50, 100 })
+                    {
+                        if (filter.PageSize == size)
+                        {
+                            <option value="@size" selected>@size per page</option>
+                        }
+                        else
+                        {
+                            <option value="@size">@size per page</option>
+                        }
+                    }
+                </select>
+            </div>
+        </form>
+
+        <nav class="ui-filter-chips" aria-label="Filter by status">
+            <a class="@ChipClass(string.IsNullOrWhiteSpace(filter.Status) && !filter.Overdue)"
+               asp-action="Index" asp-all-route-data="ChipRoute(null, false)">All</a>
+
+            @foreach (var s in HR28.Web.Models.UpdatePledgeViewModel.Statuses)
+            {
+                <a class="@ChipClass(filter.Status == s.Value && !filter.Overdue) @s.Tone"
+                   asp-action="Index" asp-all-route-data="ChipRoute(s.Value, false)"
+                   title="@s.Help">@s.Value</a>
+            }
+
+            <a class="@ChipClass(filter.Overdue) is-red"
+               asp-action="Index" asp-all-route-data="ChipRoute(null, true)"
+               title="Not completed or cancelled, and past the due date">Overdue</a>
+
+            @if (filter.IsNarrowed)
+            {
+                <a asp-action="Index" asp-route-pageSize="@filter.PageSize" class="ui-btn ui-btn-ghost ui-btn-sm">Clear all</a>
+            }
+        </nav>
+
+        @if (!Model.Items.Any())
+        {
+            <div class="ui-empty">
+                <partial name="_Icon" model='"handshake"' />
+                @(filter.IsNarrowed
+                    ? "No pledges match your search and filters."
+                    : "No pledges recorded yet. Add one from a voter's profile.")
+            </div>
+        }
+        else
+        {
+            <div class="ui-meta">
+                Showing <strong>@startRecord.ToString("N0")</strong>
+                to <strong>@endRecord.ToString("N0")</strong>
+                of <strong>@Model.TotalCount.ToString("N0")</strong>
+                @(Model.TotalCount == 1 ? "pledge" : "pledges")
+            </div>
+
+            <div class="ui-table-wrap">
+                <table class="ui-table">
+                    <thead>
+                        <tr>
+                            <th>Pledge</th>
+                            <th>Voter</th>
+                            <th>Island</th>
+                            <th>Status</th>
+                            <th>Due</th>
+                            <th class="ui-hide-sm">Recorded by</th>
+                            <th><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Items)
+                        {
+                            <tr>
+                                <td style="min-width: 200px;">
+                                    <strong>@p.Title</strong>
+                                    <div class="ui-muted" style="font-size: 12px;">
+                                        Pledged @p.PledgeDate.ToString("dd MMM yyyy")
+                                        @if (p.FulfilledDate.HasValue)
+                                        {
+                                            @:· done @p.FulfilledDate.Value.ToString("dd MMM yyyy")
+                                        }
+                                    </div>
+                                </td>
+
+                                <td style="min-width: 170px;">
+                                    <a asp-controller="Voters" asp-action="Profile" asp-route-id="@p.VoterId" class="ui-link">
+                                        @(string.IsNullOrWhiteSpace(p.VoterName) ? "Unnamed voter" : p.VoterName)
+                                    </a>
+                                    <div class="ui-muted ui-num" style="font-size: 12px;">@p.VoterNationalId</div>
+                                </td>
+
+                                <td style="min-width: 130px;">
+                                    @if (!string.IsNullOrWhiteSpace(p.IslandName))
+                                    {
+                                        <div>@p.IslandName</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="ui-faint">No island</div>
+                                    }
+                                    <div class="ui-muted" style="font-size: 12px;">@p.ConstituencyName</div>
+                                </td>
+
+                                <td><span class="ui-pill @ToneOf(p.Status)">@p.Status</span></td>
+
+                                <td class="ui-num" style="white-space: nowrap;">
+                                    @if (p.DueDate.HasValue)
+                                    {
+                                        <span class="@(p.IsOverdue ? "ui-overdue" : "")">@p.DueDate.Value.ToString("dd MMM yyyy")</span>
+                                        @if (p.IsOverdue)
+                                        {
+                                            <div class="ui-overdue" style="font-size: 12px;">Overdue</div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="ui-faint">—</span>
+                                    }
+                                </td>
+
+                                <td class="ui-muted ui-hide-sm">@p.RecordedBy</td>
+
+                                <td class="is-right">
+                                    @if (canWrite)
+                                    {
+                                        <a asp-action="Update" asp-route-id="@p.Id" class="ui-btn ui-btn-secondary ui-btn-sm">Update</a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Voters" asp-action="Profile" asp-route-id="@p.VoterId" class="ui-btn ui-btn-secondary ui-btn-sm">View</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="ui-pager" aria-label="Pledge pagination">
+
+                @if (Model.HasPreviousPage)
+                {
+                    <a class="ui-page-btn" asp-action="Index" asp-all-route-data="PageRoute(Model.Page - 1)">‹ Previous</a>
+                }
+                else
+                {
+                    <span class="ui-page-btn is-disabled">‹ Previous</span>
+                }
+
+                @for (var pageNumber = firstVisiblePage; pageNumber <= lastVisiblePage; pageNumber++)
+                {
+                    if (pageNumber == Model.Page)
+                    {
+                        <span class="ui-page-btn is-current" aria-current="page">@pageNumber</span>
+                    }
+                    else
+                    {
+                        <a class="ui-page-btn" asp-action="Index" asp-all-route-data="PageRoute(pageNumber)">@pageNumber</a>
+                    }
+                }
+
+                @if (Model.HasNextPage)
+                {
+                    <a class="ui-page-btn" asp-action="Index" asp-all-route-data="PageRoute(Model.Page + 1)">Next ›</a>
+                }
+                else
+                {
+                    <span class="ui-page-btn is-disabled">Next ›</span>
+                }
+
+            </nav>
+        }
+
+    </section>
+
+</div>

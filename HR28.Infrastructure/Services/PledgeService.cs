@@ -203,4 +203,85 @@ public class PledgeService : IPledgeService
         FulfilledDate = pledge.FulfilledDate,
         ResolutionNotes = pledge.ResolutionNotes
     };
+
+    public async Task<HR28.Application.DTOs.Common.PagedResult<PledgeListItemDto>> GetListAsync(
+        int page,
+        int pageSize,
+        PledgeListFilter filter)
+    {
+        var userId = GetCurrentUserId()
+            ?? throw new AccessDeniedException("You must be signed in.");
+
+        var scope = await _accessScopeService.GetAsync(userId);
+
+        page = Math.Max(1, page);
+        pageSize = pageSize is < 1 or > 100 ? 20 : pageSize;
+
+        // Only pledges for voters inside the user's areas.
+        var query = _dbContext.Pledges
+            .AsNoTracking()
+            .InScope(scope, _dbContext.Voters);
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            var term = filter.SearchTerm.Trim();
+            term = term.Length > 100 ? term[..100] : term;
+
+            query = query.Where(p =>
+                p.Title.Contains(term) ||
+                p.Voter.FullName.Contains(term) ||
+                p.Voter.NationalId.Contains(term));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Status) &&
+            AllowedStatuses.Contains(filter.Status.Trim()))
+        {
+            var status = filter.Status.Trim();
+            query = query.Where(p => p.Status == status);
+        }
+
+        if (filter.OverdueOnly)
+        {
+            var today = DateTime.Today;
+
+            query = query.Where(p =>
+                p.DueDate != null &&
+                p.DueDate < today &&
+                p.Status != "Completed" &&
+                p.Status != "Cancelled");
+        }
+
+        var total = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(p => p.PledgeDate)
+            .ThenBy(p => p.Title)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new PledgeListItemDto
+            {
+                Id = p.Id,
+                Title = p.Title,
+                Status = p.Status,
+                Priority = p.Priority,
+                PledgeDate = p.PledgeDate,
+                DueDate = p.DueDate,
+                FulfilledDate = p.FulfilledDate,
+                VoterId = p.VoterId,
+                VoterName = p.Voter.FullName,
+                VoterNationalId = p.Voter.NationalId,
+                IslandName = p.Voter.Island != null ? p.Voter.Island.Name : string.Empty,
+                ConstituencyName = p.Voter.Constituency != null ? p.Voter.Constituency.Name : string.Empty,
+                RecordedBy = p.CreatedByUser.FullName
+            })
+            .ToListAsync();
+
+        return new HR28.Application.DTOs.Common.PagedResult<PledgeListItemDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = total
+        };
+    }
 }

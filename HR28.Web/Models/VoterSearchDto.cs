@@ -25,4 +25,6 @@ public class VoterSearchDto
 
     public string SupportStatus { get; set; } = string.Empty;
 
+    public int PledgeCount { get; set; }
+
 }

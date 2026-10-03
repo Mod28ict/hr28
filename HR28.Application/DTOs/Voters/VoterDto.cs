@@ -17,6 +17,9 @@ public class VoterDto
     public Guid? IslandId { get; set; }
 
     public string Remarks { get; set; } = string.Empty;
+    /// <summary>Number of pledges recorded for this voter (filled on the voter list).</summary>
+    public int PledgeCount { get; set; }
+
     public string SupportStatus { get; set; }
     = string.Empty;
     public string ConstituencyName { get; set; }

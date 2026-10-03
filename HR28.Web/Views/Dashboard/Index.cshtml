@@ -233,14 +233,15 @@
             </div>
         </div>
 
-        <div class="hd-kpi is-green">
+        <a class="hd-kpi is-green is-link" asp-controller="Pledges" asp-action="Index" title="See all pledges">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"handshake"' /></span>
             <div>
                 <div class="hd-kpi-label">Pledges</div>
                 <div class="hd-kpi-value">@dashboard.TotalPledges.ToString("N0")</div>
                 <div class="hd-kpi-foot"><b>@dashboard.OpenPledges.ToString("N0")</b> open · @dashboard.CompletedPledges.ToString("N0") completed</div>
             </div>
-        </div>
+            <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
+        </a>
 
         <div class="hd-kpi is-violet">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"star"' /></span>

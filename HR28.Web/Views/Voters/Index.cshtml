@@ -227,6 +227,7 @@
                             <th>Phone</th>
                             <th>Island</th>
                             <th class="ui-hide-sm">Address</th>
+                            <th class="is-center">Pledges</th>
                             <th>Status</th>
                             <th><span class="visually-hidden">Actions</span></th>
                         </tr>
@@ -279,6 +280,17 @@
                                 </td>
 
                                 <td class="ui-muted ui-hide-sm">@voter.Address</td>
+
+                                <td class="is-center">
+                                    @if (voter.PledgeCount > 0)
+                                    {
+                                        <span class="ui-count is-amber" title="@voter.PledgeCount pledge@(voter.PledgeCount == 1 ? "" : "s")">@voter.PledgeCount</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ui-faint">0</span>
+                                    }
+                                </td>
 
                                 <td><partial name="_StatusPill" model="voter.SupportStatus" /></td>
 

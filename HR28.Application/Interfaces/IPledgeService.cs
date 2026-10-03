@@ -18,4 +18,10 @@ public interface IPledgeService
 
     /// <summary>One pledge whose voter is in the caller's areas.</summary>
     Task<PledgeDto> GetByIdAsync(Guid pledgeId);
+
+    /// <summary>Pledges for voters inside the user's areas, newest first, paged.</summary>
+    Task<HR28.Application.DTOs.Common.PagedResult<PledgeListItemDto>> GetListAsync(
+        int page,
+        int pageSize,
+        PledgeListFilter filter);
 }

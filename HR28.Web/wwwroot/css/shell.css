@@ -1053,3 +1053,38 @@
             transform: none;
         }
 }
+
+/* KPI cards that open a page (e.g. Pledges) */
+
+a.hd-kpi.is-link {
+    position: relative;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+    a.hd-kpi.is-link:focus-visible {
+        outline: 3px solid color-mix(in srgb, var(--tone) 45%, transparent);
+        outline-offset: 2px;
+    }
+
+.hd-kpi-go {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    color: var(--tone);
+    opacity: 0.35;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+    .hd-kpi-go .icon {
+        width: 18px;
+        height: 18px;
+    }
+
+a.hd-kpi.is-link:hover .hd-kpi-go,
+a.hd-kpi.is-link:focus-visible .hd-kpi-go {
+    opacity: 1;
+    transform: translateX(3px);
+}

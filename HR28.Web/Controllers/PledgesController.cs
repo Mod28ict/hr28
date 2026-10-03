@@ -19,6 +19,41 @@ public class PledgesController : Controller
         _apiClient = apiClient;
     }
 
+    /// <summary>All pledges inside the user's areas, with who they are for and their state.</summary>
+    [HttpGet]
+    public async Task<IActionResult> Index(
+        int page = 1,
+        int pageSize = 20,
+        string? searchTerm = null,
+        string? status = null,
+        bool overdue = false)
+    {
+        var filter = new PledgeListFilterModel
+        {
+            SearchTerm = searchTerm?.Trim(),
+            Status = UpdatePledgeViewModel.Statuses.Any(s => s.Value == status) ? status : null,
+            Overdue = overdue,
+            PageSize = pageSize is 10 or 20 or 50 or 100 ? pageSize : 20
+        };
+
+        var result = await _apiClient.GetAsync<PagedResult<PledgeListItemDto>>(
+            $"Pledges?page={Math.Max(1, page)}" + filter.ToApiQuery(),
+            HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!result.Success)
+            ViewBag.ErrorMessage = result.Message;
+
+        ViewBag.Filter = filter;
+
+        return View(result.Data ?? new PagedResult<PledgeListItemDto> { Page = 1, PageSize = filter.PageSize });
+    }
+
     /// <summary>Change a pledge's status and record what was done.</summary>
     [HttpGet]
     public async Task<IActionResult> Update(Guid id)

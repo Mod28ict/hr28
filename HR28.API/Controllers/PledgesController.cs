@@ -4,6 +4,7 @@ using HR28.Application.DTOs.Pledges;
 using HR28.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace HR28.API.Controllers;
 
@@ -18,6 +19,27 @@ public class PledgesController : ControllerBase
         IPledgeService pledgeService)
     {
         _pledgeService = pledgeService;
+    }
+
+    /// <summary>All pledges inside the user's areas (paged, filterable). Rate-limited like voter search.</summary>
+    [HttpGet]
+    [EnableRateLimiting(RateLimitPolicies.Search)]
+    public async Task<IActionResult> GetList(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] string? status = null,
+        [FromQuery] bool overdue = false)
+    {
+        return Ok(await _pledgeService.GetListAsync(
+            page,
+            pageSize,
+            new PledgeListFilter
+            {
+                SearchTerm = searchTerm,
+                Status = status,
+                OverdueOnly = overdue
+            }));
     }
 
     [HttpPost]

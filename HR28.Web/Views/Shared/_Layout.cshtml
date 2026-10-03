@@ -270,13 +270,13 @@
                 </a>
             }
 
-            <a class="@NavClass(currentController == "Reports" && currentAction == "Pledges")"
-               asp-controller="Reports" asp-action="Pledges">
+            <a class="@NavClass(currentController == "Pledges")"
+               asp-controller="Pledges" asp-action="Index">
                 <partial name="_Icon" model='"handshake"' />
                 <span>Pledges</span>
             </a>
 
-            <a class="@NavClass(currentController == "Reports" && currentAction != "Pledges")"
+            <a class="@NavClass(currentController == "Reports")"
                asp-controller="Reports" asp-action="Index">
                 <partial name="_Icon" model='"chart"' />
                 <span>Reports</span>

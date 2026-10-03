@@ -1787,3 +1787,42 @@ fieldset {
         opacity: 0.6;
         cursor: not-allowed;
     }
+
+/* ---------- Status filter chips (Pledges) ---------- */
+
+.ui-filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: -4px 0 16px;
+}
+
+.ui-filter-chip {
+    padding: 6px 14px;
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 999px;
+    color: var(--ui-text-2);
+    background: var(--ui-surface);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+    .ui-filter-chip:hover,
+    .ui-filter-chip:focus-visible {
+        border-color: var(--tone, var(--ui-blue));
+        color: var(--tone, var(--ui-blue));
+    }
+
+    .ui-filter-chip.is-active {
+        border-color: var(--tone, var(--ui-blue));
+        color: #ffffff;
+        background: var(--tone, var(--ui-blue));
+    }
+
+.ui-overdue {
+    color: var(--ui-red);
+    font-weight: 700;
+}
