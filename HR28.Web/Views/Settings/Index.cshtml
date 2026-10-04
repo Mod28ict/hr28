@@ -22,7 +22,7 @@
 
     string LocalTime(DateTime? value) =>
         value.HasValue
-            ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc).ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+            ? HR28.Web.Services.Hr28Time.FromUtc(value.Value).ToString("dd MMM yyyy, HH:mm")
             : "—";
 }
 

@@ -311,7 +311,7 @@
                                     }
                                     <span class="ui-pill @tone">@pledge.Status</span>
                                 </td>
-                                <td class="ui-num" style="white-space: nowrap;">@pledge.PledgeDate.ToString("dd MMM yyyy")</td>
+                                <td class="ui-num" style="white-space: nowrap;">@HR28.Web.Services.Hr28Time.FromUtc(pledge.PledgeDate).ToString("dd MMM yyyy")</td>
                                 <td class="ui-num" style="white-space: nowrap;">@(pledge.DueDate.HasValue ? pledge.DueDate.Value.ToString("dd MMM yyyy") : "—")</td>
                                 <td class="is-right">
                                     @if (canWrite)

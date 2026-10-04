@@ -154,9 +154,8 @@
                         @foreach (var entry in result.Items)
                         {
                             var style = ActionStyle(entry.Action);
-                            var local = entry.CreatedAt.Kind == DateTimeKind.Local
-                                ? entry.CreatedAt
-                                : DateTime.SpecifyKind(entry.CreatedAt, DateTimeKind.Utc).ToLocalTime();
+                            // Stored in UTC; always shown in Maldives time.
+                            var local = HR28.Web.Services.Hr28Time.FromUtc(entry.CreatedAt);
 
                             <tr>
                                 <td class="ui-num" style="white-space: nowrap;">

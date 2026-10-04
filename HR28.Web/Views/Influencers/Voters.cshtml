@@ -280,7 +280,7 @@
 
                                 <td><partial name="_StatusPill" model="v.SupportStatus" /></td>
 
-                                <td class="ui-num ui-muted ui-hide-sm" style="white-space: nowrap;">@v.LinkedAt.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                <td class="ui-num ui-muted ui-hide-sm" style="white-space: nowrap;">@HR28.Web.Services.Hr28Time.FromUtc(v.LinkedAt).ToString("dd MMM yyyy")</td>
 
                                 <td class="is-right">
                                     <a asp-controller="Voters" asp-action="Profile" asp-route-id="@v.VoterId"

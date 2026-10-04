@@ -14,7 +14,7 @@ public class CreateEncounterDto
     [Required]
     [Display(Name = "Encounter Date")]
     public DateTime EncounterDate { get; set; }
-        = DateTime.Now;
+        = HR28.Web.Services.Hr28Time.Now;
 
     [Required]
     [Display(Name = "Encounter Type")]

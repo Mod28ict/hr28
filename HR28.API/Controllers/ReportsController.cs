@@ -1,3 +1,4 @@
+using HR28.Application.Common;
 using HR28.API.Extensions;
 using HR28.Application.Interfaces;
 using HR28.Infrastructure.Helpers;
@@ -166,7 +167,7 @@ public class ReportsController : ControllerBase
         return new CsvBuilder()
             .Row($"HR28 — {title}")
             .Row("Scope", scope.IsAdministrator ? "All constituencies" : "Assigned area only")
-            .Row("Generated (UTC)", DateTime.UtcNow)
+            .Row("Generated (Maldives time)", MaldivesTime.Now.ToString("dd MMM yyyy HH:mm"))
             .Blank();
     }
 
@@ -174,7 +175,7 @@ public class ReportsController : ControllerBase
     {
         await _auditService.LogAsync(userId, "Export CSV", "Report", title);
 
-        var fileName = $"hr28-{slug}-{DateTime.UtcNow:yyyy-MM-dd}.csv";
+        var fileName = $"hr28-{slug}-{MaldivesTime.Now:yyyy-MM-dd}.csv";
 
         return File(csv.ToBytes(), "text/csv; charset=utf-8", fileName);
     }

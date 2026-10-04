@@ -248,6 +248,15 @@ strong despite that:
 
 ## UX rules
 
+- **All dates and times are Maldives time (UTC+05:00, no daylight saving)** — on
+  screen, in CSV exports, and for "today"/"now" in business rules (overdue
+  pledges, "not in the future"). Never use `DateTime.Now`/`Today`/`ToLocalTime()`:
+  servers (Azure) run on UTC. Use `MaldivesTime` (Application/Common) on the server
+  and `Hr28Time` (Web/Services) in the web app. System timestamps (CreatedAt,
+  LinkedAt, LastLoginAt, UpdatedAt, PledgeDate, FulfilledDate) are stored in UTC and
+  converted with `FromUtc`; dates people type (EncounterDate, DueDate) are Maldives
+  dates stored as typed. Date filters convert the Maldives day to a UTC range.
+
 - Users are not technical: keep every screen simple, with plain-language messages and
   clear next steps, especially in login, code entry and error screens.
 - Never show GUIDs, stack traces, raw API errors or technical identifiers to users.

@@ -176,10 +176,10 @@
                                 <td style="min-width: 200px;">
                                     <strong>@p.Title</strong>
                                     <div class="ui-muted" style="font-size: 12px;">
-                                        Pledged @p.PledgeDate.ToString("dd MMM yyyy")
+                                        Pledged @HR28.Web.Services.Hr28Time.FromUtc(p.PledgeDate).ToString("dd MMM yyyy")
                                         @if (p.FulfilledDate.HasValue)
                                         {
-                                            @:· done @p.FulfilledDate.Value.ToString("dd MMM yyyy")
+                                            @:· done @HR28.Web.Services.Hr28Time.FromUtc(p.FulfilledDate.Value).ToString("dd MMM yyyy")
                                         }
                                     </div>
                                 </td>

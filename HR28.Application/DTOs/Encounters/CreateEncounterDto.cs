@@ -5,7 +5,7 @@ public class CreateEncounterDto
     public Guid VoterId { get; set; }
 
     public DateTime EncounterDate { get; set; }
-        = DateTime.UtcNow;
+        = HR28.Application.Common.MaldivesTime.Now;
 
     public string EncounterType { get; set; }
         = string.Empty;

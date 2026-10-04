@@ -63,7 +63,11 @@ public class PledgeService : IPledgeService
             VoterId = request.VoterId,
             CreatedByUserId = userId,
             AssignedToUserId = request.AssignedToUserId,
-            PledgeDate = DateTime.UtcNow,
+            // The pledge date typed on the form is a Maldives date/time; stored as UTC
+            // like every other system timestamp. No date given = now.
+            PledgeDate = request.PledgeDate.HasValue && request.PledgeDate.Value != default
+                ? MaldivesTime.ToUtc(request.PledgeDate.Value)
+                : DateTime.UtcNow,
             Title = request.Title,
             Description = request.Description,
             Status = "Open",
@@ -242,7 +246,7 @@ public class PledgeService : IPledgeService
 
         if (filter.OverdueOnly)
         {
-            var today = DateTime.Today;
+            var today = MaldivesTime.Today;
 
             query = query.Where(p =>
                 p.DueDate != null &&

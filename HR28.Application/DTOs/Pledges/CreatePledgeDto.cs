@@ -10,6 +10,9 @@ public class CreatePledgeDto
     public string Description { get; set; }
         = string.Empty;
 
+    /// <summary>When the pledge was made, in Maldives time (optional; default now).</summary>
+    public DateTime? PledgeDate { get; set; }
+
     public DateTime? DueDate { get; set; }
 
     public Guid? AssignedToUserId { get; set; }

@@ -12,7 +12,7 @@ public class CreatePledgeDto
     [Required]
     [Display(Name = "Pledge Date")]
     public DateTime PledgeDate { get; set; }
-        = DateTime.Now;
+        = HR28.Web.Services.Hr28Time.Now;
 
     [Required]
     [StringLength(200)]

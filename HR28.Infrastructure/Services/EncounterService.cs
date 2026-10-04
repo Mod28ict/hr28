@@ -173,7 +173,7 @@ public class EncounterService : IEncounterService
         if (notes.Length > MaxNotesLength)
             throw new BusinessRuleException($"Notes can be at most {MaxNotesLength} characters.");
 
-        if (request.EncounterDate == default || request.EncounterDate > DateTime.Now.AddDays(1))
+        if (request.EncounterDate == default || request.EncounterDate > MaldivesTime.Now.AddDays(1))
             throw new BusinessRuleException("Enter the date the encounter happened (not in the future).");
 
         // Record which fields changed; notes are free text, so only that they changed.

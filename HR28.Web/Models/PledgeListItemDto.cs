@@ -31,7 +31,7 @@ public class PledgeListItemDto
 
     /// <summary>Unfinished and past its due date.</summary>
     public bool IsOverdue =>
-        DueDate.HasValue && DueDate.Value.Date < DateTime.Today &&
+        DueDate.HasValue && DueDate.Value.Date < HR28.Web.Services.Hr28Time.Today &&
         Status != "Completed" && Status != "Cancelled";
 }
 

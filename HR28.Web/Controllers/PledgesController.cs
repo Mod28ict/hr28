@@ -131,7 +131,7 @@ public class PledgesController : Controller
         var model = new CreatePledgeDto
         {
             VoterId = voterId,
-            PledgeDate = DateTime.Now
+            PledgeDate = Hr28Time.Now
         };
 
         return View(model);

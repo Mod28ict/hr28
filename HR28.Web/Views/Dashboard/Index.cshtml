@@ -19,7 +19,7 @@
     var fullName = Context.Session.GetString("UserName") ?? "there";
     var firstName = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? fullName;
 
-    var hour = DateTime.Now.Hour;
+    var hour = HR28.Web.Services.Hr28Time.Now.Hour;
     var greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
     var totalVoters = dashboard.TotalVoters;
@@ -128,7 +128,7 @@
         if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} min ago";
         if (span.TotalHours < 24) return $"{(int)span.TotalHours} hr ago";
         if (span.TotalDays < 7) return $"{(int)span.TotalDays} day{((int)span.TotalDays == 1 ? "" : "s")} ago";
-        return utc.ToLocalTime().ToString("dd MMM yyyy");
+        return HR28.Web.Services.Hr28Time.FromUtc(utc).ToString("dd MMM yyyy");
     }
 
     (string Tone, string Icon) ActivityStyle(string action)
@@ -165,7 +165,7 @@
             <div class="hd-date">
                 <span class="hd-date-icon"><partial name="_Icon" model='"calendar"' /></span>
                 <span>
-                    <strong>@DateTime.Now.ToString("dddd, dd MMMM yyyy")</strong>
+                    <strong>@HR28.Web.Services.Hr28Time.Now.ToString("dddd, dd MMMM yyyy")</strong>
                     <small>Let's make progress.</small>
                 </span>
             </div>

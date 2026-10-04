@@ -1,3 +1,4 @@
+using HR28.Application.Common;
 using HR28.Application.DTOs.Audit;
 using HR28.Application.DTOs.Common;
 using HR28.Application.Interfaces;
@@ -47,10 +48,17 @@ public class AuditTrailService : IAuditTrailService
             logs = logs.Where(a => a.Action == query.Action);
 
         if (query.From.HasValue)
-            logs = logs.Where(a => a.CreatedAt >= query.From.Value.Date);
+        {
+            // From/To are Maldives dates; entries are stored in UTC.
+            var fromUtc = MaldivesTime.ToUtc(query.From.Value.Date);
+            logs = logs.Where(a => a.CreatedAt >= fromUtc);
+        }
 
         if (query.To.HasValue)
-            logs = logs.Where(a => a.CreatedAt < query.To.Value.Date.AddDays(1));
+        {
+            var toUtc = MaldivesTime.ToUtc(query.To.Value.Date.AddDays(1));
+            logs = logs.Where(a => a.CreatedAt < toUtc);
+        }
 
         var rows =
             from a in logs

@@ -130,7 +130,7 @@ public class EncountersController : AppController
         var model = new CreateEncounterDto
         {
             VoterId = voterId,
-            EncounterDate = DateTime.Now
+            EncounterDate = Hr28Time.Now
         };
 
         return View(model);

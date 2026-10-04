@@ -39,7 +39,7 @@
         <dl class="ui-details" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
             <div>
                 <dt>Pledged on</dt>
-                <dd>@Date(p.PledgeDate)</dd>
+                <dd>@Date(HR28.Web.Services.Hr28Time.FromUtc(p.PledgeDate))</dd>
             </div>
             <div>
                 <dt>Due</dt>
@@ -47,7 +47,7 @@
             </div>
             <div>
                 <dt>Completed on</dt>
-                <dd>@Date(p.FulfilledDate)</dd>
+                <dd>@Date(HR28.Web.Services.Hr28Time.FromUtc(p.FulfilledDate))</dd>
             </div>
         </dl>
     </section>
