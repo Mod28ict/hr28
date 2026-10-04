@@ -21,3 +21,6 @@ TestResults/
 
 # Personal Claude Code settings (not shared)
 .claude/settings.local.json
+
+# One-time local secrets setup (contains secrets; deletes itself after running)
+set-dev-secrets.ps1
