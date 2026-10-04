@@ -15,6 +15,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Older .xls voter lists use legacy code pages; the Excel reader needs them registered.
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+// Development secrets (Jwt:Key, Security:AuthorizationCodeKey) come from User Secrets.
+// Added explicitly by this project's UserSecretsId: when started from Visual Studio
+// the default lookup can point at the project folder instead and find nothing.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>(optional: true);
+}
 // Secrets never live in committed files. Development: the connection string uses
 // Windows sign-in (appsettings.Development.json) and the JWT key is in User Secrets.
 // Production: both come from Azure Key Vault / app settings. Fail fast if missing.
