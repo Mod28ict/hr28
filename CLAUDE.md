@@ -335,7 +335,12 @@ Known open issues (fix or confirm with the owner):
 - Influencer edit/delete with granted rights is built but not yet tested end to end
   with a signed-in non-Administrator. No right is granted to any role yet.
 - `Users.AuthorizationCode` (plain, now always empty) can be dropped in a migration.
-- Dev data to tidy: "Collector Demo" holds three roles incl. National Administrator;
-  Mariyam Waheed's area pairs Henveiru West with Galolhu.
+- Dev data to tidy: "Collector Demo" holds three roles incl. National Administrator.
+  On 2026-10-04 the 6 placeholder constituencies (Addu Constituency, Hulhumale,
+  Galolhu, Henveiru, Maafannu, Machangolhi) were deleted with their islands, 4 test
+  voters, 8 influencers and 7 user areas (backup HR28Db_before_constituency_cleanup_
+  2026-10-04.bak); 93 constituencies remain, all with codes. 13,270 voters lost the
+  shared "Hithadhoo" island (now "No island"); Mariyam Waheed and Addu Coordinator
+  have no area until one is assigned.
 
 Next, after Phase 1: module switch system → deployment pipeline → paid modules.
