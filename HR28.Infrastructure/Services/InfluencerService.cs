@@ -255,43 +255,38 @@ public class InfluencerService : IInfluencerService
         await EnsureVoterInScopeAsync(scope, request.VoterId);
         await EnsureInfluencerExistsAsync(request.InfluencerId);
 
+        // An influencer can be linked to a voter only once. Changing the
+        // relationship is done with Edit (UpdateRelationshipAsync), not by linking again.
         var existingLink =
             await _dbContext.VoterInfluencers
-                .FirstOrDefaultAsync(x =>
+                .AsNoTracking()
+                .Where(x =>
                     x.VoterId == request.VoterId &&
-                    x.InfluencerId == request.InfluencerId);
+                    x.InfluencerId == request.InfluencerId)
+                .Select(x => new { x.RelationshipType, x.Influencer.FullName })
+                .FirstOrDefaultAsync();
 
-        string auditAction;
-
-        if (existingLink == null)
+        if (existingLink != null)
         {
-            var newLink = new VoterInfluencer
-            {
-                Id = Guid.NewGuid(),
-                VoterId = request.VoterId,
-                InfluencerId = request.InfluencerId,
-                RelationshipType =
-                    request.RelationshipType,
-                LinkedAt = DateTime.UtcNow
-            };
+            var already = string.IsNullOrWhiteSpace(existingLink.RelationshipType)
+                ? ""
+                : $" (as {existingLink.RelationshipType})";
 
-            _dbContext.VoterInfluencers.Add(
-                newLink);
-
-            auditAction = "Link To Voter";
+            throw new BusinessRuleException(
+                $"{existingLink.FullName} is already linked to this voter{already}. " +
+                "To change the relationship, use Edit on the voter's profile.");
         }
-        else
+
+        _dbContext.VoterInfluencers.Add(new VoterInfluencer
         {
-            existingLink.RelationshipType =
-                request.RelationshipType;
+            Id = Guid.NewGuid(),
+            VoterId = request.VoterId,
+            InfluencerId = request.InfluencerId,
+            RelationshipType = request.RelationshipType,
+            LinkedAt = DateTime.UtcNow
+        });
 
-            // Treat this timestamp as the latest link update.
-            existingLink.LinkedAt =
-                DateTime.UtcNow;
-
-            auditAction =
-                "Update Voter Relationship";
-        }
+        const string auditAction = "Link To Voter";
 
         await _dbContext.SaveChangesAsync();
 

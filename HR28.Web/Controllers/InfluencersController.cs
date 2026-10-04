@@ -306,18 +306,23 @@ public class InfluencersController : AppController
             return View(model);
         }
 
-        var success =
-            await _dashboardService
-                .LinkInfluencerAsync(
-                    model.Link,
-                    token);
+        var result =
+            await _apiClient.PostAsync<object>(
+                "Influencers/link",
+                model.Link,
+                token);
 
-        if (!success)
+        if (!result.Success)
         {
+            if (result.IsUnauthorized)
+                return HandleApiFailure(result)!;
+
+            // e.g. "Mariyam Ahmed is already linked to this voter (as Child). ..."
             ModelState.AddModelError(
                 string.Empty,
-                "The influencer could not be linked. " +
-                "The relationship may already exist.");
+                string.IsNullOrWhiteSpace(result.Message)
+                    ? "The influencer could not be linked. Please try again."
+                    : result.Message);
 
             await ReloadInfluencersAsync(
                 model,
