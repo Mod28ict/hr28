@@ -17,12 +17,31 @@ var builder = WebApplication.CreateBuilder(args);
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 // Development secrets (Jwt:Key, Security:AuthorizationCodeKey) come from User Secrets.
-// Added explicitly by this project's UserSecretsId: when started from Visual Studio
-// the default lookup can point at the project folder instead and find nothing.
+// The file is added by its full path (%APPDATA%/Microsoft/UserSecrets/<id>/secrets.json):
+// started from Visual Studio, the default lookup pointed at the project folder
+// instead and found nothing.
+string? devSecretsPath = null;
+
 if (builder.Environment.IsDevelopment())
 {
-    builder.Configuration.AddUserSecrets<Program>(optional: true);
+    var secretsId = System.Reflection.CustomAttributeExtensions
+        .GetCustomAttribute<Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute>(typeof(Program).Assembly)
+        ?.UserSecretsId;
+
+    if (!string.IsNullOrWhiteSpace(secretsId))
+    {
+        devSecretsPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Microsoft", "UserSecrets", secretsId, "secrets.json");
+
+        builder.Configuration.AddJsonFile(
+            new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Path.GetDirectoryName(devSecretsPath)!),
+            "secrets.json",
+            optional: true,
+            reloadOnChange: false);
+    }
 }
+
 // Secrets never live in committed files. Development: the connection string uses
 // Windows sign-in (appsettings.Development.json) and the JWT key is in User Secrets.
 // Production: both come from Azure Key Vault / app settings. Fail fast if missing.
@@ -49,7 +68,10 @@ if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32
 {
     throw new InvalidOperationException(
         "Jwt:Key is missing or shorter than 32 bytes. " +
-        "Set it with 'dotnet user-secrets' (development) or Key Vault (production).");
+        "Set it with 'dotnet user-secrets' (development) or Key Vault (production)." +
+        (devSecretsPath == null
+            ? " (No UserSecretsId found on the API assembly.)"
+            : $" Looked for development secrets in: {devSecretsPath} (exists: {File.Exists(devSecretsPath)})."));
 }
 
 // Add services to the container.
