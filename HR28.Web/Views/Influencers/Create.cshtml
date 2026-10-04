@@ -62,6 +62,7 @@
                             <input asp-for="Influencer.NationalId"
                                    id="h28InfNationalId"
                                    class="ui-input ui-upper"
+                                   maxlength="7"
                                    placeholder="A123456"
                                    autocomplete="off" />
                             <span asp-validation-for="Influencer.NationalId" class="ui-error"></span>
@@ -72,8 +73,11 @@
                                 Contact number <span class="ui-optional">(optional)</span>
                             </label>
                             <input asp-for="Influencer.ContactNumber"
-                                   class="ui-input"
-                                   inputmode="tel"
+                                   class="ui-input h28-digits-only"
+                                   inputmode="numeric"
+                                   maxlength="7"
+                                   pattern="\d{7}"
+                                   title="7 digits, e.g. 7771234"
                                    placeholder="7XXXXXX" />
                             <span asp-validation-for="Influencer.ContactNumber" class="ui-error"></span>
                         </div>

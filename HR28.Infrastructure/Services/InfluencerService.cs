@@ -73,11 +73,16 @@ public class InfluencerService : IInfluencerService
         CreateInfluencerDto request,
         Guid? existingId)
     {
-        var nationalId = (request.NationalId ?? string.Empty).Trim().ToUpperInvariant();
+        var nationalId = MaldivesFormats.CleanNationalId(request.NationalId);
         var fullName = (request.FullName ?? string.Empty).Trim();
 
         if (string.IsNullOrWhiteSpace(nationalId))
             throw new BusinessRuleException("National ID is required.");
+
+        MaldivesFormats.RequireNationalId(nationalId);
+
+        request.ContactNumber = MaldivesFormats.CleanMobile(request.ContactNumber);
+        MaldivesFormats.RequireMobile(request.ContactNumber, "Contact number");
 
         if (string.IsNullOrWhiteSpace(fullName))
             throw new BusinessRuleException("Full name is required.");

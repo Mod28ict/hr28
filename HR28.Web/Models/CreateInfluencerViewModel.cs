@@ -5,7 +5,8 @@ namespace HR28.Web.Models;
 public class CreateInfluencerDto
 {
     [Required(ErrorMessage = "National ID is required.")]
-    [StringLength(20, ErrorMessage = "National ID must be 20 characters or fewer.")]
+    [StringLength(7, ErrorMessage = "National ID is 7 characters, e.g. A123456.")]
+    [RegularExpression(@"^[A-Za-z]\d{6}$", ErrorMessage = "National ID must be one letter followed by 6 digits, e.g. A123456.")]
     [Display(Name = "National ID")]
     public string NationalId { get; set; } = string.Empty;
 
@@ -17,9 +18,10 @@ public class CreateInfluencerDto
     [StringLength(300)]
     public string Address { get; set; } = string.Empty;
 
-    [StringLength(20)]
+    [StringLength(7, ErrorMessage = "Contact number is 7 digits.")]
+    [RegularExpression(@"^\d{7}$", ErrorMessage = "Contact number must be exactly 7 digits, e.g. 7771234.")]
     [Display(Name = "Contact number")]
-    public string ContactNumber { get; set; } = string.Empty;
+    public string? ContactNumber { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Please choose a constituency.")]
     [Display(Name = "Constituency")]

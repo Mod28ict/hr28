@@ -56,6 +56,14 @@ public class UserService : IUserService
     public async Task<UserDto> CreateUserAsync(
         CreateUserDto request)
     {
+        request.NationalId = MaldivesFormats.CleanNationalId(request.NationalId);
+        request.MobileNumber = MaldivesFormats.CleanMobile(request.MobileNumber);
+
+        MaldivesFormats.RequireNationalId(request.NationalId);
+
+        // Required: the sign-in code is sent to this number by SMS.
+        MaldivesFormats.RequireMobile(request.MobileNumber, "Mobile number", required: true);
+
         var (authorizationCode, codeHash) = await NewUniqueCodeAsync();
 
         var user = new User
