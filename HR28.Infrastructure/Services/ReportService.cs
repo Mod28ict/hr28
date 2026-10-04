@@ -28,7 +28,7 @@ public class ReportService : IReportingService
         var constituencies = await _dbContext.Constituencies
             .AsNoTracking()
             .InScope(scope)
-            .Select(c => new { c.Id, c.Name })
+            .Select(c => new { c.Id, c.Name, c.Code })
             .ToListAsync();
 
         // One grouped query per measure instead of several queries per constituency.
@@ -76,6 +76,7 @@ public class ReportService : IReportingService
                 {
                     ConstituencyId = c.Id,
                     ConstituencyName = c.Name,
+                    ConstituencyCode = c.Code?.Trim() ?? string.Empty,
                     TotalVoters = total,
                     Supporters = supporters,
                     Opponents = StatusCount(c.Id, "Opponent"),

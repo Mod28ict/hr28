@@ -78,7 +78,7 @@
                 <input type="search"
                        id="h28CsSearch"
                        class="ui-input"
-                       placeholder="Filter constituencies" />
+                       placeholder="Filter by name or code, e.g. F03" />
             </div>
         </div>
 
@@ -113,7 +113,13 @@
                             var barWidth = pct > 0 ? Math.Min(100, Math.Max(3, pct)) : 0;
 
                             <tr>
-                                <td class="ui-strong">@item.ConstituencyName</td>
+                                <td class="ui-strong">
+                                    @item.ConstituencyName
+                                    @if (!string.IsNullOrWhiteSpace(item.ConstituencyCode))
+                                    {
+                                        <span class="ui-muted ui-num" style="font-weight: 600;">(@item.ConstituencyCode)</span>
+                                    }
+                                </td>
                                 <td class="ui-num is-right">@item.TotalVoters.ToString("N0")</td>
                                 <td class="ui-num is-right">@item.Supporters.ToString("N0")</td>
                                 <td class="ui-num is-right">@item.Undecided.ToString("N0")</td>

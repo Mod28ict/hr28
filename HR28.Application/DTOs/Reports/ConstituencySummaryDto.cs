@@ -6,6 +6,9 @@ public class ConstituencySummaryDto
 
     public string ConstituencyName { get; set; } = string.Empty;
 
+    /// <summary>Constituency code, e.g. "F03"; empty when there is none.</summary>
+    public string ConstituencyCode { get; set; } = string.Empty;
+
     public int TotalVoters { get; set; }
 
     public int Supporters { get; set; }

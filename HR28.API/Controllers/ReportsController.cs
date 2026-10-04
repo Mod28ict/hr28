@@ -86,12 +86,12 @@ public class ReportsController : ControllerBase
 
         var csv = await StartCsvAsync(userId.Value, "Constituency Summary");
 
-        csv.Row("Constituency", "Total voters", "Supporters", "Undecided", "Neutral",
+        csv.Row("Constituency", "Code", "Total voters", "Supporters", "Undecided", "Neutral",
                 "Opposition", "Support %", "Influencers", "Encounters", "Pledges");
 
         foreach (var r in rows)
         {
-            csv.Row(r.ConstituencyName, r.TotalVoters, r.Supporters, r.Undecided, r.Neutral,
+            csv.Row(r.ConstituencyName, r.ConstituencyCode, r.TotalVoters, r.Supporters, r.Undecided, r.Neutral,
                     r.Opponents, r.SupportPercentage, r.TotalInfluencers, r.TotalEncounters, r.TotalPledges);
         }
 
