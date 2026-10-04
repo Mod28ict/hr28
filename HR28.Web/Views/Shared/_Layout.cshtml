@@ -524,6 +524,15 @@
                 search.focus();
             }
         });
+
+        // The hint says how to reach the box (Ctrl + K) until you are in it,
+        // then how to search (Enter).
+        var searchHint = document.querySelector(".shell-search .shell-kbd");
+
+        if (search && searchHint) {
+            search.addEventListener("focus", function () { searchHint.textContent = "Enter"; });
+            search.addEventListener("blur", function () { searchHint.textContent = "Ctrl + K"; });
+        }
     })();
 </script>
 
