@@ -75,6 +75,11 @@ public class VoterService : IVoterService
                 "You can only add voters within your assigned area.");
         }
 
+        request.NationalId = CleanNationalId(request.NationalId);
+        request.MobileNumber = CleanMobile(request.MobileNumber);
+        RequireValidNationalId(request.NationalId);
+        RequireValidMobile(request.MobileNumber);
+
         if (await _dbContext.Voters.AnyAsync(v => v.NationalId == request.NationalId))
         {
             throw new HR28.Application.Common.BusinessRuleException(
@@ -236,6 +241,17 @@ public class VoterService : IVoterService
             throw new HR28.Application.Common.AccessDeniedException(
                 "You can only move voters within your assigned area.");
         }
+
+        request.NationalId = CleanNationalId(request.NationalId);
+        request.MobileNumber = CleanMobile(request.MobileNumber);
+
+        // Older records may not follow the format; they can still be saved as long
+        // as the value is left unchanged.
+        if (request.NationalId != voter.NationalId)
+            RequireValidNationalId(request.NationalId);
+
+        if (request.MobileNumber != (voter.MobileNumber ?? string.Empty))
+            RequireValidMobile(request.MobileNumber);
 
         if (voter.NationalId != request.NationalId &&
             await _dbContext.Voters.AnyAsync(v => v.Id != id && v.NationalId == request.NationalId))
@@ -580,5 +596,34 @@ public class VoterService : IVoterService
     {
         var trimmed = value.Trim();
         return trimmed.Length > 100 ? trimmed[..100] : trimmed;
+    }
+
+    // Maldivian National ID: one letter and 6 digits (e.g. A123456), 7 characters.
+    private static readonly System.Text.RegularExpressions.Regex NationalIdFormat =
+        new(@"^[A-Z]\d{6}$");
+
+    // Maldivian mobile number: exactly 7 digits.
+    private static readonly System.Text.RegularExpressions.Regex MobileFormat =
+        new(@"^\d{7}$");
+
+    private static string CleanNationalId(string? value) =>
+        (value ?? string.Empty).Trim().ToUpperInvariant();
+
+    /// <summary>Removes spaces and dashes people type in phone numbers.</summary>
+    private static string CleanMobile(string? value) =>
+        new string((value ?? string.Empty).Where(c => !char.IsWhiteSpace(c) && c != '-').ToArray());
+
+    private static void RequireValidNationalId(string nationalId)
+    {
+        if (!NationalIdFormat.IsMatch(nationalId))
+            throw new HR28.Application.Common.BusinessRuleException(
+                "National ID must be one letter followed by 6 digits, e.g. A123456.");
+    }
+
+    private static void RequireValidMobile(string mobile)
+    {
+        if (mobile.Length > 0 && !MobileFormat.IsMatch(mobile))
+            throw new HR28.Application.Common.BusinessRuleException(
+                "Mobile number must be exactly 7 digits, e.g. 7771234.");
     }
 }

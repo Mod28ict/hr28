@@ -1,16 +1,23 @@
-﻿namespace HR28.Web.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace HR28.Web.Models;
 
 public class VoterCreateEditDto
 {
     public Guid? Id { get; set; }
 
+    [Required(ErrorMessage = "Enter the National ID.")]
+    [StringLength(7, ErrorMessage = "National ID is 7 characters, e.g. A123456.")]
+    [RegularExpression(@"^[A-Za-z]\d{6}$", ErrorMessage = "National ID must be one letter followed by 6 digits, e.g. A123456.")]
     public string NationalId { get; set; } = "";
 
     public string FullName { get; set; } = "";
 
     public string Address { get; set; } = "";
 
-    public string MobileNumber { get; set; } = string.Empty;
+    [StringLength(7, ErrorMessage = "Mobile number is 7 digits.")]
+    [RegularExpression(@"^\d{7}$", ErrorMessage = "Mobile number must be exactly 7 digits, e.g. 7771234.")]
+    public string? MobileNumber { get; set; } = string.Empty;
 
     public Guid ConstituencyId { get; set; }
 

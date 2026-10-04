@@ -525,6 +525,17 @@
             }
         });
 
+        // Fields marked h28-digits-only (e.g. mobile numbers) keep digits only,
+        // whether typed or pasted ("777 1234" becomes "7771234").
+        document.addEventListener("input", function (e) {
+            var field = e.target;
+            if (!field.classList || !field.classList.contains("h28-digits-only")) return;
+            var digits = field.value.replace(/\D/g, "");
+            var max = parseInt(field.getAttribute("maxlength"), 10);
+            if (max > 0) digits = digits.slice(0, max);
+            if (digits !== field.value) field.value = digits;
+        });
+
         // The hint says how to reach the box (Ctrl + K) until you are in it,
         // then how to search (Enter).
         var searchHint = document.querySelector(".shell-search .shell-kbd");

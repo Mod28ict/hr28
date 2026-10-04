@@ -51,7 +51,7 @@
                 <div class="ui-grid-2">
                     <div class="ui-field">
                         <label asp-for="Voter.NationalId" class="ui-label">National ID</label>
-                        <input asp-for="Voter.NationalId" class="ui-input ui-upper" autocomplete="off" />
+                        <input asp-for="Voter.NationalId" class="ui-input ui-upper" autocomplete="off" maxlength="7" />
                         <span asp-validation-for="Voter.NationalId" class="ui-error"></span>
                     </div>
 
@@ -59,7 +59,13 @@
                         <label asp-for="Voter.MobileNumber" class="ui-label">
                             Mobile number <span class="ui-optional">(optional)</span>
                         </label>
-                        <input asp-for="Voter.MobileNumber" class="ui-input" inputmode="tel" />
+                        <input asp-for="Voter.MobileNumber"
+                               class="ui-input h28-digits-only"
+                               inputmode="numeric"
+                               maxlength="7"
+                               pattern="\d{7}"
+                               title="7 digits, e.g. 7771234"
+                               placeholder="7XXXXXX" />
                         <span asp-validation-for="Voter.MobileNumber" class="ui-error"></span>
                     </div>
 
