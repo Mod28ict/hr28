@@ -41,6 +41,12 @@ public interface IUserService
     Task UpdateUserAsync(Guid userId, UpdateUserDto request);
 
     /// <summary>
+    /// Activates or deactivates an account (Users list status pop-up). Same rules as
+    /// Edit: not your own account, not the last active Administrator. Audited.
+    /// </summary>
+    Task SetActiveAsync(Guid userId, bool isActive);
+
+    /// <summary>
     /// Permanently deletes an account that has not recorded encounters or pledges
     /// (those records must keep who made them; deactivate such accounts instead).
     /// Returns the deleted user's name.

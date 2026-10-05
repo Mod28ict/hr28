@@ -56,6 +56,20 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
+    public class SetActiveRequest
+    {
+        public bool IsActive { get; set; }
+    }
+
+    /// <summary>Activate or deactivate (Users list status pop-up). Audited.</summary>
+    [HttpPut("{id:guid}/active")]
+    public async Task<IActionResult> SetActive(Guid id, [FromBody] SetActiveRequest request)
+    {
+        await _userService.SetActiveAsync(id, request.IsActive);
+
+        return NoContent();
+    }
+
     /// <summary>Permanent; only for accounts that haven't recorded encounters or pledges.</summary>
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteUser(Guid id)

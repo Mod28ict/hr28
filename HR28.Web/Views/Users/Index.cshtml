@@ -195,9 +195,26 @@
                                 </td>
 
                                 <td>
-                                    <span class="ui-pill @(user.IsActive ? "is-green" : "is-red")">
-                                        @(user.IsActive ? "Active" : "Inactive")
-                                    </span>
+                                    @if (string.Equals(user.Id.ToString(), myId, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        @* Your own account can't be switched off from here. *@
+                                        <span class="ui-pill @(user.IsActive ? "is-green" : "is-red")">
+                                            @(user.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <button type="button"
+                                                class="ui-status-btn h28-active-btn"
+                                                title="Change whether @name can sign in"
+                                                data-id="@user.Id"
+                                                data-name="@name"
+                                                data-active="@(user.IsActive ? "true" : "false")">
+                                            <span class="ui-pill @(user.IsActive ? "is-green" : "is-red")">
+                                                @(user.IsActive ? "Active" : "Inactive")
+                                            </span>
+                                        </button>
+                                    }
                                 </td>
 
                                 <td>
@@ -261,6 +278,34 @@
 
 </div>
 
+<dialog id="h28ActiveDialog" class="ui-dialog" aria-labelledby="h28ActiveTitle">
+    <form asp-action="SetActive" method="post" class="ui-dialog-body">
+        <input type="hidden" name="id" id="h28ActiveId" />
+        <input type="hidden" name="name" id="h28ActiveName" />
+
+        <h2 id="h28ActiveTitle" class="ui-dialog-title">Account status</h2>
+        <p class="ui-muted" id="h28ActiveWho"></p>
+
+        <div class="ui-status-choices" role="radiogroup" aria-labelledby="h28ActiveTitle">
+            <label class="ui-status-choice">
+                <input type="radio" name="isActive" value="true" />
+                <span class="ui-pill is-green">Active</span>
+                <small class="ui-muted">Can sign in and work as their roles allow.</small>
+            </label>
+            <label class="ui-status-choice">
+                <input type="radio" name="isActive" value="false" />
+                <span class="ui-pill is-red">Inactive</span>
+                <small class="ui-muted">Can't sign in; signed out on their next click. Their records are kept.</small>
+            </label>
+        </div>
+
+        <div class="ui-form-actions">
+            <button type="submit" class="ui-btn ui-btn-primary">Save status</button>
+            <button type="button" class="ui-btn ui-btn-secondary" id="h28ActiveCancel">Cancel</button>
+        </div>
+    </form>
+</dialog>
+
 @section Scripts
 {
     <script>
@@ -284,6 +329,23 @@
                     if (noMatch) noMatch.hidden = shown > 0;
                 });
             }
+
+            // Status pop-up: click Active / Inactive to change it.
+            var activeDialog = document.getElementById("h28ActiveDialog");
+
+            document.querySelectorAll(".h28-active-btn").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    document.getElementById("h28ActiveId").value = btn.dataset.id;
+                    document.getElementById("h28ActiveName").value = btn.dataset.name;
+                    document.getElementById("h28ActiveWho").textContent = btn.dataset.name;
+                    activeDialog.querySelectorAll('input[name="isActive"]').forEach(function (r) {
+                        r.checked = r.value === btn.dataset.active;
+                    });
+                    activeDialog.showModal();
+                });
+            });
+
+            document.getElementById("h28ActiveCancel").addEventListener("click", function () { activeDialog.close(); });
 
             // Deleting is permanent: say so first.
             document.querySelectorAll(".h28-delete-user").forEach(function (form) {

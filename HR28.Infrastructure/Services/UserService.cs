@@ -266,13 +266,7 @@ public class UserService : IUserService
             throw new BusinessRuleException($"There is already a user with National ID {nationalId}.");
 
         if (!request.IsActive && user.IsActive)
-        {
-            if (userId == GetCurrentUserId())
-                throw new BusinessRuleException("You can't deactivate your own account.");
-
-            if (await IsLastActiveAdministratorAsync(userId))
-                throw new BusinessRuleException("This is the only active Administrator, so the account must stay active.");
-        }
+            await RequireCanDeactivateAsync(userId);
 
         var email = (request.Email ?? string.Empty).Trim();
         var designation = (request.Designation ?? string.Empty).Trim();
@@ -317,6 +311,48 @@ public class UserService : IUserService
                 "HR28: the mobile number on your account was changed by an administrator. " +
                 "If you did not ask for this, contact your HR28 administrator.");
         }
+    }
+
+    private async Task RequireCanDeactivateAsync(Guid userId)
+    {
+        if (userId == GetCurrentUserId())
+            throw new BusinessRuleException("You can't deactivate your own account.");
+
+        if (await IsLastActiveAdministratorAsync(userId))
+            throw new BusinessRuleException("This is the only active Administrator, so the account must stay active.");
+    }
+
+    public async Task SetActiveAsync(Guid userId, bool isActive)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new KeyNotFoundException("User not found.");
+
+        if (user.IsActive == isActive)
+            return;
+
+        if (!isActive)
+            await RequireCanDeactivateAsync(userId);
+
+        user.IsActive = isActive;
+
+        // A locked-out account starts fresh when it is turned back on.
+        if (isActive)
+        {
+            user.FailedLoginAttempts = 0;
+            user.IsLocked = false;
+            user.LockedUntilUtc = null;
+        }
+
+        await _dbContext.SaveChangesAsync();
+
+        // Deactivation applies on the person's next request.
+        _accessScopeService.Invalidate(userId);
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            isActive ? "Account activated" : "Account deactivated",
+            "User",
+            userId.ToString());
     }
 
     public async Task<string> DeleteUserAsync(Guid userId)

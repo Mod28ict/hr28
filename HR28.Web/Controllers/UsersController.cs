@@ -243,6 +243,39 @@ public class UsersController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>Status pop-up on the Users list: activate or deactivate an account.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SetActive(Guid id, bool isActive, string? name)
+    {
+        if (!IsSuperAdmin())
+            return RedirectToAction("Index", "Dashboard");
+
+        var result = await _apiClient.PutAsync<object>(
+            $"Users/{id}/active",
+            new { isActive },
+            HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var who = string.IsNullOrWhiteSpace(name) ? "The account" : name.Trim();
+
+        if (result.Success)
+            TempData["SuccessMessage"] = isActive
+                ? $"{who} is active and can sign in."
+                : $"{who} is inactive and can no longer sign in.";
+        else
+            TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
+                ? "The status could not be changed."
+                : result.Message;
+
+        return RedirectToAction(nameof(Index));
+    }
+
     /// <summary>Permanent delete (the page asks first). Accounts with records must be deactivated instead.</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
