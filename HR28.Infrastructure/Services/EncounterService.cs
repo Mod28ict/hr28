@@ -50,7 +50,11 @@ public class EncounterService : IEncounterService
 
         var type = request.EncounterType?.Trim() ?? string.Empty;
         var outcome = request.Outcome?.Trim() ?? string.Empty;
-        var response = request.Response?.Trim() ?? string.Empty;
+        // Only the Administrator and roles given "Set encounter response" record the response;
+        // everyone else's encounters start with no response.
+        var response = scope.HasPermission(PermissionCatalog.EncountersResponse) && !string.IsNullOrWhiteSpace(request.Response)
+            ? request.Response.Trim()
+            : null;
         var notes = request.Notes?.Trim() ?? string.Empty;
 
         if (!EncounterTypes.Contains(type))
@@ -59,7 +63,7 @@ public class EncounterService : IEncounterService
         if (!Outcomes.Contains(outcome))
             throw new BusinessRuleException("Choose Meet, Call or Request.");
 
-        if (!Responses.Contains(response))
+        if (response != null && !Responses.Contains(response))
             throw new BusinessRuleException("Choose the voter's response: Supports, Undecided or Does not support.");
 
         if (notes.Length > MaxNotesLength)
@@ -183,7 +187,10 @@ public class EncounterService : IEncounterService
 
         var type = request.EncounterType?.Trim() ?? string.Empty;
         var outcome = request.Outcome?.Trim() ?? string.Empty;
-        var response = string.IsNullOrWhiteSpace(request.Response) ? null : request.Response.Trim();
+        // Without "Set encounter response" the response stays as it is, whatever is sent.
+        var response = !scope.HasPermission(PermissionCatalog.EncountersResponse)
+            ? encounter.Response
+            : string.IsNullOrWhiteSpace(request.Response) ? null : request.Response.Trim();
         var notes = request.Notes?.Trim() ?? string.Empty;
 
         // Older records may hold a value no longer offered; keeping it unchanged is allowed.
@@ -230,6 +237,36 @@ public class EncounterService : IEncounterService
             id.ToString());
 
         return ToDto(encounter);
+    }
+
+    public async Task<string?> SetResponseAsync(Guid id, string? response)
+    {
+        var userId = GetCurrentUserId()
+            ?? throw new AccessDeniedException("You must be signed in.");
+
+        var scope = await _accessScopeService.GetAsync(userId);
+
+        if (!scope.HasPermission(PermissionCatalog.EncountersResponse))
+            throw new AccessDeniedException("You don't have permission to set encounter responses. Ask your Administrator.");
+
+        var encounter = await FindInScopeAsync(scope, id);
+
+        var value = string.IsNullOrWhiteSpace(response) ? null : response.Trim();
+
+        if (value != null && !Responses.Contains(value))
+            throw new BusinessRuleException("Choose the voter's response: Supports, Undecided or Does not support.");
+
+        if (encounter.Response == value)
+            return value;
+
+        var old = encounter.Response ?? "none";
+        encounter.Response = value;
+
+        await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(userId, $"Response: \"{old}\" → \"{value ?? "none"}\"", "Encounter", id.ToString());
+
+        return value;
     }
 
     public async Task DeleteAsync(Guid id)

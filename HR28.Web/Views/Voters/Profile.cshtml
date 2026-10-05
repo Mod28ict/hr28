@@ -356,14 +356,7 @@
                                 <td><span class="ui-tag">@encounter.EncounterType</span></td>
                                 <td><span class="ui-tag">@encounter.Outcome</span></td>
                                 <td>
-                                    @if (string.IsNullOrWhiteSpace(encounter.Response))
-                                    {
-                                        <span class="ui-faint">—</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="ui-pill is-filled @HR28.Web.Models.EncounterListFilterModel.ToneOf(encounter.Response)">@encounter.Response</span>
-                                    }
+                                    <partial name="_EncounterResponse" model="(encounter.Id, encounter.Response)" />
                                 </td>
                                 <td class="ui-muted">@encounter.Notes</td>
                                 @if (canEditEncounters || canDeleteEncounters)
@@ -492,6 +485,8 @@
     }
 
 </div>
+
+<partial name="_EncounterResponseDialog" />
 
 @section Scripts
 {

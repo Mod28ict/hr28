@@ -22,6 +22,9 @@ public static class PermissionCatalog
     public const string EncountersEdit = "Encounters.Edit";
     public const string EncountersDelete = "Encounters.Delete";
 
+    /// <summary>Set or change an encounter's response (supports / undecided / does not support).</summary>
+    public const string EncountersResponse = "Encounters.Response";
+
     public const string PledgesView = "Pledges.View";
     public const string PledgesAdd = "Pledges.Add";
     public const string PledgesEdit = "Pledges.Edit";
@@ -34,10 +37,10 @@ public static class PermissionCatalog
     public const string InfluencersDelete = "Influencers.Delete";
 
     /// <summary>Columns of the rights grid, in order.</summary>
-    public static readonly string[] Actions = { "View", "Add", "Edit", "Delete", "Link" };
+    public static readonly string[] Actions = { "View", "Add", "Edit", "Delete", "Link", "Response" };
 
     /// <param name="Group">The record type (a row of the rights grid).</param>
-    /// <param name="Action">View, Add, Edit, Delete or Link (a column of the grid).</param>
+    /// <param name="Action">View, Add, Edit, Delete, Link or Response (a column of the grid).</param>
     public record Entry(string Key, string Name, string Description, string Group, string Action);
 
     public static readonly IReadOnlyList<Entry> All = new[]
@@ -64,6 +67,8 @@ public static class PermissionCatalog
             "Correct the date, type, outcome, response or notes of a recorded encounter.", "Encounters", "Edit"),
         new Entry(EncountersDelete, "Delete encounters",
             "Permanently delete a recorded encounter.", "Encounters", "Delete"),
+        new Entry(EncountersResponse, "Set encounter response",
+            "Record or change whether the voter supports, is undecided or does not support (green / yellow / red).", "Encounters", "Response"),
 
         new Entry(PledgesView, "View pledges",
             "See the Pledges list and the pledges on a voter's profile.", "Pledges", "View"),

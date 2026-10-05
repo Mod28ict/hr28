@@ -146,7 +146,9 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   columns = View / Add / Edit / Delete / Link). Effective rights = rights of all the
   user's roles + the user's extra rights; the Administrator always has every right.
   - Catalog: `PermissionCatalog` (Application/Common): `Voters.View/Add/Edit/Delete`,
-    `Encounters.View/Add/Edit/Delete`, `Pledges.View/Add/Edit/Delete`,
+    `Encounters.View/Add/Edit/Delete`, `Encounters.Response` (only this right sets or
+    changes the green/yellow/red response; without it encounters are saved with no
+    response and edits keep it), `Pledges.View/Add/Edit/Delete`,
     `Influencers.View/Add/Edit/Delete/Link`. Encounter edits audit changed fields
     (notes only as "notes"). Deletes of voters, encounters and pledges are permanent,
     area-checked and audited with a readable name. Add new rights there; the screens

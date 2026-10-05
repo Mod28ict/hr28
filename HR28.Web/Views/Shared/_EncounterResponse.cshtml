@@ -1,0 +1,36 @@
+@model (Guid Id, string? Response)
+@*
+    An encounter's response pill. People with "Set encounter response" can click it to
+    change it in the pop-up from _EncounterResponseDialog (include that once per page).
+*@
+@{
+    var canSet = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.EncountersResponse);
+    var hasResponse = !string.IsNullOrWhiteSpace(Model.Response);
+}
+
+@if (canSet)
+{
+    <button type="button"
+            class="ui-status-btn h28-response-btn"
+            title="Set the response"
+            onclick="event.stopPropagation()"
+            data-id="@Model.Id"
+            data-response="@Model.Response">
+        @if (hasResponse)
+        {
+            <span class="ui-pill is-filled @HR28.Web.Models.EncounterListFilterModel.ToneOf(Model.Response)">@Model.Response</span>
+        }
+        else
+        {
+            <span class="ui-pill is-muted">Set response</span>
+        }
+    </button>
+}
+else if (hasResponse)
+{
+    <span class="ui-pill is-filled @HR28.Web.Models.EncounterListFilterModel.ToneOf(Model.Response)">@Model.Response</span>
+}
+else
+{
+    <span class="ui-faint">Not set</span>
+}

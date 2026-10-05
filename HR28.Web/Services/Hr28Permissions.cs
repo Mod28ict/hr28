@@ -24,6 +24,7 @@ public static class Hr28Permissions
     public const string EncountersAdd = "Encounters.Add";
     public const string EncountersEdit = "Encounters.Edit";
     public const string EncountersDelete = "Encounters.Delete";
+    public const string EncountersResponse = "Encounters.Response";
 
     public const string PledgesView = "Pledges.View";
     public const string PledgesAdd = "Pledges.Add";

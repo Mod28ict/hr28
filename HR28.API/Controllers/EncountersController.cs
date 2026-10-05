@@ -89,6 +89,20 @@ public class EncountersController : ControllerBase
         return Ok(await _encounterService.UpdateAsync(id, request));
     }
 
+    public class SetResponseRequest
+    {
+        /// <summary>Supports, Undecided, Does not support, or empty to clear.</summary>
+        public string? Response { get; set; }
+    }
+
+    /// <summary>Sets or clears the response. Needs "Set encounter response" and the voter in the user's areas.</summary>
+    [HttpPut("{id:guid}/response")]
+    [RequirePermission(PermissionCatalog.EncountersResponse)]
+    public async Task<IActionResult> SetResponse(Guid id, [FromBody] SetResponseRequest request)
+    {
+        return Ok(new { response = await _encounterService.SetResponseAsync(id, request.Response) });
+    }
+
     /// <summary>Permanent; needs the "Delete encounters" right and the voter in the user's areas.</summary>
     [HttpDelete("{id:guid}")]
     [RequirePermission(PermissionCatalog.EncountersDelete)]

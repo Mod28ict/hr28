@@ -212,14 +212,7 @@
                                 <td><span class="ui-tag">@e.Outcome</span></td>
 
                                 <td>
-                                    @if (string.IsNullOrWhiteSpace(e.Response))
-                                    {
-                                        <span class="ui-faint">—</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="ui-pill is-filled @HR28.Web.Models.EncounterListFilterModel.ToneOf(e.Response)">@e.Response</span>
-                                    }
+                                    <partial name="_EncounterResponse" model="(e.Id, e.Response)" />
                                 </td>
 
                                 <td class="ui-muted ui-hide-sm" style="max-width: 280px;">
@@ -287,3 +280,5 @@
     </section>
 
 </div>
+
+<partial name="_EncounterResponseDialog" />

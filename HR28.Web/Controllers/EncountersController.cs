@@ -211,6 +211,29 @@ public class EncountersController : AppController
         return AfterEncounterSaved(model.VoterId);
     }
 
+    /// <summary>Response pop-up (Encounters list and voter profile). Needs "Set encounter response".</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SetResponse(Guid id, string? response, string? returnUrl)
+    {
+        var result = await _apiClient.PutAsync<object>($"Encounters/{id}/response", new { response }, Token);
+
+        if (result.IsUnauthorized)
+            return HandleApiFailure(result)!;
+
+        if (result.Success)
+            TempData["SuccessMessage"] = string.IsNullOrWhiteSpace(response)
+                ? "Response cleared."
+                : $"Response set to {response}.";
+        else
+            TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
+                ? "The response could not be saved."
+                : result.Message;
+
+        // Back to the same page (local addresses only).
+        return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl!) : RedirectToAction(nameof(Index));
+    }
+
     /// <summary>Permanent delete from the voter's profile (the page asks first). Needs "Delete encounters".</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]

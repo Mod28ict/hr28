@@ -25,7 +25,7 @@ public class CreateEncounterDto
     public string Outcome { get; set; }
         = string.Empty;
 
-    [Required(ErrorMessage = "Choose the voter's response.")]
+    /// <summary>Only people with "Set encounter response" choose it; otherwise it stays not set.</summary>
     public string? Response { get; set; }
 
     [StringLength(1000)]

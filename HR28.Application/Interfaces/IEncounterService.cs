@@ -17,6 +17,12 @@ public interface IEncounterService
     /// <summary>Needs the Encounters.Edit right and the voter in the user's areas. Audited.</summary>
     Task<EncounterDto> UpdateAsync(Guid id, UpdateEncounterDto request);
 
+    /// <summary>
+    /// Sets or clears the response (needs "Set encounter response" and the voter in the
+    /// caller's areas). Audited. Returns the new response (null = not set).
+    /// </summary>
+    Task<string?> SetResponseAsync(Guid id, string? response);
+
     /// <summary>Permanently deletes an encounter whose voter is in the caller's areas. Audited.</summary>
     Task DeleteAsync(Guid id);
 

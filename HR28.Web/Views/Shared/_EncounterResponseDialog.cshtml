@@ -1,0 +1,54 @@
+@*
+    Pop-up to set an encounter's response; opened by the pills from _EncounterResponse.
+    Only rendered for people with "Set encounter response" (the API checks it again).
+*@
+@if (HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.EncountersResponse))
+{
+    <dialog id="h28ResponseDialog" class="ui-dialog" aria-labelledby="h28ResponseTitle">
+        <form asp-controller="Encounters" asp-action="SetResponse" method="post" class="ui-dialog-body">
+            <input type="hidden" name="id" id="h28ResponseId" />
+            <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+
+            <h2 id="h28ResponseTitle" class="ui-dialog-title">Set the response</h2>
+            <p class="ui-muted">Green = supports, yellow = undecided, red = does not support.</p>
+
+            <div class="ui-status-choices" role="radiogroup" aria-labelledby="h28ResponseTitle">
+                @foreach (var r in HR28.Web.Models.EncounterListFilterModel.Responses)
+                {
+                    <label class="ui-status-choice">
+                        <input type="radio" name="response" value="@r.Value" />
+                        <span class="ui-pill is-filled @r.Tone">@r.Value</span>
+                    </label>
+                }
+                <label class="ui-status-choice">
+                    <input type="radio" name="response" value="" />
+                    <span class="ui-pill is-muted">Not set</span>
+                </label>
+            </div>
+
+            <div class="ui-form-actions">
+                <button type="submit" class="ui-btn ui-btn-primary">Save response</button>
+                <button type="button" class="ui-btn ui-btn-secondary" id="h28ResponseCancel">Cancel</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script>
+        (function () {
+            var dialog = document.getElementById("h28ResponseDialog");
+            if (!dialog) return;
+
+            document.querySelectorAll(".h28-response-btn").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    document.getElementById("h28ResponseId").value = btn.dataset.id;
+                    dialog.querySelectorAll('input[name="response"]').forEach(function (r) {
+                        r.checked = r.value === (btn.dataset.response || "");
+                    });
+                    dialog.showModal();
+                });
+            });
+
+            document.getElementById("h28ResponseCancel").addEventListener("click", function () { dialog.close(); });
+        })();
+    </script>
+}

@@ -11,6 +11,9 @@
 
     ViewData["Title"] = isEdit ? "Edit Encounter" : "Add Encounter";
 
+    // The response (green / yellow / red) is set only by people given that right.
+    var canSetResponse = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.EncountersResponse);
+
     // Who the encounter is with (null on edit or if the voter can't be loaded).
     var summary = ViewBag.Voter as HR28.Web.Models.VoterSearchDto;
 
@@ -137,8 +140,10 @@
                     <span asp-validation-for="Outcome" class="ui-error"></span>
                 </div>
 
+                @if (canSetResponse)
+                {
                 <div class="ui-field">
-                    <span class="ui-label" id="h28ResponseLabel">Response</span>
+                    <span class="ui-label" id="h28ResponseLabel">Response <span class="ui-optional">(optional)</span></span>
 
                     <div class="ui-chips h28-chip-group" data-select="h28ResponseSelect" role="radiogroup" aria-labelledby="h28ResponseLabel">
                         @foreach (var r in HR28.Web.Models.EncounterListFilterModel.Responses)
@@ -158,6 +163,7 @@
                     <div class="ui-hint">Green = supports, yellow = undecided, red = does not support.</div>
                     <span asp-validation-for="Response" class="ui-error"></span>
                 </div>
+                }
 
             </div>
 

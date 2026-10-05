@@ -5,7 +5,7 @@
     Used for a role (Settings → Roles & rights) and for one person's extra rights.
 *@
 @{
-    var actions = new[] { "View", "Add", "Edit", "Delete", "Link" }
+    var actions = new[] { "View", "Add", "Edit", "Delete", "Link", "Response" }
         .Where(a => Model.Permissions.Any(p => p.Action == a))
         .ToArray();
 
