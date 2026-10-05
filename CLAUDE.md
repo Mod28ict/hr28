@@ -343,4 +343,8 @@ Known open issues (fix or confirm with the owner):
   shared "Hithadhoo" island (now "No island"); Mariyam Waheed and Addu Coordinator
   have no area until one is assigned.
 
+**In progress (October 2026): client feedback** — see
+`Docs/Client-Feedback-2026-10.md` for the owner's decisions and the step order
+(step 1 done; continue with step 2, Influencers).
+
 Next, after Phase 1: module switch system → deployment pipeline → paid modules.
