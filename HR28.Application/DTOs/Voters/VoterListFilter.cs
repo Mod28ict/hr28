@@ -18,4 +18,9 @@ public class VoterListFilter
 
     /// <summary>Supporter, Undecided, Neutral or Opponent.</summary>
     public string? Status { get; set; }
+
+    public Guid? PartyId { get; set; }
+
+    /// <summary>True: only voters whose party is "Not known".</summary>
+    public bool NoParty { get; set; }
 }

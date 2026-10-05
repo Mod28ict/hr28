@@ -18,6 +18,38 @@ public class VoterListFilterModel
 
     public string? Status { get; set; }
 
+    /// <summary>Party filter values besides a party id.</summary>
+    public const string AllParties = "all";
+    public const string PartyNotKnown = "none";
+
+    /// <summary>A party id, "all" or "none". Always set, so page links keep it.</summary>
+    public string Party { get; set; } = AllParties;
+
+    public Guid? PartyId => Guid.TryParse(Party, out var id) ? id : null;
+
+    public bool NoParty => Party == PartyNotKnown;
+
+    public List<PoliticalPartyDto> Parties { get; set; } = new();
+
+    /// <summary>
+    /// The party filter from the address: missing → the party the list opens on
+    /// (set in Settings → Lists, MDP by default); unknown values → all parties.
+    /// </summary>
+    public static string ResolveParty(string? requested, IEnumerable<PoliticalPartyDto> parties)
+    {
+        var list = parties.ToList();
+
+        if (requested == null)
+            return list.FirstOrDefault(p => p.IsDefaultFilter)?.Id.ToString() ?? AllParties;
+
+        if (requested is AllParties or PartyNotKnown)
+            return requested;
+
+        return Guid.TryParse(requested, out var id) && list.Any(p => p.Id == id)
+            ? id.ToString()
+            : AllParties;
+    }
+
     public int PageSize { get; set; } = 20;
 
     public List<LookupDto> Constituencies { get; set; } = new();
@@ -31,7 +63,8 @@ public class VoterListFilterModel
     /// <summary>True when any filter (not the plain search) is set.</summary>
     public bool HasFilters =>
         ConstituencyId.HasValue || IslandId.HasValue ||
-        !string.IsNullOrWhiteSpace(House) || !string.IsNullOrWhiteSpace(Status);
+        !string.IsNullOrWhiteSpace(House) || !string.IsNullOrWhiteSpace(Status) ||
+        Party != AllParties;
 
     public bool IsNarrowed => HasFilters || !string.IsNullOrWhiteSpace(SearchTerm);
 
@@ -46,11 +79,22 @@ public class VoterListFilterModel
         if (!string.IsNullOrWhiteSpace(House)) values["house"] = House;
         if (!string.IsNullOrWhiteSpace(House) && HouseExact) values["houseExact"] = "true";
         if (!string.IsNullOrWhiteSpace(Status)) values["status"] = Status;
+        values["party"] = Party;
 
         return values;
     }
 
     /// <summary>The same values as an API query string (without page).</summary>
-    public string ToApiQuery() =>
-        string.Concat(RouteValues().Select(kv => $"&{kv.Key}={Uri.EscapeDataString(kv.Value)}"));
+    public string ToApiQuery()
+    {
+        var values = RouteValues();
+        values.Remove("party");
+
+        var query = string.Concat(values.Select(kv => $"&{kv.Key}={Uri.EscapeDataString(kv.Value)}"));
+
+        if (NoParty) query += "&noParty=true";
+        else if (PartyId.HasValue) query += "&partyId=" + PartyId.Value;
+
+        return query;
+    }
 }

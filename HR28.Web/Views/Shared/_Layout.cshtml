@@ -356,6 +356,8 @@
                       method="get"
                       asp-controller="Voters"
                       asp-action="Index">
+                    @* Looking up a person: search every party, not just the list's default. *@
+                    <input type="hidden" name="party" value="all" />
                     <label for="shellSearch" class="visually-hidden">Search voters</label>
                     <partial name="_Icon" model='"search"' />
                     <input id="shellSearch"

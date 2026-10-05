@@ -16,6 +16,13 @@ public class VoterDto
 
     public Guid? IslandId { get; set; }
 
+    public Guid? PoliticalPartyId { get; set; }
+
+    /// <summary>Empty when the party is not known.</summary>
+    public string PartyName { get; set; } = string.Empty;
+
+    public string PartyShortName { get; set; } = string.Empty;
+
     public string Remarks { get; set; } = string.Empty;
     /// <summary>Constituency code, e.g. "F03" (filled on the voter list; may be empty).</summary>
     public string ConstituencyCode { get; set; } = string.Empty;

@@ -14,6 +14,9 @@ public class UpdateVoterDto
 
     public Guid? IslandId { get; set; }
 
+    /// <summary>Empty = "Not known".</summary>
+    public Guid? PoliticalPartyId { get; set; }
+
     public string SupportStatus { get; set; } = "Undecided";
 
     public string Remarks { get; set; } = string.Empty;

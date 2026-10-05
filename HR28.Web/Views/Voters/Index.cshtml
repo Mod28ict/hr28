@@ -194,11 +194,26 @@
                     </select>
                 </div>
 
+                <div class="ui-filter">
+                    <label for="filterParty" class="ui-label">Party</label>
+                    <select id="filterParty" name="party" class="ui-select">
+                        <option value="@HR28.Web.Models.VoterListFilterModel.AllParties" selected="@(filter.Party == HR28.Web.Models.VoterListFilterModel.AllParties)">All parties</option>
+                        @foreach (var p in filter.Parties)
+                        {
+                            <option value="@p.Id" selected="@(filter.PartyId == p.Id)">@p.Label</option>
+                        }
+                        <option value="@HR28.Web.Models.VoterListFilterModel.PartyNotKnown" selected="@filter.NoParty">Not known</option>
+                    </select>
+                </div>
+
                 <div class="ui-filter ui-filter-actions">
                     <button type="submit" class="ui-btn ui-btn-secondary">Apply filters</button>
                     @if (filter.IsNarrowed)
                     {
-                        <a asp-action="Index" asp-route-pageSize="@filter.PageSize" class="ui-btn ui-btn-ghost">Clear all</a>
+                        <a asp-action="Index"
+                           asp-route-pageSize="@filter.PageSize"
+                           asp-route-party="@HR28.Web.Models.VoterListFilterModel.AllParties"
+                           class="ui-btn ui-btn-ghost">Clear all</a>
                     }
                 </div>
             </div>
@@ -212,6 +227,17 @@
                 @(filter.IsNarrowed
                     ? "No voters match your search and filters."
                     : "No voters found within your assigned scope.")
+
+                @if (filter.Party != HR28.Web.Models.VoterListFilterModel.AllParties)
+                {
+                    // The list opens on one party; make the way to everyone obvious.
+                    var partyRoute = filter.RouteValues();
+                    partyRoute["party"] = HR28.Web.Models.VoterListFilterModel.AllParties;
+
+                    <a asp-action="Index" asp-all-route-data="partyRoute" class="ui-btn ui-btn-secondary ui-btn-sm" style="margin-top: 6px;">
+                        Show all parties
+                    </a>
+                }
             </div>
         }
         else
@@ -231,6 +257,7 @@
                             <th>Phone</th>
                             <th>Island</th>
                             <th class="ui-hide-sm">Address</th>
+                            <th>Party</th>
                             <th class="is-center">Pledges</th>
                             <th>Status</th>
                             <th><span class="visually-hidden">Actions</span></th>
@@ -290,7 +317,18 @@
                                         <a class="ui-link"
                                            title="Show everyone at @voter.Address"
                                            onclick="event.stopPropagation()"
-                                           href="@Url.Action("Index", new { constituencyId = voter.ConstituencyId, islandId = voter.IslandId, house = voter.Address, houseExact = true, pageSize = filter.PageSize })">@voter.Address</a>
+                                           href="@Url.Action("Index", new { constituencyId = voter.ConstituencyId, islandId = voter.IslandId, house = voter.Address, houseExact = true, party = HR28.Web.Models.VoterListFilterModel.AllParties, pageSize = filter.PageSize })">@voter.Address</a>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(voter.PartyShortName))
+                                    {
+                                        <span class="ui-tag" title="@voter.PartyName">@voter.PartyShortName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ui-faint">Not known</span>
                                     }
                                 </td>
 

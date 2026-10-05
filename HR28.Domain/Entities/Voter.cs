@@ -24,6 +24,11 @@ public class Voter
 
     public string Remarks { get; set; } = string.Empty;
 
+    /// <summary>Political party; empty means "Not known" (the default for new voters).</summary>
+    public Guid? PoliticalPartyId { get; set; }
+
+    public PoliticalParty? PoliticalParty { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public string SupportStatus { get; set; }
     = "Undecided";

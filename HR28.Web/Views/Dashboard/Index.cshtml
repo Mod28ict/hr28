@@ -188,7 +188,7 @@
     <!-- KPI CARDS -->
     <section class="hd-kpis" aria-label="Key figures">
 
-        <a class="hd-kpi is-blue is-link" asp-controller="Voters" asp-action="Index" title="See all voters">
+        <a class="hd-kpi is-blue is-link" asp-controller="Voters" asp-action="Index" asp-route-party="all" title="See all voters">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"users"' /></span>
             <div>
                 <div class="hd-kpi-label">Total Voters</div>
@@ -198,7 +198,7 @@
             <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
         </a>
 
-        <a class="hd-kpi is-green is-link" asp-controller="Voters" asp-action="Index" asp-route-status="Supporter" title="See supporters">
+        <a class="hd-kpi is-green is-link" asp-controller="Voters" asp-action="Index" asp-route-party="all" asp-route-status="Supporter" title="See supporters">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"user-check"' /></span>
             <div>
                 <div class="hd-kpi-label">Supporters</div>
@@ -208,7 +208,7 @@
             <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
         </a>
 
-        <a class="hd-kpi is-amber is-link" asp-controller="Voters" asp-action="Index" asp-route-status="Undecided" title="See undecided voters">
+        <a class="hd-kpi is-amber is-link" asp-controller="Voters" asp-action="Index" asp-route-party="all" asp-route-status="Undecided" title="See undecided voters">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"help"' /></span>
             <div>
                 <div class="hd-kpi-label">Undecided</div>
@@ -218,7 +218,7 @@
             <span class="hd-kpi-go" aria-hidden="true"><partial name="_Icon" model='"arrow-right"' /></span>
         </a>
 
-        <a class="hd-kpi is-red is-link" asp-controller="Voters" asp-action="Index" asp-route-status="Opponent" title="See opposition voters">
+        <a class="hd-kpi is-red is-link" asp-controller="Voters" asp-action="Index" asp-route-party="all" asp-route-status="Opponent" title="See opposition voters">
             <span class="hd-kpi-icon"><partial name="_Icon" model='"user-x"' /></span>
             <div>
                 <div class="hd-kpi-label">Opposition</div>
@@ -286,7 +286,7 @@
         }
         else
         {
-            <a class="hd-kpi is-blue is-link" asp-controller="Voters" asp-action="Index" title="See voters in your area">
+            <a class="hd-kpi is-blue is-link" asp-controller="Voters" asp-action="Index" asp-route-party="all" title="See voters in your area">
                 <span class="hd-kpi-icon"><partial name="_Icon" model='"map-pin"' /></span>
                 <div>
                     <div class="hd-kpi-label">Your area</div>

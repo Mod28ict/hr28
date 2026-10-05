@@ -163,23 +163,6 @@ public class DashboardService
 
         return response.IsSuccessStatusCode;
     }
-    public async Task<bool> UpdateVoterAsync(
-        Guid id,
-        VoterCreateEditDto request,
-        string? token)
-    {
-        _httpClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue(
-                "Bearer",
-                token);
-
-        var response =
-            await _httpClient.PutAsJsonAsync(
-                $"{_settings.BaseUrl}Voters/{id}",
-                request);
-
-        return response.IsSuccessStatusCode;
-    }
     public async Task<List<LookupDto>?>
         GetConstituenciesAsync(
             string? token)

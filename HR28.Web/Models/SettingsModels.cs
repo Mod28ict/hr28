@@ -165,5 +165,11 @@ public class SettingsViewModel
     /// <summary>The category being renamed on the lists tab, if any.</summary>
     public Guid? EditCategoryId { get; set; }
 
+    /// <summary>Lists tab: political parties.</summary>
+    public List<PoliticalPartyDto> Parties { get; set; } = new();
+
+    /// <summary>The party being edited on the lists tab, if any.</summary>
+    public Guid? EditPartyId { get; set; }
+
     public bool IsSuperAdministrator { get; set; }
 }

@@ -46,7 +46,17 @@ state the migration and its rollback before any schema change (CLAUDE.md).
    back; Follow-up Required returns as Undecided — exact values are in
    `HR28Db_before_encounter_response_2026-10-05.bak`). The API now also validates
    type / outcome / response / date / notes when an encounter is created.
-4. **Political party** — field, Settings list, party filter (default MDP), see decisions.
+4. **Political party — DONE** — optional party on every voter (empty = "Not known",
+   the default for new voters and for all existing voters). Parties are a managed
+   list in Settings → Lists, seeded with the 7 parties the Elections Commission listed
+   on 2026-10-05 (MDP, PNC, JP, MDA, AP, MNP, PNF). The Voters list opens filtered to
+   the party marked "Voters list opens here" (MDP; administrators can change it, so
+   another client can use another party) with "All parties", every party and "Not
+   known" selectable; an empty result offers "Show all parties". Dashboard count
+   tiles, the top-bar search and "everyone at this house" links search all parties.
+   Party changes on a voter are audited ("party Not known → MDP"). Migration
+   `AddPoliticalParties`; rollback `dotnet ef database update AddEncounterResponse`
+   (recorded parties are lost; backup `HR28Db_before_political_parties_2026-10-05.bak`).
 5. **User roles**
    - Administrators create **custom roles**.
    - Rights assignable per role for every action (view / add / edit / delete) on voters,

@@ -197,6 +197,45 @@ public class HR28DbContext : DbContext
             .OnDelete(DeleteBehavior.NoAction);
 
         // --------------------------------------------------
+        // Political parties (managed list; seeded with the parties registered with
+        // the Elections Commission on 2026-10-05). Voter.PoliticalPartyId null = "Not known".
+        // --------------------------------------------------
+
+        modelBuilder.Entity<PoliticalParty>(entity =>
+        {
+            entity.Property(p => p.Name).HasMaxLength(100);
+            entity.Property(p => p.ShortName).HasMaxLength(10);
+            entity.HasIndex(p => p.Name).IsUnique();
+
+            var seeded = new DateTime(2026, 10, 5, 0, 0, 0, DateTimeKind.Utc);
+
+            PoliticalParty Party(int n, string name, string shortName, bool isDefault = false) => new()
+            {
+                Id = new Guid($"8a3e5c20-4f1d-4b7a-9c2e-5d0f6b1a70{n:00}"),
+                Name = name,
+                ShortName = shortName,
+                SortOrder = n,
+                IsDefaultFilter = isDefault,
+                CreatedAt = seeded
+            };
+
+            entity.HasData(
+                Party(1, "Maldivian Democratic Party", "MDP", isDefault: true),
+                Party(2, "People's National Congress", "PNC"),
+                Party(3, "Jumhooree Party", "JP"),
+                Party(4, "Maldives Development Alliance", "MDA"),
+                Party(5, "Adhaalath Party", "AP"),
+                Party(6, "Maldives National Party", "MNP"),
+                Party(7, "People's National Front", "PNF"));
+        });
+
+        modelBuilder.Entity<Voter>()
+            .HasOne(v => v.PoliticalParty)
+            .WithMany()
+            .HasForeignKey(v => v.PoliticalPartyId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // --------------------------------------------------
         // Voter indexes
         // --------------------------------------------------
 
@@ -316,6 +355,9 @@ public class HR28DbContext : DbContext
 
     public DbSet<Influencer> Influencers =>
         Set<Influencer>();
+
+    public DbSet<PoliticalParty> PoliticalParties =>
+        Set<PoliticalParty>();
 
     public DbSet<InfluencerCategory> InfluencerCategories =>
         Set<InfluencerCategory>();

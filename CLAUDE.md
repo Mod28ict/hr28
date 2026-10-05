@@ -146,6 +146,11 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
 - Every create, update and delete on critical records is audited: actor, timestamp,
   entity, action and what changed.
 - Election-day turnout records only **whether** someone voted, never **how** they voted.
+- Voter political party (owner decision, 2026-10-05): `Voters.PoliticalPartyId`, empty =
+  "Not known" (default; never default to a real party). Parties are a managed list
+  (`PoliticalParties`, Settings → Lists). The Voters list opens on the party flagged
+  `IsDefaultFilter` (MDP by default); links that show counts or look up a person pass
+  `party=all`.
 - Encounters (owner decision, 2026-10-05): outcome = Meet / Call / Request; response =
   Supports (green) / Undecided (yellow) / Does not support (red). Allowed values live
   in `EncounterValues` (Application/Common), mirrored in web `EncounterListFilterModel`.

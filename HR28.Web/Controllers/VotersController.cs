@@ -71,7 +71,8 @@ public class VotersController : Controller
         Guid? islandId = null,
         string? house = null,
         bool houseExact = false,
-        string? status = null)
+        string? status = null,
+        string? party = null)
     {
         var token =
             HttpContext.Session.GetString(
@@ -84,6 +85,8 @@ public class VotersController : Controller
                 "Auth");
         }
 
+        var parties = await LoadPartiesAsync(token);
+
         var filter = new VoterListFilterModel
         {
             SearchTerm = searchTerm?.Trim(),
@@ -93,6 +96,9 @@ public class VotersController : Controller
             House = house?.Trim(),
             HouseExact = houseExact,
             Status = VoterListFilterModel.Statuses.Contains(status) ? status : null,
+            // No party in the address: the list opens on the default party (MDP).
+            Party = VoterListFilterModel.ResolveParty(party, parties),
+            Parties = parties,
             PageSize = pageSize is 10 or 20 or 50 or 100 ? pageSize : 20
         };
 
@@ -137,6 +143,14 @@ public class VotersController : Controller
             Page = 1,
             PageSize = filter.PageSize
         });
+    }
+
+    /// <summary>Political parties for the filter and the voter form (empty if they can't be loaded).</summary>
+    private async Task<List<PoliticalPartyDto>> LoadPartiesAsync(string? token)
+    {
+        var result = await _apiClient.GetAsync<List<PoliticalPartyDto>>("PoliticalParties", token);
+
+        return result.Data ?? new();
     }
 
     /// <summary>Status pop-up on the voter list: changes only the support status.</summary>
@@ -230,7 +244,9 @@ public class VotersController : Controller
                 Islands =
                     await _dashboardService
                         .GetIslandsAsync(token)
-                        ?? new()
+                        ?? new(),
+
+                Parties = await LoadPartiesAsync(token)
             };
 
         return View(model);
@@ -265,6 +281,7 @@ public class VotersController : Controller
                 await _dashboardService.GetConstituenciesAsync(token) ?? new();
             model.Islands =
                 await _dashboardService.GetIslandsAsync(token) ?? new();
+            model.Parties = await LoadPartiesAsync(token);
 
             return View(model);
         }
@@ -320,9 +337,12 @@ public class VotersController : Controller
                     MobileNumber = profile.Voter.MobileNumber,
                     ConstituencyId = profile.Voter.ConstituencyId ?? Guid.Empty,
                     IslandId = profile.Voter.IslandId,
+                    PoliticalPartyId = profile.Voter.PoliticalPartyId,
                     Remarks = profile.Voter.Remarks,
                     SupportStatus = profile.Voter.SupportStatus
                 },
+
+                Parties = await LoadPartiesAsync(token),
 
                 Constituencies =
                     await _dashboardService
@@ -356,20 +376,40 @@ public class VotersController : Controller
         model.Voter.Remarks ??= string.Empty;
         model.Voter.MobileNumber ??= string.Empty;
 
-        var success =
-            await _dashboardService
-                .UpdateVoterAsync(
-                    model.Voter.Id!.Value,
-                    model.Voter,
-                    token);
+        var result = await _apiClient.PutAsync<object>(
+            $"Voters/{model.Voter.Id!.Value}",
+            model.Voter,
+            token);
 
-        if (!success)
+        if (result.IsUnauthorized)
         {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!result.Success)
+        {
+            // Show the API's message (duplicate ID, area rules, unknown party…) on the form,
+            // with the drop-downs filled again.
+            ModelState.AddModelError(
+                string.Empty,
+                string.IsNullOrWhiteSpace(result.Message)
+                    ? "The voter could not be saved. Please try again."
+                    : result.Message);
+
             ViewBag.IsSuperAdmin = Hr28Roles.IsAdministrator(
                 HttpContext.Session.GetString("UserRole"));
 
+            model.Constituencies = await _dashboardService.GetConstituenciesAsync(token) ?? new();
+            model.Islands = model.Voter.ConstituencyId != Guid.Empty
+                ? await _dashboardService.GetIslandsByConstituencyAsync(model.Voter.ConstituencyId, token) ?? new()
+                : new();
+            model.Parties = await LoadPartiesAsync(token);
+
             return View(model);
         }
+
+        TempData["SuccessMessage"] = $"{model.Voter.FullName} was updated.";
 
         return RedirectToAction(
             "Profile",

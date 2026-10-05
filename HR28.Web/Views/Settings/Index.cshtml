@@ -335,7 +335,7 @@
     {
         <div class="ui-note">
             <partial name="_Icon" model='"info"' />
-            <span>These lists fill the drop-downs on the forms and filters. Renaming a category updates every influencer that uses it. A category can only be deleted when no influencer uses it.</span>
+            <span>These lists fill the drop-downs on the forms and filters. Renaming an entry updates every record that uses it. An entry can only be deleted when nothing uses it.</span>
         </div>
 
         <div class="ui-settings-grid">
@@ -424,6 +424,112 @@
                             </tbody>
                         </table>
                     </div>
+                }
+
+                <p class="ui-muted" style="margin: 12px 0 0; font-size: 13px;">Every change is recorded in the audit trail.</p>
+            </section>
+
+            <section class="ui-card">
+                <div class="ui-card-head">
+                    <h2>Political parties <span class="ui-count is-blue">@Model.Parties.Count</span></h2>
+                </div>
+
+                <p class="ui-muted" style="margin: -6px 0 12px; font-size: 13px;">
+                    Parties registered with the Elections Commission. A voter with no party is shown as "Not known".
+                </p>
+
+                <form asp-action="SaveParty" method="post" class="ui-inline-form">
+                    @Html.AntiForgeryToken()
+                    <div class="ui-inline-form-title">New party</div>
+                    <div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;">
+                        <div class="ui-field" style="flex: 1 1 180px; margin: 0;">
+                            <label for="newPartyName" class="ui-label">Name</label>
+                            <input id="newPartyName" name="name" class="ui-input" required maxlength="100" placeholder="Full party name" />
+                        </div>
+                        <div class="ui-field" style="flex: 0 0 110px; margin: 0;">
+                            <label for="newPartyShort" class="ui-label">Short name</label>
+                            <input id="newPartyShort" name="shortName" class="ui-input ui-upper" required maxlength="10" placeholder="e.g. MDP" />
+                        </div>
+                        <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">
+                            <partial name="_Icon" model='"plus"' /> Add
+                        </button>
+                    </div>
+                </form>
+
+                <div class="ui-table-wrap">
+                    <table class="ui-table">
+                        <thead>
+                            <tr>
+                                <th>Party</th>
+                                <th class="is-right">Voters</th>
+                                <th><span class="visually-hidden">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var party in Model.Parties)
+                            {
+                                <tr>
+                                    @if (Model.EditPartyId == party.Id)
+                                    {
+                                        <td colspan="3">
+                                            <form asp-action="SaveParty" method="post" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@party.Id" />
+                                                <label for="editPartyName" class="visually-hidden">Name</label>
+                                                <input id="editPartyName" name="name" class="ui-input" value="@party.Name" required maxlength="100" autofocus style="flex: 1 1 180px;" />
+                                                <label for="editPartyShort" class="visually-hidden">Short name</label>
+                                                <input id="editPartyShort" name="shortName" class="ui-input ui-upper" value="@party.ShortName" required maxlength="10" style="flex: 0 0 90px;" />
+                                                <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">Save</button>
+                                                <a asp-action="Index" asp-route-tab="lists" class="ui-btn ui-btn-ghost ui-btn-sm">Cancel</a>
+                                            </form>
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td>
+                                            <span class="ui-tag">@party.ShortName</span>
+                                            <span class="ui-strong">@party.Name</span>
+                                            @if (party.IsDefaultFilter)
+                                            {
+                                                <span class="ui-pill is-blue" title="The Voters list opens filtered to this party">Voters list opens here</span>
+                                            }
+                                        </td>
+                                        <td class="ui-num is-right">@party.VoterCount.ToString("N0")</td>
+                                        <td class="is-right" style="white-space: nowrap;">
+                                            @if (!party.IsDefaultFilter)
+                                            {
+                                                <form asp-action="SetDefaultParty" asp-route-id="@party.Id" method="post" style="display: inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm" title="Open the Voters list on @party.ShortName">Open list here</button>
+                                                </form>
+                                            }
+                                            <a asp-action="Index" asp-route-tab="lists" asp-route-editParty="@party.Id" class="ui-btn ui-btn-ghost ui-btn-sm" aria-label="Edit @party.Name" title="Edit">
+                                                <partial name="_Icon" model='"edit"' />
+                                            </a>
+                                            @if (party.VoterCount == 0)
+                                            {
+                                                <form asp-action="DeleteParty" asp-route-id="@party.Id" method="post" style="display: inline;"
+                                                      data-confirm="Delete &quot;@party.Name&quot;?">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm ui-btn-danger" aria-label="Delete @party.Name" title="Delete">
+                                                        <partial name="_Icon" model='"trash"' />
+                                                    </button>
+                                                </form>
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (Model.Parties.Any(p => p.IsDefaultFilter))
+                {
+                    <form asp-action="SetDefaultParty" method="post" style="margin-top: 12px;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm">Open the Voters list on all parties instead</button>
+                    </form>
                 }
 
                 <p class="ui-muted" style="margin: 12px 0 0; font-size: 13px;">Every change is recorded in the audit trail.</p>

@@ -15,6 +15,13 @@ public class VoterSearchDto
     public Guid? ConstituencyId { get; set; }
 
     public Guid? IslandId { get; set; }
+
+    public Guid? PoliticalPartyId { get; set; }
+
+    /// <summary>Empty when the party is not known.</summary>
+    public string PartyName { get; set; } = string.Empty;
+
+    public string PartyShortName { get; set; } = string.Empty;
     public string ConstituencyName { get; set; }
         = string.Empty;
 

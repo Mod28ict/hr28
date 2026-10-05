@@ -10,4 +10,7 @@ public class VoterCreateViewModel
 
     public List<LookupDto> Islands { get; set; }
         = new();
+
+    public List<PoliticalPartyDto> Parties { get; set; }
+        = new();
 }

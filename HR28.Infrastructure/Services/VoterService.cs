@@ -86,6 +86,8 @@ public class VoterService : IVoterService
                 $"A voter with National ID {request.NationalId} already exists.");
         }
 
+        await RequireKnownPartyAsync(request.PoliticalPartyId);
+
         var voter = new Voter
         {
             Id = Guid.NewGuid(),
@@ -96,8 +98,9 @@ public class VoterService : IVoterService
             ConstituencyId = request.ConstituencyId,
             IslandId = request.IslandId,
             Remarks = request.Remarks,
+            PoliticalPartyId = request.PoliticalPartyId,
             CreatedAt = DateTime.UtcNow,
-            SupportStatus = request.SupportStatus 
+            SupportStatus = request.SupportStatus
         };
         _dbContext.Voters.Add(voter);
         await _dbContext.SaveChangesAsync();
@@ -173,11 +176,34 @@ public class VoterService : IVoterService
                         ? v.Island.Name
                         : string.Empty,
 
+                PoliticalPartyId = v.PoliticalPartyId,
+                PartyName = v.PoliticalParty != null ? v.PoliticalParty.Name : string.Empty,
+                PartyShortName = v.PoliticalParty != null ? v.PoliticalParty.ShortName : string.Empty,
+
                 Remarks = v.Remarks,
                 SupportStatus = v.SupportStatus
             })
             .FirstOrDefaultAsync();
     }
+
+    /// <summary>The chosen party must be on the list; empty means "Not known".</summary>
+    private async Task RequireKnownPartyAsync(Guid? partyId)
+    {
+        if (partyId.HasValue &&
+            !await _dbContext.PoliticalParties.AnyAsync(p => p.Id == partyId.Value))
+        {
+            throw new HR28.Application.Common.BusinessRuleException(
+                "Please choose a party from the list, or \"Not known\".");
+        }
+    }
+
+    private async Task<string> PartyLabelAsync(Guid? partyId) =>
+        partyId.HasValue
+            ? await _dbContext.PoliticalParties
+                .Where(p => p.Id == partyId.Value)
+                .Select(p => p.ShortName)
+                .FirstOrDefaultAsync() ?? "Not known"
+            : "Not known";
 
     public async Task<List<VoterDto>> SearchVotersAsync(
         Guid userId,
@@ -260,12 +286,23 @@ public class VoterService : IVoterService
                 $"Another voter already has National ID {request.NationalId}.");
         }
 
+        await RequireKnownPartyAsync(request.PoliticalPartyId);
+
+        // Party changes are recorded with old and new value.
+        var action = "Update";
+
+        if (voter.PoliticalPartyId != request.PoliticalPartyId)
+        {
+            action += $": party {await PartyLabelAsync(voter.PoliticalPartyId)} → {await PartyLabelAsync(request.PoliticalPartyId)}";
+        }
+
         voter.NationalId = request.NationalId;
         voter.FullName = request.FullName;
         voter.Address = request.Address;
         voter.MobileNumber = request.MobileNumber;
         voter.ConstituencyId = request.ConstituencyId;
         voter.IslandId = request.IslandId;
+        voter.PoliticalPartyId = request.PoliticalPartyId;
         voter.SupportStatus = request.SupportStatus;
         voter.Remarks = request.Remarks ?? string.Empty;
 
@@ -273,7 +310,7 @@ public class VoterService : IVoterService
 
         await _auditService.LogAsync(
             GetCurrentUserId(),
-            "Update",
+            action,
             "Voter",
             voter.Id.ToString());
     }
@@ -585,6 +622,11 @@ public class VoterService : IVoterService
             query = query.Where(v => v.SupportStatus == status);
         }
 
+        if (filter.NoParty)
+            query = query.Where(v => v.PoliticalPartyId == null);
+        else if (filter.PartyId.HasValue)
+            query = query.Where(v => v.PoliticalPartyId == filter.PartyId.Value);
+
         var totalCount =
             await query.CountAsync();
 
@@ -608,6 +650,9 @@ public class VoterService : IVoterService
                     IslandName = v.Island != null ? v.Island.Name : string.Empty,
                     ConstituencyCode = v.Constituency != null && v.Constituency.Code != null ? v.Constituency.Code : string.Empty,
                     PledgeCount = v.Pledges.Count(),
+                    PoliticalPartyId = v.PoliticalPartyId,
+                    PartyName = v.PoliticalParty != null ? v.PoliticalParty.Name : string.Empty,
+                    PartyShortName = v.PoliticalParty != null ? v.PoliticalParty.ShortName : string.Empty,
                     Remarks = v.Remarks,
                     SupportStatus =
                         v.SupportStatus

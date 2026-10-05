@@ -23,6 +23,9 @@ public class VoterCreateEditDto
 
     public Guid? IslandId { get; set; }
 
+    /// <summary>Empty = "Not known" (the default).</summary>
+    public Guid? PoliticalPartyId { get; set; }
+
     public string Remarks { get; set; } = string.Empty;
 
     public string SupportStatus { get; set; } = "";

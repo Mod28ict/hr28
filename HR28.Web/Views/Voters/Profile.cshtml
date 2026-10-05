@@ -93,6 +93,19 @@
                 <dt>Island</dt>
                 <dd>@OrDash(voter?.IslandName)</dd>
             </div>
+            <div>
+                <dt>Political party</dt>
+                <dd>
+                    @if (!string.IsNullOrWhiteSpace(voter?.PartyName))
+                    {
+                        @($"{voter.PartyName} ({voter.PartyShortName})")
+                    }
+                    else
+                    {
+                        <span class="ui-faint">Not known</span>
+                    }
+                </dd>
+            </div>
         </dl>
 
         <div class="ui-note is-muted" style="margin: 18px 0 0;">

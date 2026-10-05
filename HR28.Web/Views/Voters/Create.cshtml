@@ -127,8 +127,21 @@
                     <span class="ui-step">3</span>
                     <div>
                         <div class="ui-section-title">Campaign</div>
-                        <div class="ui-section-sub">Current support status and any notes</div>
+                        <div class="ui-section-sub">Political party, support status and any notes</div>
                     </div>
+                </div>
+
+                <div class="ui-field">
+                    <label asp-for="Voter.PoliticalPartyId" class="ui-label">Political party</label>
+                    <select asp-for="Voter.PoliticalPartyId" class="ui-select">
+                        <option value="">Not known</option>
+                        @foreach (var party in Model?.Parties ?? new())
+                        {
+                            <option value="@party.Id" selected="@(party.Id == Model?.Voter?.PoliticalPartyId)">@party.Label</option>
+                        }
+                    </select>
+                    <div class="ui-hint">Leave as "Not known" unless you are sure.</div>
+                    <span asp-validation-for="Voter.PoliticalPartyId" class="ui-error"></span>
                 </div>
 
                 <div class="ui-field">

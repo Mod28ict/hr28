@@ -29,6 +29,7 @@ public class SettingsController : AppController
         Guid? editConstituency,
         Guid? editIsland,
         Guid? editCategory,
+        Guid? editParty,
         bool newConstituency = false,
         bool newIsland = false)
     {
@@ -67,6 +68,10 @@ public class SettingsController : AppController
 
             model.InfluencerCategories = categories.Data ?? new();
             model.EditCategoryId = editCategory;
+
+            var parties = await _apiClient.GetAsync<List<PoliticalPartyDto>>("PoliticalParties", Token);
+            model.Parties = parties.Data ?? new();
+            model.EditPartyId = editParty;
         }
 
         if (tab == "account")
@@ -284,6 +289,81 @@ public class SettingsController : AppController
 
         if (result.Success)
             TempData["SuccessMessage"] = "The category was deleted.";
+        else
+            TempData["ErrorMessage"] = result.Message;
+
+        return RedirectToAction(nameof(Index), new { tab = "lists" });
+    }
+
+    /// <summary>Adds a political party (no id) or changes its name / short name.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveParty(Guid? id, string? name, string? shortName)
+    {
+        if (!IsAdministrator)
+            return RedirectToAction(nameof(Index));
+
+        var body = new { name = name?.Trim() ?? string.Empty, shortName = shortName?.Trim() ?? string.Empty };
+
+        var result = id.HasValue
+            ? await _apiClient.PutAsync<PoliticalPartyDto>($"PoliticalParties/{id}", body, Token)
+            : await _apiClient.PostAsync<PoliticalPartyDto>("PoliticalParties", body, Token);
+
+        if (HandleApiFailure(result) is { } redirect)
+            return redirect;
+
+        if (!result.Success)
+        {
+            TempData["ErrorMessage"] = result.Message;
+            return RedirectToAction(nameof(Index), new { tab = "lists", editParty = id });
+        }
+
+        TempData["SuccessMessage"] = id.HasValue
+            ? $"{result.Data?.Name ?? body.name} was updated."
+            : $"{result.Data?.Name ?? body.name} was added.";
+
+        return RedirectToAction(nameof(Index), new { tab = "lists" });
+    }
+
+    /// <summary>Deletes a party that no voter has.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteParty(Guid id)
+    {
+        if (!IsAdministrator)
+            return RedirectToAction(nameof(Index));
+
+        var result = await _apiClient.DeleteAsync($"PoliticalParties/{id}", Token);
+
+        if (HandleApiFailure(result) is { } redirect)
+            return redirect;
+
+        if (result.Success)
+            TempData["SuccessMessage"] = "The party was deleted.";
+        else
+            TempData["ErrorMessage"] = result.Message;
+
+        return RedirectToAction(nameof(Index), new { tab = "lists" });
+    }
+
+    /// <summary>Chooses the party the Voters list opens on (no id = all parties).</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SetDefaultParty(Guid? id)
+    {
+        if (!IsAdministrator)
+            return RedirectToAction(nameof(Index));
+
+        var result = await _apiClient.PutAsync<object>(
+            "PoliticalParties/default-filter" + (id.HasValue ? $"?id={id}" : string.Empty),
+            new { },
+            Token);
+
+        if (HandleApiFailure(result) is { } redirect)
+            return redirect;
+
+        if (result.Success)
+            TempData["SuccessMessage"] = "Saved. The Voters list now opens on the party you chose.";
         else
             TempData["ErrorMessage"] = result.Message;
 
