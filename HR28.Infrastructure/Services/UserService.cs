@@ -17,19 +17,22 @@ public class UserService : IUserService
     private readonly IAuditService _auditService;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAccessScopeService _accessScopeService;
+    private readonly ISmsSender _smsSender;
 
     public UserService(
         HR28DbContext dbContext,
         IAuthorizationCodeHasher codeHasher,
         IAuditService auditService,
         IHttpContextAccessor httpContextAccessor,
-        IAccessScopeService accessScopeService)
+        IAccessScopeService accessScopeService,
+        ISmsSender smsSender)
     {
         _dbContext = dbContext;
         _codeHasher = codeHasher;
         _auditService = auditService;
         _httpContextAccessor = httpContextAccessor;
         _accessScopeService = accessScopeService;
+        _smsSender = smsSender;
     }
 
     private Guid? GetCurrentUserId()
@@ -64,18 +67,21 @@ public class UserService : IUserService
         // Required: the sign-in code is sent to this number by SMS.
         MaldivesFormats.RequireMobile(request.MobileNumber, "Mobile number", required: true);
 
+        if (await _dbContext.Users.AnyAsync(u => u.NationalId == request.NationalId))
+            throw new BusinessRuleException($"There is already a user with National ID {request.NationalId}.");
+
         var (authorizationCode, codeHash) = await NewUniqueCodeAsync();
 
         var user = new User
         {
             Id = Guid.NewGuid(),
             NationalId = request.NationalId,
-            FullName = request.FullName,
-            Address = request.Address,
+            FullName = (request.FullName ?? string.Empty).Trim(),
+            Address = request.Address?.Trim() ?? string.Empty,
             MobileNumber = request.MobileNumber,
-            Email = request.Email,
-            Designation = request.Designation,
-            Remarks = request.Remarks,
+            Email = request.Email?.Trim() ?? string.Empty,
+            Designation = request.Designation?.Trim() ?? string.Empty,
+            Remarks = request.Remarks?.Trim() ?? string.Empty,
             AuthorizationCodeHash = codeHash,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
@@ -188,6 +194,7 @@ public class UserService : IUserService
                 user.Email,
                 user.Designation,
                 user.IsActive,
+                user.Remarks,
                 user.LastLoginAt,
                 Roles = user.UserRoles.Select(x => x.Role.Name).ToList(),
                 Scopes = user.UserScopes
@@ -221,6 +228,7 @@ public class UserService : IUserService
                 Email = r.Email,
                 Designation = r.Designation,
                 IsActive = r.IsActive,
+                Remarks = r.Remarks ?? string.Empty,
                 LastLoginAt = r.LastLoginAt,
                 Roles = roles,
                 RoleName = roles.FirstOrDefault(),
@@ -230,6 +238,125 @@ public class UserService : IUserService
             };
         }).ToList();
     }
+    /// <summary>True when the user is the only active Administrator left.</summary>
+    private async Task<bool> IsLastActiveAdministratorAsync(Guid userId) =>
+        await _dbContext.UserRoles.AnyAsync(ur => ur.UserId == userId && ur.Role.Name == AccessScopeService.SuperAdministratorRole) &&
+        !await _dbContext.UserRoles.AnyAsync(ur =>
+            ur.UserId != userId &&
+            ur.Role.Name == AccessScopeService.SuperAdministratorRole &&
+            ur.User.IsActive);
+
+    public async Task UpdateUserAsync(Guid userId, UpdateUserDto request)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new KeyNotFoundException("User not found.");
+
+        var nationalId = MaldivesFormats.CleanNationalId(request.NationalId);
+        var mobile = MaldivesFormats.CleanMobile(request.MobileNumber);
+        var fullName = (request.FullName ?? string.Empty).Trim();
+
+        MaldivesFormats.RequireNationalId(nationalId);
+        MaldivesFormats.RequireMobile(mobile, "Mobile number", required: true);
+
+        if (fullName.Length == 0)
+            throw new BusinessRuleException("Please enter the full name.");
+
+        if (nationalId != user.NationalId &&
+            await _dbContext.Users.AnyAsync(u => u.Id != userId && u.NationalId == nationalId))
+            throw new BusinessRuleException($"There is already a user with National ID {nationalId}.");
+
+        if (!request.IsActive && user.IsActive)
+        {
+            if (userId == GetCurrentUserId())
+                throw new BusinessRuleException("You can't deactivate your own account.");
+
+            if (await IsLastActiveAdministratorAsync(userId))
+                throw new BusinessRuleException("This is the only active Administrator, so the account must stay active.");
+        }
+
+        var email = (request.Email ?? string.Empty).Trim();
+        var designation = (request.Designation ?? string.Empty).Trim();
+        var address = (request.Address ?? string.Empty).Trim();
+        var remarks = (request.Remarks ?? string.Empty).Trim();
+
+        // Identity values are recorded; free text only as "changed".
+        var changes = new List<string>();
+        if (user.FullName != fullName) changes.Add($"name \"{user.FullName}\" → \"{fullName}\"");
+        if (user.NationalId != nationalId) changes.Add($"National ID {user.NationalId} → {nationalId}");
+        var oldMobile = user.MobileNumber;
+        if (oldMobile != mobile) changes.Add($"mobile {oldMobile} → {mobile}");
+        if ((user.Email ?? string.Empty) != email) changes.Add("email");
+        if ((user.Designation ?? string.Empty) != designation) changes.Add("designation");
+        if ((user.Address ?? string.Empty) != address) changes.Add("address");
+        if ((user.Remarks ?? string.Empty) != remarks) changes.Add("remarks");
+        if (user.IsActive != request.IsActive) changes.Add(request.IsActive ? "account activated" : "account deactivated");
+
+        if (changes.Count == 0)
+            return;
+
+        user.FullName = fullName;
+        user.NationalId = nationalId;
+        user.MobileNumber = mobile;
+        user.Email = email;
+        user.Designation = designation;
+        user.Address = address;
+        user.Remarks = remarks;
+        user.IsActive = request.IsActive;
+
+        await _dbContext.SaveChangesAsync();
+
+        // Deactivation applies on the person's next request.
+        _accessScopeService.Invalidate(userId);
+
+        await _auditService.LogAsync(GetCurrentUserId(), "Update: " + string.Join(", ", changes), "User", userId.ToString());
+
+        // Whoever controls the number controls the account: warn the old number.
+        if (oldMobile != mobile && !string.IsNullOrWhiteSpace(oldMobile))
+        {
+            await _smsSender.SendAsync(oldMobile,
+                "HR28: the mobile number on your account was changed by an administrator. " +
+                "If you did not ask for this, contact your HR28 administrator.");
+        }
+    }
+
+    public async Task<string> DeleteUserAsync(Guid userId)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
+            ?? throw new KeyNotFoundException("User not found.");
+
+        if (userId == GetCurrentUserId())
+            throw new BusinessRuleException("You can't delete your own account.");
+
+        if (await IsLastActiveAdministratorAsync(userId))
+            throw new BusinessRuleException("This is the only active Administrator, so the account can't be deleted.");
+
+        var encounters = await _dbContext.Encounters.CountAsync(e => e.RecordedByUserId == userId);
+        var pledges = await _dbContext.Pledges.CountAsync(p => p.CreatedByUserId == userId || p.AssignedToUserId == userId);
+
+        if (encounters + pledges > 0)
+        {
+            throw new BusinessRuleException(
+                $"{user.FullName} has recorded {encounters:N0} encounter{(encounters == 1 ? "" : "s")} and " +
+                $"{pledges:N0} pledge{(pledges == 1 ? "" : "s")}, and those records must keep who made them, " +
+                "so the account can't be deleted. Deactivate it instead (Edit → Account is active).");
+        }
+
+        var label = $"{user.FullName} ({user.NationalId})";
+
+        // Areas don't cascade; roles, rights, codes and sign-in requests do.
+        _dbContext.UserScopes.RemoveRange(_dbContext.UserScopes.Where(s => s.UserId == userId));
+        _dbContext.Users.Remove(user);
+
+        await _dbContext.SaveChangesAsync();
+
+        _accessScopeService.Invalidate(userId);
+
+        // The account is gone, so the audit entry carries the name.
+        await _auditService.LogAsync(GetCurrentUserId(), $"Delete (permanent): {label}", "User", userId.ToString());
+
+        return user.FullName;
+    }
+
     /// <summary>
     /// Sets the user's role, replacing any previous role (the screen offers a single
     /// choice). Previously this only added roles, so a demoted user kept old rights.

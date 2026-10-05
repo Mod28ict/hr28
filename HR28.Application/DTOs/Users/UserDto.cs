@@ -24,6 +24,8 @@ public class UserDto
 
     public bool IsActive { get; set; }
 
+    public string Remarks { get; set; } = string.Empty;
+
     public DateTime? LastLoginAt { get; set; }
     /// <summary>The user's highest-authority role (kept for screens that show one).</summary>
     public string? RoleName { get; set; }

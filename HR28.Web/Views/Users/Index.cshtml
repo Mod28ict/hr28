@@ -10,6 +10,9 @@
     var inactiveUsers = totalUsers - activeUsers;
     var unassigned = users.Count(u => string.IsNullOrWhiteSpace(u.RoleName));
 
+    // You can't delete your own account (the API checks this too).
+    var myId = Context.Session.GetString("UserId");
+
     string InitialsOf(string name) =>
         string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
 }
@@ -199,6 +202,14 @@
 
                                 <td>
                                     <div style="display: flex; gap: 6px; white-space: nowrap;">
+                                        <a asp-action="Edit"
+                                           asp-route-id="@user.Id"
+                                           class="ui-btn ui-btn-secondary ui-btn-sm"
+                                           title="Edit @name's details">
+                                            <partial name="_Icon" model='"edit"' />
+                                            Edit
+                                        </a>
+
                                         <a asp-action="AssignRole"
                                            asp-route-id="@user.Id"
                                            class="ui-btn ui-btn-soft is-violet ui-btn-sm">
@@ -222,6 +233,19 @@
                                                 Reset code
                                             </button>
                                         </form>
+
+                                        @if (!string.Equals(user.Id.ToString(), myId, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <form asp-action="Delete"
+                                                  asp-route-id="@user.Id"
+                                                  method="post"
+                                                  class="h28-delete-user"
+                                                  data-name="@name">
+                                                <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm ui-btn-danger" aria-label="Delete @name" title="Delete @name">
+                                                    <partial name="_Icon" model='"trash"' />
+                                                </button>
+                                            </form>
+                                        }
                                     </div>
                                 </td>
                             </tr>
@@ -260,6 +284,21 @@
                     if (noMatch) noMatch.hidden = shown > 0;
                 });
             }
+
+            // Deleting is permanent: say so first.
+            document.querySelectorAll(".h28-delete-user").forEach(function (form) {
+                form.addEventListener("submit", function (e) {
+                    var ok = window.confirm(
+                        "Permanently delete " + form.dataset.name + "?\n\n" +
+                        "This cannot be undone. If they have recorded encounters or pledges, " +
+                        "the account can't be deleted; deactivate it instead (Edit → Account is active).");
+
+                    if (!ok) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                });
+            });
 
             // Confirm before issuing a new code (the old one stops working at once).
             document.querySelectorAll(".h28-reset-form").forEach(function (form) {

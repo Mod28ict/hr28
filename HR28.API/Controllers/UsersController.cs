@@ -47,6 +47,24 @@ public class UsersController : ControllerBase
         return Ok(result);
     }
    
+    /// <summary>Edit details and active/inactive. Changes are audited.</summary>
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto request)
+    {
+        await _userService.UpdateUserAsync(id, request);
+
+        return NoContent();
+    }
+
+    /// <summary>Permanent; only for accounts that haven't recorded encounters or pledges.</summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteUser(Guid id)
+    {
+        var name = await _userService.DeleteUserAsync(id);
+
+        return Ok(new { message = $"{name} was deleted." });
+    }
+
     [HttpPost("{userId}/scope")]
     public async Task<IActionResult> AssignScope(
         Guid userId,

@@ -1,27 +1,33 @@
 @model HR28.Web.Models.UserCreateViewModel
 
 @{
-    ViewData["Title"] = "Create User";
+    // The same form creates and edits a user.
+    var title = Model.IsEdit ? "Edit User" : "Create User";
+    ViewData["Title"] = title;
 }
 
 <div class="ui-page is-narrow">
 
     <header class="ui-head">
         <div class="ui-head-main">
-            <span class="ui-head-icon is-blue"><partial name="_Icon" model='"user-plus"' /></span>
+            <span class="ui-head-icon is-blue"><partial name="_Icon" model='@(Model.IsEdit ? "edit" : "user-plus")' /></span>
             <div>
                 <nav class="ui-crumb" aria-label="Breadcrumb">
-                    <a asp-action="Index">Users</a> <span aria-hidden="true">/</span> <span>Create user</span>
+                    <a asp-action="Index">Users</a> <span aria-hidden="true">/</span> <span>@(Model.IsEdit ? "Edit user" : "Create user")</span>
                 </nav>
-                <h1 class="ui-title">Create User</h1>
-                <p class="ui-sub">Create a secure platform account before assigning its role and geographic access scope.</p>
+                <h1 class="ui-title">@title</h1>
+                <p class="ui-sub">
+                    @(Model.IsEdit
+                        ? "Change this person's details. Every change is recorded in the audit trail."
+                        : "Create a secure platform account before assigning its role and geographic access scope.")
+                </p>
             </div>
         </div>
     </header>
 
     <section class="ui-card ui-card-lg">
 
-        <form asp-action="Create" method="post" id="h28CreateUserForm">
+        <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.EditId" method="post" id="h28CreateUserForm">
 
             @Html.AntiForgeryToken()
 
@@ -144,20 +150,45 @@
                     <span asp-validation-for="User.Remarks" class="ui-error"></span>
                 </div>
 
-                <div class="ui-note">
-                    <partial name="_Icon" model='"shield"' />
-                    <div>
-                        <strong>Role and scope are assigned separately</strong>
-                        After creating the account, return to the Users page and assign both a role and a
-                        geographic scope. The generated authorization code will be displayed on the next screen.
+                @if (Model.IsEdit)
+                {
+                    <div class="ui-field">
+                        <label class="ui-check-card" for="h28UserActive">
+                            <input type="checkbox" id="h28UserActive" name="IsActive" value="true" checked="@Model.IsActive" />
+                            <span>
+                                <strong>Account is active</strong>
+                                <small>Untick to stop this person signing in. They are signed out on their next click; records they made are kept.</small>
+                            </span>
+                        </label>
+                        <input type="hidden" name="IsActive" value="false" />
                     </div>
-                </div>
+
+                    <div class="ui-note is-amber">
+                        <partial name="_Icon" model='"info"' />
+                        <div>
+                            <strong>Changing the mobile number</strong>
+                            Sign-in codes go to this number, so a change is recorded in the audit trail and an SMS warning
+                            is sent to the old number. Roles and areas are changed from the Users list.
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="ui-note">
+                        <partial name="_Icon" model='"shield"' />
+                        <div>
+                            <strong>Role and scope are assigned separately</strong>
+                            After creating the account, return to the Users page and assign both a role and a
+                            geographic scope. The generated authorization code will be displayed on the next screen.
+                        </div>
+                    </div>
+                }
             </div>
 
             <div class="ui-form-actions">
                 <button type="submit" class="ui-btn ui-btn-primary">
                     <partial name="_Icon" model='"check"' />
-                    Create user
+                    @(Model.IsEdit ? "Save changes" : "Create user")
                 </button>
 
                 <a asp-action="Index" class="ui-btn ui-btn-secondary">Cancel</a>

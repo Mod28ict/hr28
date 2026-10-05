@@ -33,4 +33,17 @@ public interface IUserService
     /// Returns null if the user does not exist.
     /// </summary>
     Task<string?> ResetAuthorizationCodeAsync(Guid userId);
+
+    /// <summary>
+    /// Changes a user's details and whether the account is active. Changed fields are
+    /// audited; a new mobile number is announced by SMS to the old number.
+    /// </summary>
+    Task UpdateUserAsync(Guid userId, UpdateUserDto request);
+
+    /// <summary>
+    /// Permanently deletes an account that has not recorded encounters or pledges
+    /// (those records must keep who made them; deactivate such accounts instead).
+    /// Returns the deleted user's name.
+    /// </summary>
+    Task<string> DeleteUserAsync(Guid userId);
 }

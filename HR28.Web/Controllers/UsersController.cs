@@ -127,19 +127,30 @@ public class UsersController : Controller
             HttpContext.Session.GetString(
                 "JwtToken");
 
-        var createdUser =
-            await _dashboardService
-                .CreateUserAsync(
-                    model.User,
-                    token);
-
-        if (createdUser == null)
+        if (!ModelState.IsValid)
         {
             return View(model);
         }
 
+        var created = await _apiClient.PostAsync<UserDto>("Users", model.User, token);
+
+        if (created.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!created.Success || created.Data == null)
+        {
+            ModelState.AddModelError(string.Empty, string.IsNullOrWhiteSpace(created.Message)
+                ? "The user could not be created. Please try again."
+                : created.Message);
+
+            return View(model);
+        }
+
         model.GeneratedAuthorizationCode =
-            createdUser.AuthorizationCode;
+            created.Data.AuthorizationCode;
 
         // The code is shown once; don't let the browser cache this page.
         Response.Headers.CacheControl = "no-store";
@@ -148,6 +159,116 @@ public class UsersController : Controller
             "CreateSuccess",
             model);
     }
+    /// <summary>Edit a user's details and whether the account is active (same form as Create).</summary>
+    [HttpGet]
+    public async Task<IActionResult> Edit(Guid id)
+    {
+        if (!IsSuperAdmin())
+            return RedirectToAction("Index", "Dashboard");
+
+        var user = await _apiClient.GetAsync<UserDto>($"Users/{id}", HttpContext.Session.GetString("JwtToken"));
+
+        if (user.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!user.Success || user.Data == null)
+        {
+            TempData["FlashError"] = "That user could not be found.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View("Create", new UserCreateViewModel
+        {
+            EditId = id,
+            IsActive = user.Data.IsActive,
+            User = new CreateUserDto
+            {
+                NationalId = user.Data.NationalId,
+                FullName = user.Data.FullName,
+                Address = user.Data.Address,
+                MobileNumber = user.Data.MobileNumber,
+                Email = user.Data.Email,
+                Designation = user.Data.Designation,
+                Remarks = user.Data.Remarks
+            }
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(Guid id, UserCreateViewModel model)
+    {
+        if (!IsSuperAdmin())
+            return RedirectToAction("Index", "Dashboard");
+
+        model.EditId = id;
+
+        if (!ModelState.IsValid)
+            return View("Create", model);
+
+        var result = await _apiClient.PutAsync<object>(
+            $"Users/{id}",
+            new
+            {
+                model.User.NationalId,
+                model.User.FullName,
+                Address = model.User.Address ?? string.Empty,
+                model.User.MobileNumber,
+                Email = model.User.Email ?? string.Empty,
+                Designation = model.User.Designation ?? string.Empty,
+                Remarks = model.User.Remarks ?? string.Empty,
+                model.IsActive
+            },
+            HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, string.IsNullOrWhiteSpace(result.Message)
+                ? "The changes could not be saved. Please try again."
+                : result.Message);
+
+            return View("Create", model);
+        }
+
+        TempData["SuccessMessage"] = $"{model.User.FullName} was updated.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    /// <summary>Permanent delete (the page asks first). Accounts with records must be deactivated instead.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        if (!IsSuperAdmin())
+            return RedirectToAction("Index", "Dashboard");
+
+        var result = await _apiClient.DeleteAsync($"Users/{id}", HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (result.Success)
+            TempData["SuccessMessage"] = "The user was deleted.";
+        else
+            TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
+                ? "The user could not be deleted."
+                : result.Message;
+
+        return RedirectToAction(nameof(Index));
+    }
+
     [HttpGet]
     public async Task<IActionResult> AssignRole(
         Guid id)
