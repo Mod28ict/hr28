@@ -11,6 +11,8 @@ public class EncounterListItemDto
 
     public string Outcome { get; set; } = string.Empty;
 
+    public string? Response { get; set; }
+
     public string Notes { get; set; } = string.Empty;
 
     public Guid VoterId { get; set; }
@@ -31,15 +33,20 @@ public class EncounterListFilterModel
 {
     public static readonly string[] Types = { "Door Visit", "Phone Call", "Meeting", "Campaign Event", "Office Visit", "Other" };
 
-    /// <summary>Outcome and its colour, matching the Add Encounter form.</summary>
-    public static readonly (string Value, string Tone)[] Outcomes =
+    /// <summary>What the encounter was (mirrors the API's EncounterValues.Outcomes).</summary>
+    public static readonly string[] Outcomes = { "Meet", "Call", "Request" };
+
+    /// <summary>The voter's response and its colour: green / yellow / red.</summary>
+    public static readonly (string Value, string Tone)[] Responses =
     {
-        ("Positive", "is-green"),
+        ("Supports", "is-green"),
         ("Undecided", "is-amber"),
-        ("Negative", "is-red"),
-        ("Follow-up Required", "is-blue"),
-        ("No Contact", "is-muted")
+        ("Does not support", "is-red")
     };
+
+    /// <summary>Colour for a response; grey when there is none (old "No Contact" records).</summary>
+    public static string ToneOf(string? response) =>
+        Responses.FirstOrDefault(r => r.Value == response).Tone ?? "is-muted";
 
     public string? SearchTerm { get; set; }
 
@@ -47,10 +54,13 @@ public class EncounterListFilterModel
 
     public string? Outcome { get; set; }
 
+    public string? Response { get; set; }
+
     public int PageSize { get; set; } = 20;
 
     public bool IsNarrowed =>
-        !string.IsNullOrWhiteSpace(SearchTerm) || !string.IsNullOrWhiteSpace(Type) || !string.IsNullOrWhiteSpace(Outcome);
+        !string.IsNullOrWhiteSpace(SearchTerm) || !string.IsNullOrWhiteSpace(Type) ||
+        !string.IsNullOrWhiteSpace(Outcome) || !string.IsNullOrWhiteSpace(Response);
 
     public Dictionary<string, string> RouteValues()
     {
@@ -59,6 +69,7 @@ public class EncounterListFilterModel
         if (!string.IsNullOrWhiteSpace(SearchTerm)) values["searchTerm"] = SearchTerm;
         if (!string.IsNullOrWhiteSpace(Type)) values["type"] = Type;
         if (!string.IsNullOrWhiteSpace(Outcome)) values["outcome"] = Outcome;
+        if (!string.IsNullOrWhiteSpace(Response)) values["response"] = Response;
 
         return values;
     }

@@ -937,6 +937,12 @@
     .ui-pill.is-violet { color: #5a40c4; }
     .ui-pill.is-cyan { color: #0a7489; }
 
+    /* Tinted with its own colour, for values that must read as a colour at a glance
+       (encounter responses: green / yellow / red). Dark theme tints every pill already. */
+    .ui-pill.is-filled.is-green { background: #d9f4e6; }
+    .ui-pill.is-filled.is-amber { background: #fff1b8; color: #7a5200; }
+    .ui-pill.is-filled.is-red { background: #fde0e4; }
+
 .ui-tag {
     display: inline-block;
     padding: 3px 10px;

@@ -16,6 +16,8 @@ public class EncounterDto
     public string Outcome { get; set; }
         = string.Empty;
 
+    public string? Response { get; set; }
+
     public string Notes { get; set; }
         = string.Empty;
 }

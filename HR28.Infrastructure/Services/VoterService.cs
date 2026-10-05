@@ -379,6 +379,7 @@ public class VoterService : IVoterService
                         EncounterType =
                             x.EncounterType,
                         Outcome = x.Outcome,
+                        Response = x.Response,
                         Notes = x.Notes,
                         RecordedByUserId =
                             x.RecordedByUserId

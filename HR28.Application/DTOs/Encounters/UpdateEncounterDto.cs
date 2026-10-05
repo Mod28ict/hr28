@@ -10,6 +10,9 @@ public class UpdateEncounterDto
     public string Outcome { get; set; }
         = string.Empty;
 
+    /// <summary>Supports, Undecided or Does not support.</summary>
+    public string? Response { get; set; }
+
     public string Notes { get; set; }
         = string.Empty;
 }

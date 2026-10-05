@@ -221,6 +221,7 @@
                             <th>Date</th>
                             <th>Type</th>
                             <th>Outcome</th>
+                            <th>Response</th>
                             <th>Notes</th>
                             @if (canEditEncounters)
                             {
@@ -234,7 +235,17 @@
                             <tr>
                                 <td class="ui-strong ui-num" style="white-space: nowrap;">@encounter.EncounterDate.ToString("dd MMM yyyy")</td>
                                 <td><span class="ui-tag">@encounter.EncounterType</span></td>
-                                <td>@encounter.Outcome</td>
+                                <td><span class="ui-tag">@encounter.Outcome</span></td>
+                                <td>
+                                    @if (string.IsNullOrWhiteSpace(encounter.Response))
+                                    {
+                                        <span class="ui-faint">—</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ui-pill is-filled @HR28.Web.Models.EncounterListFilterModel.ToneOf(encounter.Response)">@encounter.Response</span>
+                                    }
+                                </td>
                                 <td class="ui-muted">@encounter.Notes</td>
                                 @if (canEditEncounters)
                                 {

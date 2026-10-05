@@ -11,6 +11,8 @@ public class EncounterListItemDto
 
     public string Outcome { get; set; } = string.Empty;
 
+    public string? Response { get; set; }
+
     public string Notes { get; set; } = string.Empty;
 
     public Guid VoterId { get; set; }
@@ -35,4 +37,6 @@ public class EncounterListFilter
     public string? EncounterType { get; set; }
 
     public string? Outcome { get; set; }
+
+    public string? Response { get; set; }
 }

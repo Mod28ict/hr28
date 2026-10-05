@@ -21,9 +21,12 @@ public class CreateEncounterDto
     public string EncounterType { get; set; }
         = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "Choose Meet, Call or Request.")]
     public string Outcome { get; set; }
         = string.Empty;
+
+    [Required(ErrorMessage = "Choose the voter's response.")]
+    public string? Response { get; set; }
 
     [StringLength(1000)]
     public string Notes { get; set; }

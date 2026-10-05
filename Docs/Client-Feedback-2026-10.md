@@ -35,7 +35,17 @@ state the migration and its rollback before any schema change (CLAUDE.md).
      `Influencers.CategoryId`, existing influencers start with no category);
      rollback `dotnet ef database update AddPermissions`. Dev DB backup:
      `HR28Db_before_influencer_categories_2026-10-05.bak`.
-3. **Encounters** — outcomes Meet / Call / Request + support colour (see decisions).
+3. **Encounters — DONE** — outcome is Meet / Call / Request; new required
+   **Response** field Supports (green) / Undecided (yellow) / Does not support (red),
+   shown as coloured pills on the Encounters list and the voter profile, with
+   outcome and response filters. The encounter type list (Door Visit, Phone Call…)
+   is unchanged. Migration `AddEncounterResponse` maps old data: Positive →
+   Supports, Negative → Does not support, Undecided and Follow-up Required →
+   Undecided, No Contact → no response; outcome = Call for type "Phone Call", Meet
+   otherwise. Rollback `dotnet ef database update AddInfluencerCategories` (maps
+   back; Follow-up Required returns as Undecided — exact values are in
+   `HR28Db_before_encounter_response_2026-10-05.bak`). The API now also validates
+   type / outcome / response / date / notes when an encounter is created.
 4. **Political party** — field, Settings list, party filter (default MDP), see decisions.
 5. **User roles**
    - Administrators create **custom roles**.

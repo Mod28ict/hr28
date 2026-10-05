@@ -98,6 +98,10 @@ public class HR28DbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Encounter>()
+            .Property(e => e.Response)
+            .HasMaxLength(20);
+
+        modelBuilder.Entity<Encounter>()
             .HasOne(e => e.RecordedByUser)
             .WithMany(u => u.RecordedEncounters)
             .HasForeignKey(e => e.RecordedByUserId)

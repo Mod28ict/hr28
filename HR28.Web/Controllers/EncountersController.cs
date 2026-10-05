@@ -25,13 +25,15 @@ public class EncountersController : AppController
         int pageSize = 20,
         string? searchTerm = null,
         string? type = null,
-        string? outcome = null)
+        string? outcome = null,
+        string? response = null)
     {
         var filter = new EncounterListFilterModel
         {
             SearchTerm = searchTerm?.Trim(),
             Type = EncounterListFilterModel.Types.Contains(type) ? type : null,
-            Outcome = EncounterListFilterModel.Outcomes.Any(o => o.Value == outcome) ? outcome : null,
+            Outcome = EncounterListFilterModel.Outcomes.Contains(outcome) ? outcome : null,
+            Response = EncounterListFilterModel.Responses.Any(r => r.Value == response) ? response : null,
             PageSize = pageSize is 10 or 20 or 50 or 100 ? pageSize : 20
         };
 
@@ -81,6 +83,7 @@ public class EncountersController : AppController
             EncounterDate = existing.Data.EncounterDate,
             EncounterType = existing.Data.EncounterType,
             Outcome = existing.Data.Outcome,
+            Response = existing.Data.Response,
             Notes = existing.Data.Notes
         });
     }
@@ -100,6 +103,7 @@ public class EncountersController : AppController
                 model.EncounterDate,
                 model.EncounterType,
                 model.Outcome,
+                model.Response,
                 Notes = model.Notes ?? string.Empty
             },
             Token);
@@ -141,33 +145,35 @@ public class EncountersController : AppController
     public async Task<IActionResult> Create(
         CreateEncounterDto model)
     {
-        var token =
-            HttpContext.Session.GetString(
-                "JwtToken");
-
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return RedirectToAction(
-                "Login",
-                "Auth");
-        }
-
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-        var success =
-            await _dashboardService
-                .CreateEncounterAsync(
-                    model,
-                    token);
+        var result = await _apiClient.PostAsync<EncounterDto>(
+            "Encounters",
+            new
+            {
+                model.VoterId,
+                model.EncounterDate,
+                model.EncounterType,
+                model.Outcome,
+                model.Response,
+                Notes = model.Notes ?? string.Empty
+            },
+            Token);
 
-        if (!success)
+        if (!result.Success)
         {
+            if (result.IsUnauthorized)
+                return HandleApiFailure(result)!;
+
+            // A validation message from the API (or "outside your areas"): show it on the form.
             ModelState.AddModelError(
                 string.Empty,
-                "The encounter could not be saved.");
+                string.IsNullOrWhiteSpace(result.Message)
+                    ? "The encounter could not be saved. Please try again."
+                    : result.Message);
 
             return View(model);
         }

@@ -44,7 +44,8 @@ public class EncountersController : ControllerBase
         [FromQuery] int pageSize = 20,
         [FromQuery] string? searchTerm = null,
         [FromQuery] string? type = null,
-        [FromQuery] string? outcome = null)
+        [FromQuery] string? outcome = null,
+        [FromQuery] string? response = null)
     {
         return Ok(await _encounterService.GetListAsync(
             page,
@@ -53,7 +54,8 @@ public class EncountersController : ControllerBase
             {
                 SearchTerm = searchTerm,
                 EncounterType = type,
-                Outcome = outcome
+                Outcome = outcome,
+                Response = response
             }));
     }
 

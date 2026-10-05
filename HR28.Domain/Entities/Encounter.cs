@@ -14,7 +14,11 @@ public class Encounter
 
     public string EncounterType { get; set; } = string.Empty;
 
+    /// <summary>Meet, Call or Request.</summary>
     public string Outcome { get; set; } = string.Empty;
+
+    /// <summary>Supports, Undecided or Does not support; empty for old "No Contact" records.</summary>
+    public string? Response { get; set; }
 
     public string Notes { get; set; } = string.Empty;
 

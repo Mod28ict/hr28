@@ -14,16 +14,12 @@
     var firstVisiblePage = Math.Max(1, Model.Page - 2);
     var lastVisiblePage = Math.Min(Model.TotalPages, Model.Page + 2);
 
-    string ToneOf(string outcome) =>
-        HR28.Web.Models.EncounterListFilterModel.Outcomes.FirstOrDefault(o => o.Value == outcome).Tone ?? "is-muted";
-
-    // Outcome chips keep the search and type; page links keep everything.
-    Dictionary<string, string> ChipRoute(string? outcome)
+    // Filter chips change one value and keep the rest; page links keep everything.
+    Dictionary<string, string> ChipRoute(string key, string? value)
     {
-        var values = new Dictionary<string, string> { ["pageSize"] = filter.PageSize.ToString() };
-        if (!string.IsNullOrWhiteSpace(filter.SearchTerm)) values["searchTerm"] = filter.SearchTerm;
-        if (!string.IsNullOrWhiteSpace(filter.Type)) values["type"] = filter.Type;
-        if (!string.IsNullOrWhiteSpace(outcome)) values["outcome"] = outcome;
+        var values = filter.RouteValues();
+        values.Remove(key);
+        if (!string.IsNullOrWhiteSpace(value)) values[key] = value;
         return values;
     }
 
@@ -73,6 +69,7 @@
 
         <form asp-action="Index" method="get" role="search">
             <input type="hidden" name="outcome" value="@filter.Outcome" />
+            <input type="hidden" name="response" value="@filter.Response" />
 
             <div class="ui-toolbar">
                 <div class="ui-search">
@@ -124,12 +121,23 @@
 
         <nav class="ui-filter-chips" aria-label="Filter by outcome">
             <a class="@ChipClass(string.IsNullOrWhiteSpace(filter.Outcome))"
-               asp-action="Index" asp-all-route-data="ChipRoute(null)">All outcomes</a>
+               asp-action="Index" asp-all-route-data='@ChipRoute("outcome", null)'>All outcomes</a>
 
             @foreach (var o in HR28.Web.Models.EncounterListFilterModel.Outcomes)
             {
-                <a class="@ChipClass(filter.Outcome == o.Value) @o.Tone"
-                   asp-action="Index" asp-all-route-data="ChipRoute(o.Value)">@o.Value</a>
+                <a class="@ChipClass(filter.Outcome == o) is-blue"
+                   asp-action="Index" asp-all-route-data='@ChipRoute("outcome", o)'>@o</a>
+            }
+        </nav>
+
+        <nav class="ui-filter-chips" aria-label="Filter by response">
+            <a class="@ChipClass(string.IsNullOrWhiteSpace(filter.Response))"
+               asp-action="Index" asp-all-route-data='@ChipRoute("response", null)'>All responses</a>
+
+            @foreach (var r in HR28.Web.Models.EncounterListFilterModel.Responses)
+            {
+                <a class="@ChipClass(filter.Response == r.Value) @r.Tone"
+                   asp-action="Index" asp-all-route-data='@ChipRoute("response", r.Value)'>@r.Value</a>
             }
 
             @if (filter.IsNarrowed)
@@ -165,6 +173,7 @@
                             <th>Island</th>
                             <th>Type</th>
                             <th>Outcome</th>
+                            <th>Response</th>
                             <th class="ui-hide-sm">Notes</th>
                             <th class="ui-hide-sm">Recorded by</th>
                             <th><span class="visually-hidden">Actions</span></th>
@@ -200,7 +209,18 @@
 
                                 <td><span class="ui-tag">@e.EncounterType</span></td>
 
-                                <td><span class="ui-pill @ToneOf(e.Outcome)">@e.Outcome</span></td>
+                                <td><span class="ui-tag">@e.Outcome</span></td>
+
+                                <td>
+                                    @if (string.IsNullOrWhiteSpace(e.Response))
+                                    {
+                                        <span class="ui-faint">—</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ui-pill is-filled @HR28.Web.Models.EncounterListFilterModel.ToneOf(e.Response)">@e.Response</span>
+                                    }
+                                </td>
 
                                 <td class="ui-muted ui-hide-sm" style="max-width: 280px;">
                                     @if (string.IsNullOrWhiteSpace(e.Notes) || e.Notes.Trim('-', ' ') == "")

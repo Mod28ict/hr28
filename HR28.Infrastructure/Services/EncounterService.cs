@@ -48,15 +48,36 @@ public class EncounterService : IEncounterService
 
         await _dbContext.EnsureVoterInScopeAsync(scope, request.VoterId);
 
+        var type = request.EncounterType?.Trim() ?? string.Empty;
+        var outcome = request.Outcome?.Trim() ?? string.Empty;
+        var response = request.Response?.Trim() ?? string.Empty;
+        var notes = request.Notes?.Trim() ?? string.Empty;
+
+        if (!EncounterTypes.Contains(type))
+            throw new BusinessRuleException("Choose an encounter type from the list.");
+
+        if (!Outcomes.Contains(outcome))
+            throw new BusinessRuleException("Choose Meet, Call or Request.");
+
+        if (!Responses.Contains(response))
+            throw new BusinessRuleException("Choose the voter's response: Supports, Undecided or Does not support.");
+
+        if (notes.Length > MaxNotesLength)
+            throw new BusinessRuleException($"Notes can be at most {MaxNotesLength} characters.");
+
+        if (request.EncounterDate == default || request.EncounterDate > MaldivesTime.Now.AddDays(1))
+            throw new BusinessRuleException("Enter the date the encounter happened (not in the future).");
+
         var encounter = new Encounter
         {
             Id = Guid.NewGuid(),
             VoterId = request.VoterId,
             RecordedByUserId = userId,
             EncounterDate = request.EncounterDate,
-            EncounterType = request.EncounterType,
-            Outcome = request.Outcome,
-            Notes = request.Notes
+            EncounterType = type,
+            Outcome = outcome,
+            Response = response,
+            Notes = notes
         };
 
         _dbContext.Encounters.Add(encounter);
@@ -78,6 +99,7 @@ public class EncounterService : IEncounterService
             EncounterDate = encounter.EncounterDate,
             EncounterType = encounter.EncounterType,
             Outcome = encounter.Outcome,
+            Response = encounter.Response,
             Notes = encounter.Notes
         };
     }
@@ -103,16 +125,15 @@ public class EncounterService : IEncounterService
                 EncounterDate = e.EncounterDate,
                 EncounterType = e.EncounterType,
                 Outcome = e.Outcome,
+                Response = e.Response,
                 Notes = e.Notes
             })
             .ToListAsync();
     }
 
-    public static readonly string[] EncounterTypes =
-        { "Door Visit", "Phone Call", "Meeting", "Campaign Event", "Office Visit", "Other" };
-
-    public static readonly string[] Outcomes =
-        { "Positive", "Undecided", "Negative", "Follow-up Required", "No Contact" };
+    private static readonly string[] EncounterTypes = EncounterValues.Types;
+    private static readonly string[] Outcomes = EncounterValues.Outcomes;
+    private static readonly string[] Responses = EncounterValues.Responses;
 
     public const int MaxNotesLength = 1000;
 
@@ -124,6 +145,7 @@ public class EncounterService : IEncounterService
         EncounterDate = e.EncounterDate,
         EncounterType = e.EncounterType,
         Outcome = e.Outcome,
+        Response = e.Response,
         Notes = e.Notes
     };
 
@@ -161,6 +183,7 @@ public class EncounterService : IEncounterService
 
         var type = request.EncounterType?.Trim() ?? string.Empty;
         var outcome = request.Outcome?.Trim() ?? string.Empty;
+        var response = string.IsNullOrWhiteSpace(request.Response) ? null : request.Response.Trim();
         var notes = request.Notes?.Trim() ?? string.Empty;
 
         // Older records may hold a value no longer offered; keeping it unchanged is allowed.
@@ -168,7 +191,10 @@ public class EncounterService : IEncounterService
             throw new BusinessRuleException("Choose an encounter type from the list.");
 
         if (outcome != encounter.Outcome && !Outcomes.Contains(outcome))
-            throw new BusinessRuleException("Choose an outcome from the list.");
+            throw new BusinessRuleException("Choose Meet, Call or Request.");
+
+        if (response != encounter.Response && !Responses.Contains(response))
+            throw new BusinessRuleException("Choose the voter's response: Supports, Undecided or Does not support.");
 
         if (notes.Length > MaxNotesLength)
             throw new BusinessRuleException($"Notes can be at most {MaxNotesLength} characters.");
@@ -183,6 +209,7 @@ public class EncounterService : IEncounterService
             changes.Add($"date {encounter.EncounterDate:dd MMM yyyy HH:mm} → {request.EncounterDate:dd MMM yyyy HH:mm}");
         if (encounter.EncounterType != type) changes.Add($"type \"{encounter.EncounterType}\" → \"{type}\"");
         if (encounter.Outcome != outcome) changes.Add($"outcome \"{encounter.Outcome}\" → \"{outcome}\"");
+        if (encounter.Response != response) changes.Add($"response \"{encounter.Response ?? "none"}\" → \"{response ?? "none"}\"");
         if (encounter.Notes != notes) changes.Add("notes");
 
         if (changes.Count == 0)
@@ -191,6 +218,7 @@ public class EncounterService : IEncounterService
         encounter.EncounterDate = request.EncounterDate;
         encounter.EncounterType = type;
         encounter.Outcome = outcome;
+        encounter.Response = response;
         encounter.Notes = notes;
 
         await _dbContext.SaveChangesAsync();
@@ -245,6 +273,12 @@ public class EncounterService : IEncounterService
             query = query.Where(e => e.Outcome == outcome);
         }
 
+        if (!string.IsNullOrWhiteSpace(filter.Response) && Responses.Contains(filter.Response.Trim()))
+        {
+            var response = filter.Response.Trim();
+            query = query.Where(e => e.Response == response);
+        }
+
         var total = await query.CountAsync();
 
         var items = await query
@@ -257,6 +291,7 @@ public class EncounterService : IEncounterService
                 EncounterDate = e.EncounterDate,
                 EncounterType = e.EncounterType,
                 Outcome = e.Outcome,
+                Response = e.Response,
                 Notes = e.Notes,
                 VoterId = e.VoterId,
                 VoterName = e.Voter.FullName,

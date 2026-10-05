@@ -220,27 +220,6 @@ public class DashboardService
             List<LookupDto>>(
             $"{_settings.BaseUrl}Constituencies/{constituencyId}/islands");
     }
-    public async Task<bool> CreateEncounterAsync(
-        CreateEncounterDto request,
-        string? token)
-    {
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return false;
-        }
-
-        _httpClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue(
-                "Bearer",
-                token);
-
-        var response =
-            await _httpClient.PostAsJsonAsync(
-                $"{_settings.BaseUrl}Encounters",
-                request);
-
-        return response.IsSuccessStatusCode;
-    }
     public async Task<bool> CreatePledgeAsync(
         CreatePledgeDto request,
         string? token)

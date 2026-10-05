@@ -76,28 +76,52 @@
 
             </div>
 
-            <div class="ui-field">
-                <span class="ui-label" id="h28OutcomeLabel">Outcome</span>
+            <div class="ui-grid-2">
 
-                <div class="ui-chips" id="h28OutcomeChips" role="radiogroup" aria-labelledby="h28OutcomeLabel">
-                    <span class="ui-chip is-green" data-v="Positive" role="radio" tabindex="0">Positive</span>
-                    <span class="ui-chip is-amber" data-v="Undecided" role="radio" tabindex="0">Undecided</span>
-                    <span class="ui-chip is-red" data-v="Negative" role="radio" tabindex="0">Negative</span>
-                    <span class="ui-chip is-blue" data-v="Follow-up Required" role="radio" tabindex="0">Follow-up Required</span>
-                    <span class="ui-chip is-muted" data-v="No Contact" role="radio" tabindex="0">No Contact</span>
+                <div class="ui-field">
+                    <span class="ui-label" id="h28OutcomeLabel">Outcome</span>
+
+                    <div class="ui-chips h28-chip-group" data-select="h28OutcomeSelect" role="radiogroup" aria-labelledby="h28OutcomeLabel">
+                        @foreach (var o in HR28.Web.Models.EncounterListFilterModel.Outcomes)
+                        {
+                            <span class="ui-chip is-blue" data-v="@o" role="radio" tabindex="0">@o</span>
+                        }
+                    </div>
+
+                    <!-- The real field that gets posted; the chips just set it -->
+                    <select asp-for="Outcome" id="h28OutcomeSelect" class="ui-hidden" aria-hidden="true" tabindex="-1">
+                        <option value="">Select Outcome</option>
+                        @foreach (var o in HR28.Web.Models.EncounterListFilterModel.Outcomes)
+                        {
+                            <option value="@o">@o</option>
+                        }
+                    </select>
+
+                    <span asp-validation-for="Outcome" class="ui-error"></span>
                 </div>
 
-                <!-- The real field that gets posted; the chips just set it -->
-                <select asp-for="Outcome" id="h28OutcomeSelect" class="ui-hidden" aria-hidden="true" tabindex="-1">
-                    <option value="">Select Outcome</option>
-                    <option value="Positive">Positive</option>
-                    <option value="Undecided">Undecided</option>
-                    <option value="Negative">Negative</option>
-                    <option value="Follow-up Required">Follow-up Required</option>
-                    <option value="No Contact">No Contact</option>
-                </select>
+                <div class="ui-field">
+                    <span class="ui-label" id="h28ResponseLabel">Response</span>
 
-                <span asp-validation-for="Outcome" class="ui-error"></span>
+                    <div class="ui-chips h28-chip-group" data-select="h28ResponseSelect" role="radiogroup" aria-labelledby="h28ResponseLabel">
+                        @foreach (var r in HR28.Web.Models.EncounterListFilterModel.Responses)
+                        {
+                            <span class="ui-chip @r.Tone" data-v="@r.Value" role="radio" tabindex="0">@r.Value</span>
+                        }
+                    </div>
+
+                    <select asp-for="Response" id="h28ResponseSelect" class="ui-hidden" aria-hidden="true" tabindex="-1">
+                        <option value="">Select Response</option>
+                        @foreach (var r in HR28.Web.Models.EncounterListFilterModel.Responses)
+                        {
+                            <option value="@r.Value">@r.Value</option>
+                        }
+                    </select>
+
+                    <div class="ui-hint">Green = supports, yellow = undecided, red = does not support.</div>
+                    <span asp-validation-for="Response" class="ui-error"></span>
+                </div>
+
             </div>
 
             <div class="ui-field">
@@ -143,36 +167,38 @@
 
     <script>
         (function () {
-            // Outcome chips drive the hidden select
-            var select = document.getElementById("h28OutcomeSelect");
-            var chips = document.querySelectorAll("#h28OutcomeChips .ui-chip");
+            // Outcome and response chips each drive their hidden select
+            document.querySelectorAll(".h28-chip-group").forEach(function (group) {
+                var select = document.getElementById(group.dataset.select);
+                var chips = group.querySelectorAll(".ui-chip");
 
-            function syncChips() {
+                function syncChips() {
+                    chips.forEach(function (chip) {
+                        var selected = chip.dataset.v === select.value;
+                        chip.classList.toggle("active", selected);
+                        chip.setAttribute("aria-checked", selected ? "true" : "false");
+                    });
+                }
+
                 chips.forEach(function (chip) {
-                    var selected = chip.dataset.v === select.value;
-                    chip.classList.toggle("active", selected);
-                    chip.setAttribute("aria-checked", selected ? "true" : "false");
-                });
-            }
+                    chip.addEventListener("click", function () {
+                        select.value = chip.dataset.v;
+                        syncChips();
+                        if (window.jQuery && jQuery(select).valid) {
+                            jQuery(select).valid();
+                        }
+                    });
 
-            chips.forEach(function (chip) {
-                chip.addEventListener("click", function () {
-                    select.value = chip.dataset.v;
-                    syncChips();
-                    if (window.jQuery && jQuery(select).valid) {
-                        jQuery(select).valid();
-                    }
+                    chip.addEventListener("keydown", function (e) {
+                        if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            chip.click();
+                        }
+                    });
                 });
 
-                chip.addEventListener("keydown", function (e) {
-                    if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        chip.click();
-                    }
-                });
+                syncChips(); // keeps the chip selected after a failed validation post-back
             });
-
-            syncChips(); // keeps the chip selected after a failed validation post-back
 
             // Notes character counter
             var box = document.getElementById("h28EncounterNotes");
