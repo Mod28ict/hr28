@@ -873,6 +873,20 @@
     font-weight: 700;
 }
 
+/* A voter's photo laid over the initials circle (Voters list). */
+.ui-avatar {
+    position: relative;
+    overflow: hidden;
+}
+
+    .ui-avatar .ui-avatar-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
 .ui-avatar-lg {
     width: 64px;
     height: 64px;

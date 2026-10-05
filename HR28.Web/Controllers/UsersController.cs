@@ -203,6 +203,8 @@ public class UsersController : Controller
         var matrix = await _apiClient.GetAsync<PermissionMatrix>("Permissions", token);
 
         model.AvailablePermissions = matrix.Data?.Permissions ?? new();
+        model.RoleRights = (matrix.Data?.Roles ?? new()).ToDictionary(r => r.RoleId, r => r.Permissions);
+        model.AllRightsRoleIds = (matrix.Data?.Roles ?? new()).Where(r => r.HasAllPermissions).Select(r => r.RoleId).ToList();
     }
 
     /// <summary>Saves the ticked roles. Permissions are the combination of all of them.</summary>
@@ -240,21 +242,11 @@ public class UsersController : Controller
 
             if (result.Success)
             {
-                // Then the extra rights for this person.
-                var rights = await _apiClient.PutAsync<object>(
-                    $"Permissions/users/{model.UserId}",
-                    new { permissions = model.SelectedPermissions },
-                    token);
+                // Only roles are assigned here; rights are set per role (Settings → Roles & rights).
+                TempData["SuccessMessage"] =
+                    $"{model.UserName}'s roles were updated. The change applies straight away.";
 
-                if (rights.Success)
-                {
-                    TempData["SuccessMessage"] =
-                        $"{model.UserName}'s roles and rights were updated. The change applies straight away.";
-
-                    return RedirectToAction(nameof(Index));
-                }
-
-                ModelState.AddModelError(string.Empty, "Roles were saved, but the extra rights were not: " + rights.Message);
+                return RedirectToAction(nameof(Index));
             }
             else
             {

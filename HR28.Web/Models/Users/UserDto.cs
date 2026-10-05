@@ -60,8 +60,14 @@ public class UserRolesViewModel
 
     public List<RoleDto> Roles { get; set; } = new();
 
-    /// <summary>Rights granted to this person on top of their roles.</summary>
+    /// <summary>Rights given to this person directly (older setting; shown, not edited here).</summary>
     public List<string> SelectedPermissions { get; set; } = new();
+
+    /// <summary>Each role's rights, so the page can show what the ticked roles allow.</summary>
+    public Dictionary<Guid, List<string>> RoleRights { get; set; } = new();
+
+    /// <summary>Roles that always have every right (the Administrator).</summary>
+    public List<Guid> AllRightsRoleIds { get; set; } = new();
 
     public List<HR28.Web.Models.PermissionInfo> AvailablePermissions { get; set; } = new();
 }

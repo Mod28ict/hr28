@@ -649,6 +649,10 @@ public class VoterService : IVoterService
 
         query = query.AsNoTracking();
 
+        // Photos appear in the list only for people with "View voter photos".
+        var canSeePhotos = (await _accessScopeService.GetAsync(userId))
+            .HasPermission(HR28.Application.Common.PermissionCatalog.VotersPhotoView);
+
         // Filters narrow the user's areas; they can never widen them.
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
@@ -717,6 +721,7 @@ public class VoterService : IVoterService
                     IslandName = v.Island != null ? v.Island.Name : string.Empty,
                     ConstituencyCode = v.Constituency != null && v.Constituency.Code != null ? v.Constituency.Code : string.Empty,
                     PledgeCount = v.Pledges.Count(),
+                    HasPhoto = canSeePhotos && _dbContext.VoterPhotos.Any(p => p.VoterId == v.Id),
                     PoliticalPartyId = v.PoliticalPartyId,
                     PartyName = v.PoliticalParty != null ? v.PoliticalParty.Name : string.Empty,
                     PartyShortName = v.PoliticalParty != null ? v.PoliticalParty.ShortName : string.Empty,

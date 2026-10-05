@@ -13,6 +13,18 @@
         ["Collector"] = "Adds and updates voters, encounters and pledges in their areas.",
         ["Reporter"] = "Views reports for their areas. Cannot change records on its own."
     };
+
+    // What the ticked roles allow (rights are set per role in Settings → Roles & rights).
+    var hasAllRights = Model.SelectedRoleIds.Any(id => Model.AllRightsRoleIds.Contains(id));
+    var fromRoles = Model.SelectedRoleIds
+        .SelectMany(id => Model.RoleRights.TryGetValue(id, out var r) ? r : new List<string>())
+        .Concat(Model.SelectedPermissions)
+        .ToHashSet();
+
+    var directRights = Model.AvailablePermissions
+        .Where(p => Model.SelectedPermissions.Contains(p.Key))
+        .Select(p => p.Name)
+        .ToList();
 }
 
 <div class="ui-page is-narrow">
@@ -54,6 +66,9 @@
                             <input type="checkbox"
                                    name="SelectedRoleIds"
                                    value="@role.Id"
+                                   class="h28-role-check"
+                                   data-all="@(Model.AllRightsRoleIds.Contains(role.Id) ? "true" : "false")"
+                                   data-rights="@string.Join(' ', Model.RoleRights.TryGetValue(role.Id, out var rr) ? rr : new List<string>())"
                                    checked="@isChecked" />
                             <span>
                                 <strong>@HR28.Web.Services.Hr28Roles.DisplayName(role.Name)</strong>
@@ -69,18 +84,34 @@
 
             @if (Model.AvailablePermissions.Any())
             {
-                <fieldset style="margin-top: 22px;">
-                    <legend class="ui-label">Extra rights for this person</legend>
+                <fieldset style="margin-top: 22px;" id="h28RightsPreview" data-direct="@string.Join(' ', Model.SelectedPermissions)">
+                    <legend class="ui-label">What this person can do</legend>
                     <p class="ui-muted" style="margin: -2px 0 10px; font-size: 13px;">
-                        Given on top of their roles, only within their own areas. Administrators already have every right.
+                        Comes from the ticked roles and changes as you tick them; only inside this person's areas.
+                        To change what a role allows, use <a asp-controller="Settings" asp-action="Index" asp-route-tab="permissions" class="ui-link">Settings → Roles &amp; rights</a>.
+                    </p>
+
+                    <p class="ui-muted h28-all-rights" style="font-size: 13px;" hidden="@(!hasAllRights)">
+                        <span class="ui-pill is-blue">Administrator</span> has every right.
                     </p>
 
                     <partial name="_RightsGrid" model='new HR28.Web.Models.RightsGridModel
                     {
                         Permissions = Model.AvailablePermissions,
-                        Selected = Model.SelectedPermissions.ToHashSet(),
-                        InputName = "SelectedPermissions"
+                        Selected = fromRoles,
+                        ReadOnly = true
                     }' />
+
+                    @if (directRights.Any())
+                    {
+                        <div class="ui-note is-amber" style="margin-top: 12px;">
+                            <partial name="_Icon" model='"info"' />
+                            <span>
+                                This person also has rights given to them directly under the older setting:
+                                <strong style="display: inline;">@string.Join(", ", directRights)</strong>. They still apply.
+                            </span>
+                        </div>
+                    }
                 </fieldset>
             }
 
@@ -103,3 +134,37 @@
     </section>
 
 </div>
+
+@section Scripts
+{
+    <script>
+        (function () {
+            var preview = document.getElementById("h28RightsPreview");
+            if (!preview) return;
+
+            var roles = document.querySelectorAll(".h28-role-check");
+            var direct = (preview.dataset.direct || "").split(" ").filter(Boolean);
+
+            // Show what the ticked roles allow (read-only; saving changes only the roles).
+            function update() {
+                var all = false;
+                var rights = new Set(direct);
+
+                roles.forEach(function (box) {
+                    if (!box.checked) return;
+                    if (box.dataset.all === "true") all = true;
+                    (box.dataset.rights || "").split(" ").filter(Boolean).forEach(function (r) { rights.add(r); });
+                });
+
+                preview.querySelectorAll("input[data-right]").forEach(function (box) {
+                    box.checked = all || rights.has(box.dataset.right);
+                });
+
+                preview.querySelector(".h28-all-rights").hidden = !all;
+            }
+
+            roles.forEach(function (box) { box.addEventListener("change", update); });
+            update();
+        })();
+    </script>
+}

@@ -35,6 +35,9 @@ public class VoterDto
     /// <summary>Number of pledges recorded for this voter (filled on the voter list).</summary>
     public int PledgeCount { get; set; }
 
+    /// <summary>True when the voter has a photo and the user may view it.</summary>
+    public bool HasPhoto { get; set; }
+
     public string SupportStatus { get; set; }
     = string.Empty;
     public string ConstituencyName { get; set; }

@@ -162,7 +162,7 @@ public class EncountersController : AppController
     /// <summary>Where to go after saving: the profile, or the voter list for "Add encounter only" roles.</summary>
     private IActionResult AfterEncounterSaved(Guid voterId) =>
         Hr28Permissions.OpensVotersOnAddEncounter(HttpContext.Session)
-            ? RedirectToAction("Index", "Voters")
+            ? LocalRedirect(VotersController.LastVoterListUrl(Url, HttpContext.Session))
             : RedirectToAction("Profile", "Voters", new { id = voterId });
 
     [HttpPost]

@@ -293,7 +293,14 @@
                             <tr class="ui-row-link" onclick="window.location='@profileUrl'">
                                 <td>
                                     <div class="ui-person">
-                                        <span class="ui-avatar" aria-hidden="true">@InitialsOf(name)</span>
+                                        <span class="ui-avatar" aria-hidden="true">
+                                            @InitialsOf(name)
+                                            @if (voter.HasPhoto)
+                                            {
+                                                @* Covers the initials; if it can't load, the initials show. *@
+                                                <img src="@Url.Action("Photo", new { id = voter.Id })" alt="" loading="lazy" class="ui-avatar-img" onerror="this.remove()" />
+                                            }
+                                        </span>
                                         <span>
                                             <strong>@name</strong>
                                             @if (!string.IsNullOrEmpty(voter.GenderAndAge))

@@ -16,6 +16,9 @@
 
     // "Add encounter only" roles don't open the profile; lead them back to the list.
     var addOnly = HR28.Web.Services.Hr28Permissions.OpensVotersOnAddEncounter(Context.Session);
+
+    // Back to the same filtered Voters page the person came from.
+    var votersUrl = HR28.Web.Controllers.VotersController.LastVoterListUrl(Url, Context.Session);
 }
 
 <div class="ui-page is-narrow">
@@ -27,7 +30,7 @@
                 <nav class="ui-crumb" aria-label="Breadcrumb">
                     @if (addOnly && !isEdit)
                     {
-                        <a asp-controller="Voters" asp-action="Index">Voters</a>
+                        <a href="@votersUrl">Voters</a>
                     }
                     else
                     {
@@ -183,7 +186,7 @@
 
                 @if (addOnly && !isEdit)
                 {
-                    <a asp-controller="Voters" asp-action="Index" class="ui-btn ui-btn-secondary">Cancel</a>
+                    <a href="@votersUrl" class="ui-btn ui-btn-secondary">Cancel</a>
                 }
                 else
                 {

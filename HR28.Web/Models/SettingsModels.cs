@@ -132,6 +132,9 @@ public class RightsGridModel
 
     /// <summary>The Administrator: every box shows "Always" instead of a tick box.</summary>
     public bool AllGranted { get; set; }
+
+    /// <summary>Shown, not changed (Users → Roles: rights come from the roles).</summary>
+    public bool ReadOnly { get; set; }
 }
 
 public class RolePermissions

@@ -44,6 +44,16 @@
                             {
                                 <span class="ui-pill is-blue" title="@p.Description">Always</span>
                             }
+                            else if (Model.ReadOnly)
+                            {
+                                <input type="checkbox"
+                                       class="ui-perm-check"
+                                       disabled
+                                       data-right="@p.Key"
+                                       checked="@Model.Selected.Contains(p.Key)"
+                                       title="@p.Description"
+                                       aria-label="@p.Name" />
+                            }
                             else
                             {
                                 <input type="checkbox"

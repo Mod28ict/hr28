@@ -140,11 +140,25 @@ public class VotersController : Controller
         ViewBag.Filter = filter;
         ViewBag.SearchTerm = filter.SearchTerm;
 
+        // Remembered so "Add encounter only" roles come back to the same filtered page.
+        HttpContext.Session.SetString(LastVoterListKey, Request.QueryString.Value ?? string.Empty);
+
         return View(result.Data ?? new PagedResult<VoterSearchDto>
         {
             Page = 1,
             PageSize = filter.PageSize
         });
+    }
+
+    /// <summary>Session key: the query string of the last Voters list shown (search, filters, page).</summary>
+    public const string LastVoterListKey = "LastVoterListQuery";
+
+    /// <summary>The Voters list address with the last search and filters, e.g. "/Voters?party=all&amp;page=3".</summary>
+    public static string LastVoterListUrl(Microsoft.AspNetCore.Mvc.IUrlHelper url, ISession session)
+    {
+        var query = session.GetString(LastVoterListKey) ?? string.Empty;
+
+        return (url.Action("Index", "Voters") ?? "/Voters") + (query.StartsWith('?') ? query : string.Empty);
     }
 
     /// <summary>Political parties for the filter and the voter form (empty if they can't be loaded).</summary>

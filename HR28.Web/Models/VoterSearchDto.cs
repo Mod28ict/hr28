@@ -34,6 +34,9 @@ public class VoterSearchDto
 
     public int PledgeCount { get; set; }
 
+    /// <summary>True when the voter has a photo and the user may view it.</summary>
+    public bool HasPhoto { get; set; }
+
     public string ConstituencyCode { get; set; } = string.Empty;
 
     /// <summary>"M", "F" or empty.</summary>
