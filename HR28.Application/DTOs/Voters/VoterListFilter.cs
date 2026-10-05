@@ -13,6 +13,9 @@ public class VoterListFilter
     /// <summary>House name, matched against the address.</summary>
     public string? House { get; set; }
 
+    /// <summary>True: the address must equal the house name ("Aage" does not match "Edherimaa Aage").</summary>
+    public bool HouseExact { get; set; }
+
     /// <summary>Supporter, Undecided, Neutral or Opponent.</summary>
     public string? Status { get; set; }
 }

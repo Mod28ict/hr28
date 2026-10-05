@@ -13,6 +13,9 @@ public class VoterListFilterModel
 
     public string? House { get; set; }
 
+    /// <summary>Exact house-name match ("Aage" does not match "Edherimaa Aage").</summary>
+    public bool HouseExact { get; set; }
+
     public string? Status { get; set; }
 
     public int PageSize { get; set; } = 20;
@@ -41,6 +44,7 @@ public class VoterListFilterModel
         if (ConstituencyId.HasValue) values["constituencyId"] = ConstituencyId.Value.ToString();
         if (IslandId.HasValue) values["islandId"] = IslandId.Value.ToString();
         if (!string.IsNullOrWhiteSpace(House)) values["house"] = House;
+        if (!string.IsNullOrWhiteSpace(House) && HouseExact) values["houseExact"] = "true";
         if (!string.IsNullOrWhiteSpace(Status)) values["status"] = Status;
 
         return values;

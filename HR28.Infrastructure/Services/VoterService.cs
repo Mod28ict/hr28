@@ -277,6 +277,38 @@ public class VoterService : IVoterService
             "Voter",
             voter.Id.ToString());
     }
+    /// <summary>Changes only the support status (status pop-up on the voter list). Audited.</summary>
+    public async Task<string> UpdateStatusAsync(Guid id, string status)
+    {
+        var scope = await GetCurrentScopeAsync();
+
+        var newStatus = SupportStatuses.FirstOrDefault(s =>
+            string.Equals(s, status?.Trim(), StringComparison.OrdinalIgnoreCase))
+            ?? throw new HR28.Application.Common.BusinessRuleException(
+                "Choose one of: " + string.Join(", ", SupportStatuses) + ".");
+
+        var voter = await _dbContext.Voters
+            .InScope(scope)
+            .FirstOrDefaultAsync(v => v.Id == id)
+            ?? throw new KeyNotFoundException("Voter not found.");
+
+        if (voter.SupportStatus == newStatus)
+            return newStatus;
+
+        var old = voter.SupportStatus;
+        voter.SupportStatus = newStatus;
+
+        await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            $"Status: {old} → {newStatus}",
+            "Voter",
+            voter.Id.ToString());
+
+        return newStatus;
+    }
+
     public async Task DeleteVoterAsync(Guid id)
     {
         var voter = await _dbContext.Voters
@@ -540,7 +572,9 @@ public class VoterService : IVoterService
         if (!string.IsNullOrWhiteSpace(filter.House))
         {
             var house = Limit(filter.House);
-            query = query.Where(v => v.Address.Contains(house));
+            query = filter.HouseExact
+                ? query.Where(v => v.Address == house)
+                : query.Where(v => v.Address.Contains(house));
         }
 
         if (!string.IsNullOrWhiteSpace(filter.Status) &&

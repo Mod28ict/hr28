@@ -170,6 +170,10 @@
                            maxlength="100"
                            class="ui-input"
                            placeholder="House name" />
+                    <label class="ui-check-inline" for="filterHouseExact">
+                        <input type="checkbox" id="filterHouseExact" name="houseExact" value="true" @(filter.HouseExact ? "checked" : "") />
+                        Match house name exactly
+                    </label>
                 </div>
 
                 <div class="ui-filter">
@@ -279,7 +283,16 @@
                                     }
                                 </td>
 
-                                <td class="ui-muted ui-hide-sm">@voter.Address</td>
+                                <td class="ui-muted ui-hide-sm">
+                                    @if (!string.IsNullOrWhiteSpace(voter.Address))
+                                    {
+                                        @* Everyone at this house, in the same constituency and island *@
+                                        <a class="ui-link"
+                                           title="Show everyone at @voter.Address"
+                                           onclick="event.stopPropagation()"
+                                           href="@Url.Action("Index", new { constituencyId = voter.ConstituencyId, islandId = voter.IslandId, house = voter.Address, houseExact = true, pageSize = filter.PageSize })">@voter.Address</a>
+                                    }
+                                </td>
 
                                 <td class="is-center">
                                     @if (voter.PledgeCount > 0)
@@ -292,7 +305,24 @@
                                     }
                                 </td>
 
-                                <td><partial name="_StatusPill" model="voter.SupportStatus" /></td>
+                                <td>
+                                    @if (canWrite)
+                                    {
+                                        <button type="button"
+                                                class="ui-status-btn h28-status-btn"
+                                                title="Change status"
+                                                onclick="event.stopPropagation()"
+                                                data-id="@voter.Id"
+                                                data-name="@name"
+                                                data-status="@voter.SupportStatus">
+                                            <partial name="_StatusPill" model="voter.SupportStatus" />
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <partial name="_StatusPill" model="voter.SupportStatus" />
+                                    }
+                                </td>
 
                                 <td class="is-right">
                                     <a asp-action="Profile"
@@ -380,6 +410,34 @@
 
 </div>
 
+@if (canWrite)
+{
+    <dialog id="h28StatusDialog" class="ui-dialog" aria-labelledby="h28StatusTitle">
+        <form asp-action="SetStatus" method="post" class="ui-dialog-body">
+            <input type="hidden" name="id" id="h28StatusVoterId" />
+            <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+
+            <h2 id="h28StatusTitle" class="ui-dialog-title">Change status</h2>
+            <p class="ui-muted" id="h28StatusVoterName"></p>
+
+            <div class="ui-status-choices" role="radiogroup" aria-labelledby="h28StatusTitle">
+                @foreach (var st in HR28.Web.Models.VoterListFilterModel.Statuses)
+                {
+                    <label class="ui-status-choice">
+                        <input type="radio" name="status" value="@st" required />
+                        <partial name="_StatusPill" model="st" />
+                    </label>
+                }
+            </div>
+
+            <div class="ui-form-actions">
+                <button type="submit" class="ui-btn ui-btn-primary">Save status</button>
+                <button type="button" class="ui-btn ui-btn-secondary" id="h28StatusCancel">Cancel</button>
+            </div>
+        </form>
+    </dialog>
+}
+
 @section Scripts
 {
     <script>
@@ -427,5 +485,24 @@
                     .fail(function () { resetIslands("All islands", false); });
             });
         })(window.jQuery);
+
+        // Status pop-up: click a voter's status to change it.
+        (function () {
+            var dialog = document.getElementById("h28StatusDialog");
+            if (!dialog) return;
+
+            document.querySelectorAll(".h28-status-btn").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    document.getElementById("h28StatusVoterId").value = btn.dataset.id;
+                    document.getElementById("h28StatusVoterName").textContent = btn.dataset.name;
+                    dialog.querySelectorAll('input[name="status"]').forEach(function (r) {
+                        r.checked = r.value === btn.dataset.status;
+                    });
+                    dialog.showModal();
+                });
+            });
+
+            document.getElementById("h28StatusCancel").addEventListener("click", function () { dialog.close(); });
+        })();
     </script>
 }

@@ -22,6 +22,9 @@ public interface IVoterService
         Guid id,
         UpdateVoterDto request);
 
+    /// <summary>Changes only the support status; the voter must be in the user's areas.</summary>
+    Task<string> UpdateStatusAsync(Guid id, string status);
+
     Task DeleteVoterAsync(
         Guid id);
 

@@ -70,6 +70,7 @@ public class VotersController : Controller
         Guid? constituencyId = null,
         Guid? islandId = null,
         string? house = null,
+        bool houseExact = false,
         string? status = null)
     {
         var token =
@@ -90,6 +91,7 @@ public class VotersController : Controller
             // An island only makes sense inside the chosen constituency.
             IslandId = constituencyId.HasValue ? islandId : null,
             House = house?.Trim(),
+            HouseExact = houseExact,
             Status = VoterListFilterModel.Statuses.Contains(status) ? status : null,
             PageSize = pageSize is 10 or 20 or 50 or 100 ? pageSize : 20
         };
@@ -135,6 +137,32 @@ public class VotersController : Controller
             Page = 1,
             PageSize = filter.PageSize
         });
+    }
+
+    /// <summary>Status pop-up on the voter list: changes only the support status.</summary>
+    [HttpPost]
+    public async Task<IActionResult> SetStatus(Guid id, string status, string? returnUrl)
+    {
+        var result = await _apiClient.PutAsync<object>(
+            $"Voters/{id}/status",
+            new { status },
+            HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (result.Success)
+            TempData["SuccessMessage"] = $"Status changed to {status}.";
+        else
+            TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
+                ? "The status could not be changed."
+                : result.Message;
+
+        // Back to the same filtered page (local addresses only).
+        return Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl!) : RedirectToAction(nameof(Index));
     }
 
     /// <summary>Islands of a constituency inside the user's areas, for the island filter.</summary>

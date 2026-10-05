@@ -41,6 +41,7 @@ public class VotersController : ControllerBase
         [FromQuery] Guid? constituencyId = null,
         [FromQuery] Guid? islandId = null,
         [FromQuery] string? house = null,
+        [FromQuery] bool houseExact = false,
         [FromQuery] string? status = null)
     {
         var userIdValue =
@@ -66,6 +67,7 @@ public class VotersController : ControllerBase
                     ConstituencyId = constituencyId,
                     IslandId = islandId,
                     House = house,
+                    HouseExact = houseExact,
                     Status = status
                 });
 
@@ -134,6 +136,21 @@ await _voterService.GetVoterByIdAsync(
         return Ok("Voter updated successfully.");
     }
 
+
+    public class UpdateStatusRequest
+    {
+        public string Status { get; set; } = string.Empty;
+    }
+
+    /// <summary>Changes only the support status (status pop-up). Audited.</summary>
+    [HttpPut("{id:guid}/status")]
+    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request)
+    {
+        var status = await _voterService.UpdateStatusAsync(id, request.Status);
+
+        return Ok(new { status });
+    }
 
     [HttpDelete("{id}")]
     [Authorize(Policy = AuthorizationPolicies.Administrator)]
