@@ -138,6 +138,23 @@
                 <dd>@OrDash(voter?.IslandName)</dd>
             </div>
             <div>
+                <dt>Gender</dt>
+                <dd>@OrDash(voter?.GenderLabel)</dd>
+            </div>
+            <div>
+                <dt>Date of birth</dt>
+                <dd>
+                    @if (voter?.DateOfBirth is { } dob)
+                    {
+                        @($"{dob:dd MMM yyyy} ({voter.Age} years)")
+                    }
+                    else
+                    {
+                        <span class="ui-faint">Not recorded</span>
+                    }
+                </dd>
+            </div>
+            <div>
                 <dt>Political party</dt>
                 <dd>
                     @if (!string.IsNullOrWhiteSpace(voter?.PartyName))

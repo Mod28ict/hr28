@@ -21,6 +21,9 @@ public class VoterListFilter
 
     public Guid? PartyId { get; set; }
 
+    /// <summary>"M" or "F".</summary>
+    public string? Gender { get; set; }
+
     /// <summary>True: only voters whose party is "Not known".</summary>
     public bool NoParty { get; set; }
 }

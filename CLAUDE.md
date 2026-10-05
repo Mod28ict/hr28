@@ -87,6 +87,16 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   - **Voter list upload** (Voters → Upload voter list, API `POST api/VoterImports`) is
     for administrators only (`Administrator` policy: Super + National), max 20 MB
     .xlsx/.xls, 10 uploads per hour per user, one audit entry per upload with counts.
+  - **Party membership list upload** (Voters → Upload membership list, API
+    `POST api/MembershipImports?partyId=`): same rules. Columns found by heading
+    (NID required; GENDER, DOB, Phone optional). Matches by National ID only (rows
+    without one are skipped), sets the party, and fills date of birth, mobile and
+    gender only where empty (the registry always wins). Temp table + fixed
+    parameterised SQL in one transaction (`PartyMembershipImportService`); repeatable.
+  - Voter **date of birth** (owner decision, 2026-10-05): `Voters.DateOfBirth` (date,
+    optional) — migration `AddVoterDateOfBirth`; rollback
+    `dotnet ef database update AddVoterPhotos`. Gender ("M"/"F") and age are shown on
+    the list and profile, with a gender filter.
 - Planned hosting: Azure App Service + Azure SQL Database, one deployment per client,
   published by one automated pipeline to all clients.
 

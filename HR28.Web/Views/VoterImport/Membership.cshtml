@@ -1,0 +1,210 @@
+@model HR28.Web.Models.MembershipImportViewModel
+
+@{
+    ViewData["Title"] = "Upload Membership List";
+
+    var result = Model.Result;
+    var failed = result?.ErrorMessage != null;
+}
+
+<div class="ui-page is-narrow">
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-blue"><partial name="_Icon" model='"upload"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a asp-controller="Voters" asp-action="Index">Voters</a>
+                    <span aria-hidden="true">/</span> <span>Upload membership list</span>
+                </nav>
+                <h1 class="ui-title">Upload Membership List</h1>
+                <p class="ui-sub">Mark voters as members of a party, and fill in missing date of birth, mobile and gender from the list.</p>
+            </div>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="ui-alert is-red" role="alert">
+            <partial name="_Icon" model='"alert"' />
+            <span>@Model.ErrorMessage</span>
+        </div>
+    }
+
+    @if (result != null)
+    {
+        <div class="ui-alert @(failed ? "is-red" : "is-green")" role="status">
+            <partial name="_Icon" model='@(failed ? "alert" : "check-circle")' />
+            <span>
+                @if (failed)
+                {
+                    @result.ErrorMessage
+                }
+                else
+                {
+                    @:<strong>@Model.FileName</strong> was applied: @result.Matched.ToString("N0") of @result.TotalRows.ToString("N0") members found in the voter list and recorded as @result.PartyName.
+                }
+            </span>
+        </div>
+
+        @if (!failed)
+        {
+            <section class="ui-stats">
+                <div class="ui-stat is-green">
+                    <span class="ui-stat-icon"><partial name="_Icon" model='"user-check"' /></span>
+                    <div>
+                        <div class="ui-stat-label">Newly recorded as members</div>
+                        <div class="ui-stat-value">@result.PartySet.ToString("N0")</div>
+                        @if (result.MovedFromOtherParty > 0)
+                        {
+                            <div class="ui-stat-foot">@result.MovedFromOtherParty.ToString("N0") had another party before</div>
+                        }
+                    </div>
+                </div>
+                <div class="ui-stat is-violet">
+                    <span class="ui-stat-icon"><partial name="_Icon" model='"users"' /></span>
+                    <div>
+                        <div class="ui-stat-label">Already members</div>
+                        <div class="ui-stat-value">@result.AlreadyMembers.ToString("N0")</div>
+                    </div>
+                </div>
+                <div class="ui-stat is-blue">
+                    <span class="ui-stat-icon"><partial name="_Icon" model='"edit"' /></span>
+                    <div>
+                        <div class="ui-stat-label">Details filled in</div>
+                        <div class="ui-stat-value">@((result.DateOfBirthFilled + result.MobileFilled + result.GenderFilled).ToString("N0"))</div>
+                        <div class="ui-stat-foot">
+                            @result.DateOfBirthFilled.ToString("N0") dates of birth,
+                            @result.MobileFilled.ToString("N0") mobiles,
+                            @result.GenderFilled.ToString("N0") genders
+                        </div>
+                    </div>
+                </div>
+                <div class="ui-stat is-red">
+                    <span class="ui-stat-icon"><partial name="_Icon" model='"alert"' /></span>
+                    <div>
+                        <div class="ui-stat-label">Not matched</div>
+                        <div class="ui-stat-value">@((result.NotInRegistryCount + result.WithoutNationalId + result.InvalidNationalId).ToString("N0"))</div>
+                        <div class="ui-stat-foot">See below</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="ui-card">
+                <div class="ui-card-head">
+                    <h2>Rows that need attention</h2>
+                </div>
+                <ul class="ui-import-errors">
+                    <li>@result.WithoutNationalId.ToString("N0") rows have no National ID, so they were skipped (they can't be matched safely).</li>
+                    @if (result.InvalidNationalId > 0)
+                    {
+                        <li>@result.InvalidNationalId.ToString("N0") rows have a National ID in the wrong format.</li>
+                    }
+                    @if (result.DuplicateRows > 0)
+                    {
+                        <li>@result.DuplicateRows.ToString("N0") rows repeat a National ID already in the file (the first row was used).</li>
+                    }
+                    <li>
+                        @result.NotInRegistryCount.ToString("N0") members are not in the voter list.
+                        @if (result.NotInRegistry.Any())
+                        {
+                            <span class="ui-num">@string.Join(", ", result.NotInRegistry)</span>
+                            @if (result.NotInRegistryCount > result.NotInRegistry.Count)
+                            {
+                                <span class="ui-muted">(first @result.NotInRegistry.Count shown)</span>
+                            }
+                        }
+                    </li>
+                    <li>
+                        @result.GenderConflictCount.ToString("N0") members have a different gender in the file; the voter list was kept.
+                        @if (result.GenderConflicts.Any())
+                        {
+                            <span class="ui-num">@string.Join(", ", result.GenderConflicts)</span>
+                        }
+                    </li>
+                </ul>
+            </section>
+        }
+    }
+
+    <section class="ui-card ui-card-lg">
+
+        <form asp-action="Membership" method="post" enctype="multipart/form-data" id="h28MembershipForm">
+
+            <div class="ui-note is-amber">
+                <partial name="_Icon" model='"info"' />
+                <span>
+                    Members are matched to voters by National ID and recorded with the party you choose.
+                    Date of birth, mobile number and gender are only filled in where the voter has none; existing
+                    values are never changed. Voters not in the list keep their party. The upload is recorded in the Audit Trail.
+                </span>
+            </div>
+
+            <div class="ui-field">
+                <label for="h28MembershipParty" class="ui-label">Party the list belongs to</label>
+                <select id="h28MembershipParty" name="partyId" class="ui-select" required>
+                    <option value="">Choose a party</option>
+                    @foreach (var p in Model.Parties)
+                    {
+                        <option value="@p.Id" selected="@(p.Id == Model.PartyId)">@p.Label</option>
+                    }
+                </select>
+            </div>
+
+            <div class="ui-field">
+                <label for="h28MembershipFile" class="ui-label">Membership list file</label>
+                <input type="file"
+                       id="h28MembershipFile"
+                       name="file"
+                       class="ui-input"
+                       accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                       required />
+                <span class="ui-hint">Excel file (.xlsx or .xls), up to 20 MB. Only the first sheet is read.</span>
+            </div>
+
+            <details class="ui-import-template">
+                <summary>Columns the file needs</summary>
+                <p>The first row holds the column headings; the order of the columns doesn't matter.</p>
+                <ul>
+                    <li><strong>NID</strong> — National ID <span class="ui-muted">(required)</span></li>
+                    <li><strong>GENDER</strong> — Male / Female or M / F <span class="ui-muted">(optional)</span></li>
+                    <li><strong>DOB</strong> — date of birth <span class="ui-muted">(optional)</span></li>
+                    <li><strong>Phone</strong> — 7-digit mobile number <span class="ui-muted">(optional)</span></li>
+                </ul>
+                <p class="ui-muted">Other columns (name, address, island…) are ignored.</p>
+            </details>
+
+            <div class="ui-form-actions">
+                <button type="submit" class="ui-btn ui-btn-primary" id="h28MembershipSubmit">
+                    <partial name="_Icon" model='"upload"' />
+                    Upload and apply
+                </button>
+
+                <a asp-controller="Voters" asp-action="Index" class="ui-btn ui-btn-secondary">
+                    Back to voters
+                </a>
+            </div>
+
+        </form>
+
+    </section>
+
+</div>
+
+@section Scripts
+{
+    <script>
+        (function () {
+            var form = document.getElementById("h28MembershipForm");
+            var button = document.getElementById("h28MembershipSubmit");
+
+            if (!form || !button) return;
+
+            // Stop a second click from starting another upload.
+            form.addEventListener("submit", function () {
+                button.disabled = true;
+                button.lastChild.textContent = " Applying… please keep this page open";
+            });
+        })();
+    </script>
+}

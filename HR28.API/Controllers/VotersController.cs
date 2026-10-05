@@ -46,7 +46,8 @@ public class VotersController : ControllerBase
         [FromQuery] bool houseExact = false,
         [FromQuery] string? status = null,
         [FromQuery] Guid? partyId = null,
-        [FromQuery] bool noParty = false)
+        [FromQuery] bool noParty = false,
+        [FromQuery] string? gender = null)
     {
         var userIdValue =
             User.FindFirst(
@@ -74,7 +75,8 @@ public class VotersController : ControllerBase
                     HouseExact = houseExact,
                     Status = status,
                     PartyId = partyId,
-                    NoParty = noParty
+                    NoParty = noParty,
+                    Gender = gender
                 });
 
         return Ok(result);

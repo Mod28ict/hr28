@@ -17,6 +17,11 @@ public class UpdateVoterDto
     /// <summary>Empty = "Not known".</summary>
     public Guid? PoliticalPartyId { get; set; }
 
+    /// <summary>"M", "F" or empty. On update, null keeps the current value.</summary>
+    public string? Gender { get; set; }
+
+    public DateOnly? DateOfBirth { get; set; }
+
     public string SupportStatus { get; set; } = "Undecided";
 
     public string Remarks { get; set; } = string.Empty;

@@ -18,6 +18,11 @@ public class VoterDto
 
     public Guid? PoliticalPartyId { get; set; }
 
+    /// <summary>"M", "F" or empty.</summary>
+    public string Gender { get; set; } = string.Empty;
+
+    public DateOnly? DateOfBirth { get; set; }
+
     /// <summary>Empty when the party is not known.</summary>
     public string PartyName { get; set; } = string.Empty;
 

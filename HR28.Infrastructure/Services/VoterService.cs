@@ -88,6 +88,9 @@ public class VoterService : IVoterService
 
         await RequireKnownPartyAsync(request.PoliticalPartyId);
 
+        var gender = CleanGender(request.Gender) ?? string.Empty;
+        RequirePlausibleBirthDate(request.DateOfBirth);
+
         var voter = new Voter
         {
             Id = Guid.NewGuid(),
@@ -99,6 +102,8 @@ public class VoterService : IVoterService
             IslandId = request.IslandId,
             Remarks = request.Remarks,
             PoliticalPartyId = request.PoliticalPartyId,
+            Gender = gender,
+            DateOfBirth = request.DateOfBirth,
             CreatedAt = DateTime.UtcNow,
             SupportStatus = request.SupportStatus
         };
@@ -179,11 +184,33 @@ public class VoterService : IVoterService
                 PoliticalPartyId = v.PoliticalPartyId,
                 PartyName = v.PoliticalParty != null ? v.PoliticalParty.Name : string.Empty,
                 PartyShortName = v.PoliticalParty != null ? v.PoliticalParty.ShortName : string.Empty,
+                Gender = v.Gender,
+                DateOfBirth = v.DateOfBirth,
 
                 Remarks = v.Remarks,
                 SupportStatus = v.SupportStatus
             })
             .FirstOrDefaultAsync();
+    }
+
+    /// <summary>"M", "F", empty for not recorded; anything else is refused.</summary>
+    private static string? CleanGender(string? value) =>
+        (value ?? string.Empty).Trim().ToUpperInvariant() switch
+        {
+            "" => string.Empty,
+            "M" or "MALE" => "M",
+            "F" or "FEMALE" => "F",
+            _ => throw new HR28.Application.Common.BusinessRuleException("Please choose Male or Female for gender.")
+        };
+
+    private static void RequirePlausibleBirthDate(DateOnly? date)
+    {
+        if (date is { } d &&
+            (d.Year < 1900 || d > DateOnly.FromDateTime(HR28.Application.Common.MaldivesTime.Now)))
+        {
+            throw new HR28.Application.Common.BusinessRuleException(
+                "Please enter a real date of birth (not in the future).");
+        }
     }
 
     /// <summary>The chosen party must be on the list; empty means "Not known".</summary>
@@ -291,10 +318,26 @@ public class VoterService : IVoterService
         // Party changes are recorded with old and new value.
         var action = "Update";
 
+        var changes = new List<string>();
+
         if (voter.PoliticalPartyId != request.PoliticalPartyId)
-        {
-            action += $": party {await PartyLabelAsync(voter.PoliticalPartyId)} → {await PartyLabelAsync(request.PoliticalPartyId)}";
-        }
+            changes.Add($"party {await PartyLabelAsync(voter.PoliticalPartyId)} → {await PartyLabelAsync(request.PoliticalPartyId)}");
+
+        // Gender: null keeps the current value (older callers don't send it).
+        var gender = request.Gender == null ? voter.Gender : CleanGender(request.Gender) ?? string.Empty;
+        RequirePlausibleBirthDate(request.DateOfBirth);
+
+        if ((voter.Gender ?? string.Empty) != gender)
+            changes.Add($"gender {(string.IsNullOrEmpty(voter.Gender) ? "none" : voter.Gender)} → {(gender.Length == 0 ? "none" : gender)}");
+
+        if (voter.DateOfBirth != request.DateOfBirth)
+            changes.Add("date of birth");
+
+        if (changes.Count > 0)
+            action += ": " + string.Join(", ", changes);
+
+        voter.Gender = gender;
+        voter.DateOfBirth = request.DateOfBirth;
 
         voter.NationalId = request.NationalId;
         voter.FullName = request.FullName;
@@ -640,6 +683,12 @@ public class VoterService : IVoterService
             query = query.Where(v => v.SupportStatus == status);
         }
 
+        if (filter.Gender is "M" or "F")
+        {
+            var gender = filter.Gender;
+            query = query.Where(v => v.Gender == gender);
+        }
+
         if (filter.NoParty)
             query = query.Where(v => v.PoliticalPartyId == null);
         else if (filter.PartyId.HasValue)
@@ -671,6 +720,8 @@ public class VoterService : IVoterService
                     PoliticalPartyId = v.PoliticalPartyId,
                     PartyName = v.PoliticalParty != null ? v.PoliticalParty.Name : string.Empty,
                     PartyShortName = v.PoliticalParty != null ? v.PoliticalParty.ShortName : string.Empty,
+                    Gender = v.Gender,
+                    DateOfBirth = v.DateOfBirth,
                     Remarks = v.Remarks,
                     SupportStatus =
                         v.SupportStatus

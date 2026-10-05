@@ -43,6 +43,9 @@ public class Voter
     public string Gender { get; set; }
     = string.Empty;
 
+    /// <summary>Optional (owner decision, 2026-10-05); filled from party membership lists or typed in.</summary>
+    public DateOnly? DateOfBirth { get; set; }
+
     public string? Ward { get; set; }
 
     public string RegisteredIsland { get; set; }

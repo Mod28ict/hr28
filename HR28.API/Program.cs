@@ -57,6 +57,7 @@ builder.Services.AddScoped<IInfluencerService, InfluencerService>();
 builder.Services.AddScoped<IInfluencerCategoryService, InfluencerCategoryService>();
 builder.Services.AddScoped<IPoliticalPartyService, PoliticalPartyService>();
 builder.Services.AddScoped<IVoterPhotoService, VoterPhotoService>();
+builder.Services.AddScoped<IPartyMembershipImportService, PartyMembershipImportService>();
 builder.Services.AddScoped<IEncounterService, EncounterService>();
 builder.Services.AddScoped<IPledgeService, PledgeService>();
 builder.Services.AddScoped<IVoterImportService, VoterImportService>();

@@ -65,6 +65,10 @@
                     <partial name="_Icon" model='"upload"' />
                     Upload voter list
                 </a>
+                <a asp-controller="VoterImport" asp-action="Membership" class="ui-btn ui-btn-secondary">
+                    <partial name="_Icon" model='"upload"' />
+                    Upload membership list
+                </a>
             }
             @if (canAdd)
             {
@@ -137,7 +141,7 @@
                 </select>
             </div>
 
-            <div class="ui-filter-row">
+            <div class="ui-filter-row is-5">
                 <div class="ui-filter">
                     <label for="filterConstituency" class="ui-label">Constituency</label>
                     <select id="filterConstituency" name="constituencyId" class="ui-select">
@@ -191,6 +195,17 @@
                         <input type="checkbox" id="filterHouseExact" name="houseExact" value="true" @(filter.HouseExact ? "checked" : "") />
                         Match house name exactly
                     </label>
+                </div>
+
+                <div class="ui-filter">
+                    <label for="filterGender" class="ui-label">Gender</label>
+                    <select id="filterGender" name="gender" class="ui-select">
+                        <option value="">All</option>
+                        @foreach (var g in HR28.Web.Models.VoterListFilterModel.Genders)
+                        {
+                            <option value="@g.Value" selected="@(filter.Gender == g.Value)">@g.Label</option>
+                        }
+                    </select>
                 </div>
 
                 <div class="ui-filter">
@@ -281,6 +296,10 @@
                                         <span class="ui-avatar" aria-hidden="true">@InitialsOf(name)</span>
                                         <span>
                                             <strong>@name</strong>
+                                            @if (!string.IsNullOrEmpty(voter.GenderAndAge))
+                                            {
+                                                <small class="ui-muted">@voter.GenderAndAge</small>
+                                            }
                                         </span>
                                     </div>
                                 </td>

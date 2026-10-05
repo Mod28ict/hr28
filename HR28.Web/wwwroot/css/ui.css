@@ -1972,6 +1972,23 @@ a.ui-pill-link {
     grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
 }
 
+/* Voters: constituency, island, house, gender, status. Gender is short. */
+.ui-filter-row.is-5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 0.6fr) minmax(0, 1fr) auto;
+}
+
+@media (max-width: 1100px) {
+    .ui-filter-row.is-5 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .ui-filter-row.is-5 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 @media (max-width: 1100px) {
     .ui-filter-row.is-3 {
         grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -18,6 +18,11 @@ public class VoterListFilterModel
 
     public string? Status { get; set; }
 
+    /// <summary>"M" or "F".</summary>
+    public string? Gender { get; set; }
+
+    public static readonly (string Value, string Label)[] Genders = { ("M", "Male"), ("F", "Female") };
+
     /// <summary>Party filter values besides a party id.</summary>
     public const string AllParties = "all";
     public const string PartyNotKnown = "none";
@@ -64,7 +69,7 @@ public class VoterListFilterModel
     public bool HasFilters =>
         ConstituencyId.HasValue || IslandId.HasValue ||
         !string.IsNullOrWhiteSpace(House) || !string.IsNullOrWhiteSpace(Status) ||
-        Party != AllParties;
+        !string.IsNullOrWhiteSpace(Gender) || Party != AllParties;
 
     public bool IsNarrowed => HasFilters || !string.IsNullOrWhiteSpace(SearchTerm);
 
@@ -79,6 +84,7 @@ public class VoterListFilterModel
         if (!string.IsNullOrWhiteSpace(House)) values["house"] = House;
         if (!string.IsNullOrWhiteSpace(House) && HouseExact) values["houseExact"] = "true";
         if (!string.IsNullOrWhiteSpace(Status)) values["status"] = Status;
+        if (!string.IsNullOrWhiteSpace(Gender)) values["gender"] = Gender;
         values["party"] = Party;
 
         return values;

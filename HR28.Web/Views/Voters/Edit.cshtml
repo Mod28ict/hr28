@@ -74,6 +74,22 @@
                         <input asp-for="Voter.FullName" class="ui-input" />
                         <span asp-validation-for="Voter.FullName" class="ui-error"></span>
                     </div>
+
+                    <div class="ui-field">
+                        <label asp-for="Voter.Gender" class="ui-label">Gender <span class="ui-optional">(optional)</span></label>
+                        <select asp-for="Voter.Gender" class="ui-select">
+                            <option value="">Not recorded</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                        </select>
+                        <span asp-validation-for="Voter.Gender" class="ui-error"></span>
+                    </div>
+
+                    <div class="ui-field">
+                        <label asp-for="Voter.DateOfBirth" class="ui-label">Date of birth <span class="ui-optional">(optional)</span></label>
+                        <input asp-for="Voter.DateOfBirth" type="date" class="ui-input" min="1900-01-01" max="@DateOnly.FromDateTime(HR28.Web.Services.Hr28Time.Now).ToString("yyyy-MM-dd")" />
+                        <span asp-validation-for="Voter.DateOfBirth" class="ui-error"></span>
+                    </div>
                 </div>
             </div>
 

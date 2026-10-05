@@ -72,7 +72,8 @@ public class VotersController : Controller
         string? house = null,
         bool houseExact = false,
         string? status = null,
-        string? party = null)
+        string? party = null,
+        string? gender = null)
     {
         var token =
             HttpContext.Session.GetString(
@@ -96,6 +97,7 @@ public class VotersController : Controller
             House = house?.Trim(),
             HouseExact = houseExact,
             Status = VoterListFilterModel.Statuses.Contains(status) ? status : null,
+            Gender = gender is "M" or "F" ? gender : null,
             // No party in the address: the list opens on the default party (MDP).
             Party = VoterListFilterModel.ResolveParty(party, parties),
             Parties = parties,
@@ -346,6 +348,8 @@ public class VotersController : Controller
                     ConstituencyId = profile.Voter.ConstituencyId ?? Guid.Empty,
                     IslandId = profile.Voter.IslandId,
                     PoliticalPartyId = profile.Voter.PoliticalPartyId,
+                    Gender = profile.Voter.Gender,
+                    DateOfBirth = profile.Voter.DateOfBirth,
                     Remarks = profile.Voter.Remarks,
                     SupportStatus = profile.Voter.SupportStatus
                 },
