@@ -466,12 +466,16 @@ public class VoterService : IVoterService
                     })
                 .ToListAsync();
 
+        var hasPhoto = scope.HasPermission(HR28.Application.Common.PermissionCatalog.VotersPhotoView) &&
+            await _dbContext.VoterPhotos.AnyAsync(p => p.VoterId == voterId);
+
         return new VoterProfileDto
         {
             Voter = voter,
             Influencers = influencers,
             Encounters = encounters,
-            Pledges = pledges
+            Pledges = pledges,
+            HasPhoto = hasPhoto
         };
     }
 

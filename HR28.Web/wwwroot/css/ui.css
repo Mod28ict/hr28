@@ -1181,6 +1181,29 @@ a.ui-page-btn:hover {
         color: var(--ui-text);
     }
 
+/* ---------- Voter photo (profile) ---------- */
+
+.ui-voter-photo {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--ui-border);
+    background: var(--ui-subtle);
+    flex: 0 0 auto;
+}
+
+.ui-photo-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--ui-border);
+}
+
 /* ---------- Roles & rights (Settings) ---------- */
 
 .ui-roles-layout {

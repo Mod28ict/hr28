@@ -14,6 +14,9 @@ public static class PermissionCatalog
     public const string VotersEdit = "Voters.Edit";
     public const string VotersDelete = "Voters.Delete";
 
+    public const string VotersPhotoView = "Voters.Photo.View";
+    public const string VotersPhotoEdit = "Voters.Photo.Edit";
+
     public const string EncountersView = "Encounters.View";
     public const string EncountersAdd = "Encounters.Add";
     public const string EncountersEdit = "Encounters.Edit";
@@ -47,6 +50,11 @@ public static class PermissionCatalog
             "Change a voter's details, party and support status.", "Voters", "Edit"),
         new Entry(VotersDelete, "Delete voters",
             "Permanently delete a voter with their encounters and pledges.", "Voters", "Delete"),
+
+        new Entry(VotersPhotoView, "View voter photos",
+            "See a voter's photo on their profile.", "Voter photos", "View"),
+        new Entry(VotersPhotoEdit, "Add or remove voter photos",
+            "Upload, replace or remove a voter's photo.", "Voter photos", "Edit"),
 
         new Entry(EncountersView, "View encounters",
             "See the Encounters list and the encounter history on a voter's profile.", "Encounters", "View"),

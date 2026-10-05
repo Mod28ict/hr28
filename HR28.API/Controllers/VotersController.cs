@@ -218,6 +218,60 @@ await _voterService.GetVoterByIdAsync(
             return NotFound();
         }
     }
+    /// <summary>
+    /// The voter's photo. Needs "View voter photos" and the voter in the user's areas;
+    /// rate-limited like search so photos can't be bulk-downloaded, and never cached.
+    /// </summary>
+    [HttpGet("{id:guid}/photo")]
+    [RequirePermission(PermissionCatalog.VotersPhotoView)]
+    [EnableRateLimiting(RateLimitPolicies.Search)]
+    public async Task<IActionResult> GetPhoto(Guid id, [FromServices] IVoterPhotoService photos)
+    {
+        var photo = await photos.GetAsync(id);
+
+        if (photo == null)
+            return NotFound(new { message = "This voter has no photo." });
+
+        Response.Headers.CacheControl = "no-store, private";
+
+        return File(photo.Value.Content, photo.Value.ContentType);
+    }
+
+    /// <summary>Adds or replaces the photo (JPG/PNG up to 2 MB; metadata is removed). Audited.</summary>
+    [HttpPost("{id:guid}/photo")]
+    [RequirePermission(PermissionCatalog.VotersPhotoEdit)]
+    [EnableRateLimiting(RateLimitPolicies.PhotoChange)]
+    [RequestSizeLimit(VoterPhotoMaxRequestBytes)]
+    [RequestFormLimits(MultipartBodyLengthLimit = VoterPhotoMaxRequestBytes)]
+    public async Task<IActionResult> UploadPhoto(Guid id, IFormFile? file, [FromServices] IVoterPhotoService photos)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(new { message = "Please choose a photo." });
+
+        if (file.Length > HR28.Infrastructure.Services.VoterPhotoService.MaxBytes)
+            return BadRequest(new { message = "The photo is too large. Please choose one under 2 MB." });
+
+        using var buffer = new MemoryStream();
+        await file.CopyToAsync(buffer);
+
+        await photos.SaveAsync(id, buffer.ToArray());
+
+        return Ok(new { message = "Photo saved." });
+    }
+
+    /// <summary>Removes the photo. Audited.</summary>
+    [HttpDelete("{id:guid}/photo")]
+    [RequirePermission(PermissionCatalog.VotersPhotoEdit)]
+    [EnableRateLimiting(RateLimitPolicies.PhotoChange)]
+    public async Task<IActionResult> RemovePhoto(Guid id, [FromServices] IVoterPhotoService photos)
+    {
+        await photos.RemoveAsync(id);
+
+        return Ok(new { message = "Photo removed." });
+    }
+
+    private const long VoterPhotoMaxRequestBytes = 2 * 1024 * 1024 + 64 * 1024;
+
     [HttpGet("recent")]
     [RequirePermission(PermissionCatalog.VotersView)]
     public async Task<IActionResult> GetRecent(

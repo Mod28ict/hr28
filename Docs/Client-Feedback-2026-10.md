@@ -72,7 +72,13 @@ state the migration and its rollback before any schema change (CLAUDE.md).
      history and can't delete (the API returns no history either). Not applied
      automatically: on upgrade every built-in role keeps exactly its current access
      (migration `AddRoleRights`; rollback `dotnet ef database update AddPoliticalParties`).
-6. **Voter photos** — see decisions.
+6. **Voter photos — DONE** — optional photo on the voter profile (replaces the initials
+   circle). Two granted rights in the "Voter photos" row of the rights grid: View and
+   Edit (add / replace / remove); nobody but the Administrator has them until they are
+   granted. JPG/PNG up to 2 MB; location and camera details inside the file are removed
+   before saving; stored in the database, shown only through the app to people with the
+   right and the voter in their areas. Every add, replace and removal is audited.
+   Migration `AddVoterPhotos`; rollback `dotnet ef database update AddRoleRights`.
 
 ## Client's original comments (verbatim)
 

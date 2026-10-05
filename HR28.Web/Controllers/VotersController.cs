@@ -450,4 +450,81 @@ public class VotersController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+
+    /// <summary>
+    /// The voter's photo, passed through from the API (which checks the right and the
+    /// voter's area). Never cached by the browser.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> Photo(Guid id)
+    {
+        var result = await _apiClient.GetFileAsync($"Voters/{id}/photo", HttpContext.Session.GetString("JwtToken"));
+
+        if (!result.Success || result.Data == null)
+            return NotFound();
+
+        Response.Headers.CacheControl = "no-store, private";
+
+        return File(result.Data.Content, result.Data.ContentType);
+    }
+
+    /// <summary>Adds or replaces the photo (JPG/PNG up to 2 MB). Needs "Add or remove voter photos".</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [RequestSizeLimit(2 * 1024 * 1024 + 64 * 1024)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 2 * 1024 * 1024 + 64 * 1024)]
+    public async Task<IActionResult> UploadPhoto(Guid id, IFormFile? photo)
+    {
+        if (photo == null || photo.Length == 0)
+        {
+            TempData["FlashError"] = "Please choose a photo first.";
+            return RedirectToAction(nameof(Profile), new { id });
+        }
+
+        if (photo.Length > 2 * 1024 * 1024)
+        {
+            TempData["FlashError"] = "The photo is too large. Please choose one under 2 MB.";
+            return RedirectToAction(nameof(Profile), new { id });
+        }
+
+        var result = await _apiClient.PostFileAsync<object>($"Voters/{id}/photo", photo, HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (result.Success)
+            TempData["SuccessMessage"] = "Photo saved.";
+        else
+            TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
+                ? "The photo could not be saved. Please try again."
+                : result.Message;
+
+        return RedirectToAction(nameof(Profile), new { id });
+    }
+
+    /// <summary>Removes the photo (the page asks first).</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemovePhoto(Guid id)
+    {
+        var result = await _apiClient.DeleteAsync($"Voters/{id}/photo", HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (result.Success)
+            TempData["SuccessMessage"] = "Photo removed.";
+        else
+            TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
+                ? "The photo could not be removed. Please try again."
+                : result.Message;
+
+        return RedirectToAction(nameof(Profile), new { id });
+    }
 }

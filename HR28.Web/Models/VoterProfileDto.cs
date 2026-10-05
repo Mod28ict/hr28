@@ -4,6 +4,9 @@ public class VoterProfileDto
 {
     public VoterSearchDto? Voter { get; set; }
 
+    /// <summary>True when the voter has a photo and the user may view it.</summary>
+    public bool HasPhoto { get; set; }
+
     public List<VoterInfluencerDto> Influencers
     {
         get;

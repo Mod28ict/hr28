@@ -266,8 +266,17 @@ strong despite that:
   to or query the production voter registry.
 - In Development, SMS goes to a fake sender that logs the code. Never call the real
   SMS provider from tests or local runs.
-- Collect only approved fields. Do not add fields for ID card copies, photos, health,
+- Collect only approved fields. Do not add fields for ID card copies, health,
   financial, family-sensitive data, precise location or free-text allegations.
+- **Voter photos are allowed** (owner decision, 2026-10-05, replaces the earlier "no
+  photos" rule): optional, one per voter, table `VoterPhotos` (never wwwroot or a
+  public URL), JPEG/PNG up to 2 MB, checked by content and rebuilt without metadata
+  (EXIF/GPS, XMP, IPTC, comments, appended data — `PhotoSanitizer`). Viewing needs
+  `Voters.Photo.View`, adding/replacing/removing needs `Voters.Photo.Edit` (granted
+  rights, no role has them by default), always within the user's areas. API
+  `GET/POST/DELETE api/voters/{id}/photo` (view rate-limited like search, never
+  cached; changes 60/hour per user); every change audited. Migration
+  `AddVoterPhotos`; rollback `dotnet ef database update AddRoleRights` (photos lost).
 - Data exports are restricted by role and scope, require step-up verification, and
   are audited. (Today: report CSVs are scoped, rate-limited and audited; step-up
   verification is not built yet.)

@@ -37,6 +37,10 @@
 
     var statCount = new[] { showInfluencers, showEncounters, showPledges }.Count(x => x);
 
+    // Photo: shown with "View voter photos"; changed with "Add or remove voter photos".
+    var showPhoto = Model?.HasPhoto == true && Can(HR28.Web.Services.Hr28Permissions.VotersPhotoView);
+    var canEditPhoto = Can(HR28.Web.Services.Hr28Permissions.VotersPhotoEdit);
+
     string OrDash(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
 }
 
@@ -52,7 +56,14 @@
 
     <header class="ui-head">
         <div class="ui-head-main">
-            <span class="ui-avatar ui-avatar-lg" aria-hidden="true">@initials</span>
+            @if (showPhoto)
+            {
+                <img src="@Url.Action("Photo", new { id = voterId })" alt="Photo of @name" class="ui-voter-photo" />
+            }
+            else
+            {
+                <span class="ui-avatar ui-avatar-lg" aria-hidden="true">@initials</span>
+            }
             <div>
                 <nav class="ui-crumb" aria-label="Breadcrumb">
                     <a asp-action="Index">Voters</a> <span aria-hidden="true">/</span> <span>Profile</span>
@@ -140,6 +151,34 @@
                 </dd>
             </div>
         </dl>
+
+        @if (canEditPhoto)
+        {
+            <div class="ui-photo-tools">
+                <form asp-action="UploadPhoto" asp-route-id="@voterId" method="post" enctype="multipart/form-data" class="ui-photo-upload">
+                    <label for="voterPhoto" class="ui-label">@(Model?.HasPhoto == true ? "Replace photo" : "Add a photo") <span class="ui-optional">(optional)</span></label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <input id="voterPhoto" name="photo" type="file" accept="image/jpeg,image/png" class="ui-input" style="max-width: 320px;" required />
+                        <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm">
+                            <partial name="_Icon" model='"upload"' />
+                            Upload
+                        </button>
+                    </div>
+                    <div class="ui-hint">JPG or PNG, up to 2 MB. Location details inside the photo are removed when it is saved.</div>
+                </form>
+
+                @if (Model?.HasPhoto == true)
+                {
+                    <form asp-action="RemovePhoto" asp-route-id="@voterId" method="post" class="h28-confirm"
+                          data-confirm="Remove the photo of @name?">
+                        <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm ui-btn-danger">
+                            <partial name="_Icon" model='"trash"' />
+                            Remove photo
+                        </button>
+                    </form>
+                }
+            </div>
+        }
 
         <div class="ui-note is-muted" style="margin: 18px 0 0;">
             <partial name="_Icon" model='"file"' />

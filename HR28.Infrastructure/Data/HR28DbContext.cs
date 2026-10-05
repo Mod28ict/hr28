@@ -242,6 +242,20 @@ public class HR28DbContext : DbContext
             .OnDelete(DeleteBehavior.NoAction);
 
         // --------------------------------------------------
+        // Voter photos: one per voter, removed with the voter
+        // --------------------------------------------------
+
+        modelBuilder.Entity<VoterPhoto>(entity =>
+        {
+            entity.HasKey(p => p.VoterId);
+            entity.Property(p => p.ContentType).HasMaxLength(20);
+            entity.HasOne(p => p.Voter)
+                .WithOne()
+                .HasForeignKey<VoterPhoto>(p => p.VoterId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // --------------------------------------------------
         // Voter indexes
         // --------------------------------------------------
 
@@ -361,6 +375,9 @@ public class HR28DbContext : DbContext
 
     public DbSet<Influencer> Influencers =>
         Set<Influencer>();
+
+    public DbSet<VoterPhoto> VoterPhotos =>
+        Set<VoterPhoto>();
 
     public DbSet<PoliticalParty> PoliticalParties =>
         Set<PoliticalParty>();

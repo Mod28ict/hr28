@@ -19,4 +19,7 @@ public class VoterProfileDto
     public string ConstituencyName { get; set; } = string.Empty;
 
     public string IslandName { get; set; } = string.Empty;
+
+    /// <summary>True when the voter has a photo and the user may view it.</summary>
+    public bool HasPhoto { get; set; }
 }
