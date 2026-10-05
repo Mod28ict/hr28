@@ -14,6 +14,20 @@
       "runtimeArgs": ["run", "--project", "HR28.Web", "--launch-profile", "https"],
       "port": 7128,
       "url": "https://localhost:7128"
+    },
+    {
+      "name": "hr28-api-alt",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "HR28.API", "--launch-profile", "https", "--", "--urls", "https://localhost:7299"],
+      "port": 7299,
+      "url": "https://localhost:7299"
+    },
+    {
+      "name": "hr28-web-alt",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "HR28.Web", "--launch-profile", "https", "--", "--urls", "https://localhost:7297", "--ApiSettings:BaseUrl=https://localhost:7299/api/"],
+      "port": 7297,
+      "url": "https://localhost:7297"
     }
   ]
 }
