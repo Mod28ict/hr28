@@ -101,6 +101,21 @@
                            placeholder="Search by name, National ID, phone or island" />
                 </div>
 
+                @* Party sits next to the search: the list opens on the default party (MDP). *@
+                <label for="filterParty" class="visually-hidden">Party</label>
+                <select id="filterParty"
+                        name="party"
+                        class="ui-select ui-select-auto ui-party-select"
+                        title="Party"
+                        onchange="this.form.requestSubmit()">
+                    <option value="@HR28.Web.Models.VoterListFilterModel.AllParties" selected="@(filter.Party == HR28.Web.Models.VoterListFilterModel.AllParties)">All parties</option>
+                    @foreach (var p in filter.Parties)
+                    {
+                        <option value="@p.Id" selected="@(filter.PartyId == p.Id)">@p.Label</option>
+                    }
+                    <option value="@HR28.Web.Models.VoterListFilterModel.PartyNotKnown" selected="@filter.NoParty">Party not known</option>
+                </select>
+
                 <button type="submit" class="ui-btn ui-btn-primary">Search</button>
 
                 <label for="voterPageSize" class="visually-hidden">Rows per page</label>
@@ -193,18 +208,6 @@
                                 <option value="@st">@st</option>
                             }
                         }
-                    </select>
-                </div>
-
-                <div class="ui-filter">
-                    <label for="filterParty" class="ui-label">Party</label>
-                    <select id="filterParty" name="party" class="ui-select">
-                        <option value="@HR28.Web.Models.VoterListFilterModel.AllParties" selected="@(filter.Party == HR28.Web.Models.VoterListFilterModel.AllParties)">All parties</option>
-                        @foreach (var p in filter.Parties)
-                        {
-                            <option value="@p.Id" selected="@(filter.PartyId == p.Id)">@p.Label</option>
-                        }
-                        <option value="@HR28.Web.Models.VoterListFilterModel.PartyNotKnown" selected="@filter.NoParty">Not known</option>
                     </select>
                 </div>
 

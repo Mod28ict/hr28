@@ -1836,7 +1836,9 @@ fieldset {
 .ui-filter-row {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
-    align-items: end;
+    /* Top-aligned, so a filter with extra content underneath (e.g. the House
+       "match exactly" tick box) doesn't push its label and box out of line. */
+    align-items: start;
     gap: 12px;
     margin: -4px 0 18px;
     padding: 14px;
@@ -1868,6 +1870,13 @@ fieldset {
 .ui-filter-actions {
     display: flex;
     gap: 8px;
+    /* Line the buttons up with the boxes, below the other filters' labels. */
+    margin-top: 21px;
+}
+
+/* Party filter in the search bar: wide enough for "Maldivian Democratic Party (MDP)". */
+.ui-party-select {
+    max-width: 300px;
 }
 
 @media (max-width: 1100px) {
@@ -1877,6 +1886,7 @@ fieldset {
 
     .ui-filter-actions {
         grid-column: 1 / -1;
+        margin-top: 0;
     }
 }
 
