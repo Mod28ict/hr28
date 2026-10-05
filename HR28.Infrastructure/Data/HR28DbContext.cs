@@ -170,6 +170,29 @@ public class HR28DbContext : DbContext
             .OnDelete(DeleteBehavior.NoAction);
 
         // --------------------------------------------------
+        // Influencer categories (managed list, seeded with the client's three)
+        // --------------------------------------------------
+
+        modelBuilder.Entity<InfluencerCategory>(entity =>
+        {
+            entity.Property(c => c.Name).HasMaxLength(60);
+            entity.HasIndex(c => c.Name).IsUnique();
+
+            var seeded = new DateTime(2026, 10, 5, 0, 0, 0, DateTimeKind.Utc);
+
+            entity.HasData(
+                new InfluencerCategory { Id = new Guid("6f1c2a10-0b5e-4d39-9a51-1c0e7a3d5001"), Name = "MP", SortOrder = 1, CreatedAt = seeded },
+                new InfluencerCategory { Id = new Guid("6f1c2a10-0b5e-4d39-9a51-1c0e7a3d5002"), Name = "Island Council", SortOrder = 2, CreatedAt = seeded },
+                new InfluencerCategory { Id = new Guid("6f1c2a10-0b5e-4d39-9a51-1c0e7a3d5003"), Name = "GM Member", SortOrder = 3, CreatedAt = seeded });
+        });
+
+        modelBuilder.Entity<Influencer>()
+            .HasOne(i => i.Category)
+            .WithMany()
+            .HasForeignKey(i => i.CategoryId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // --------------------------------------------------
         // Voter indexes
         // --------------------------------------------------
 
@@ -289,6 +312,9 @@ public class HR28DbContext : DbContext
 
     public DbSet<Influencer> Influencers =>
         Set<Influencer>();
+
+    public DbSet<InfluencerCategory> InfluencerCategories =>
+        Set<InfluencerCategory>();
 
     public DbSet<VoterInfluencer> VoterInfluencers =>
         Set<VoterInfluencer>();

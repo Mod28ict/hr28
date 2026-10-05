@@ -25,11 +25,16 @@ state the migration and its rollback before any schema change (CLAUDE.md).
 1. **Voters quick wins — DONE** (commit 56786d5): status pop-up on the list
    (`PUT api/voters/{id}/status`), "Match house name exactly" tick box, clicking a
    house name filters to that house in the same constituency and island.
-2. **Influencers**
+2. **Influencers — DONE**
    - Influencers page as a **table** with the same search/filters as Voters
-     (constituency with codes, island, search by name/ID/phone, paging).
-   - New **Category** field: MP, Island Council, GM Member (manageable list), with a
-     category filter. Schema change → migration + rollback.
+     (constituency with codes, island, search by name/ID/phone, paging). Influencers
+     stay global, so every constituency and island is offered.
+   - New optional **Category** field: MP, Island Council, GM Member, managed in
+     Settings → Lists; category filter includes "No category"; clicking a category
+     pill filters to it. Migration `AddInfluencerCategories` (table + nullable
+     `Influencers.CategoryId`, existing influencers start with no category);
+     rollback `dotnet ef database update AddPermissions`. Dev DB backup:
+     `HR28Db_before_influencer_categories_2026-10-05.bak`.
 3. **Encounters** — outcomes Meet / Call / Request + support colour (see decisions).
 4. **Political party** — field, Settings list, party filter (default MDP), see decisions.
 5. **User roles**

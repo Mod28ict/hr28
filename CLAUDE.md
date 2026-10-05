@@ -32,6 +32,13 @@ Solution file: `HR28.slnx` (.NET 10). Clean-architecture layering:
   influencer; edit/delete still need the granted rights. An influencer's linked
   voters (Influencers → "N linked voters", API `GET api/influencers/{id}/voters`) are
   listed only inside the user's areas; links outside them are counted, never shown.
+  The Influencers page is a server-paged table (API `GET api/influencers/search`:
+  name/ID/phone/island search, constituency, island, category). Influencer
+  **categories** (MP, Island Council, GM Member, …) are a managed list in
+  `InfluencerCategories` (Settings → Lists, administrators; API
+  `api/InfluencerCategories`, audited; a used category can't be deleted) —
+  migration `AddInfluencerCategories`; rollback:
+  `dotnet ef database update AddPermissions`.
 - Tests: **no test project exists yet.** Create one (e.g. `HR28.Tests`, xUnit) as part of
   Phase 1 regression tests and add it to `HR28.slnx`; until then `dotnet test` runs nothing.
 

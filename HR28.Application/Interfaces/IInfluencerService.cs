@@ -9,6 +9,12 @@ public interface IInfluencerService
 
     Task<List<InfluencerDto>> GetAllAsync();
 
+    /// <summary>The Influencers list: searched, filtered and paged on the server.</summary>
+    Task<HR28.Application.DTOs.Common.PagedResult<InfluencerDto>> SearchAsync(
+        int page,
+        int pageSize,
+        InfluencerListFilter filter);
+
     Task LinkToVoterAsync(
         LinkInfluencerDto request);
 

@@ -54,6 +54,7 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IInfluencerService, InfluencerService>();
+builder.Services.AddScoped<IInfluencerCategoryService, InfluencerCategoryService>();
 builder.Services.AddScoped<IEncounterService, EncounterService>();
 builder.Services.AddScoped<IPledgeService, PledgeService>();
 builder.Services.AddScoped<IVoterImportService, VoterImportService>();

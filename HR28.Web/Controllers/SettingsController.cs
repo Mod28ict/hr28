@@ -10,8 +10,8 @@ namespace HR28.Web.Controllers;
 /// </summary>
 public class SettingsController : AppController
 {
-    private static readonly string[] Tabs = { "appearance", "account", "system", "geography", "permissions" };
-    private static readonly string[] AdminTabs = { "system", "geography" };
+    private static readonly string[] Tabs = { "appearance", "account", "system", "geography", "lists", "permissions" };
+    private static readonly string[] AdminTabs = { "system", "geography", "lists" };
     private static readonly string[] SuperAdminTabs = { "permissions" };
 
     private bool IsSuperAdministrator => Hr28Roles.IsSuperAdministrator(Role);
@@ -28,6 +28,7 @@ public class SettingsController : AppController
         Guid? constituency,
         Guid? editConstituency,
         Guid? editIsland,
+        Guid? editCategory,
         bool newConstituency = false,
         bool newIsland = false)
     {
@@ -55,6 +56,17 @@ public class SettingsController : AppController
                 return redirect;
 
             model.Permissions = matrix.Data;
+        }
+
+        if (tab == "lists")
+        {
+            var categories = await _apiClient.GetAsync<List<InfluencerCategoryDto>>("InfluencerCategories", Token);
+
+            if (HandleApiFailure(categories) is { } redirect)
+                return redirect;
+
+            model.InfluencerCategories = categories.Data ?? new();
+            model.EditCategoryId = editCategory;
         }
 
         if (tab == "account")
@@ -225,6 +237,57 @@ public class SettingsController : AppController
             : $"{form.Name} was added.";
 
         return RedirectToAction(nameof(Index), new { tab = "geography", constituency = form.ConstituencyId });
+    }
+
+    /// <summary>Adds an influencer category (no id) or renames one.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveInfluencerCategory(Guid? id, string? name)
+    {
+        if (!IsAdministrator)
+            return RedirectToAction(nameof(Index));
+
+        var body = new { name = name?.Trim() ?? string.Empty };
+
+        var result = id.HasValue
+            ? await _apiClient.PutAsync<InfluencerCategoryDto>($"InfluencerCategories/{id}", body, Token)
+            : await _apiClient.PostAsync<InfluencerCategoryDto>("InfluencerCategories", body, Token);
+
+        if (HandleApiFailure(result) is { } redirect)
+            return redirect;
+
+        if (!result.Success)
+        {
+            TempData["ErrorMessage"] = result.Message;
+            return RedirectToAction(nameof(Index), new { tab = "lists", editCategory = id });
+        }
+
+        TempData["SuccessMessage"] = id.HasValue
+            ? $"Category renamed to {result.Data?.Name ?? body.name}."
+            : $"Category {result.Data?.Name ?? body.name} was added.";
+
+        return RedirectToAction(nameof(Index), new { tab = "lists" });
+    }
+
+    /// <summary>Deletes an influencer category that no influencer uses.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteInfluencerCategory(Guid id)
+    {
+        if (!IsAdministrator)
+            return RedirectToAction(nameof(Index));
+
+        var result = await _apiClient.DeleteAsync($"InfluencerCategories/{id}", Token);
+
+        if (HandleApiFailure(result) is { } redirect)
+            return redirect;
+
+        if (result.Success)
+            TempData["SuccessMessage"] = "The category was deleted.";
+        else
+            TempData["ErrorMessage"] = result.Message;
+
+        return RedirectToAction(nameof(Index), new { tab = "lists" });
     }
 
     /// <summary>

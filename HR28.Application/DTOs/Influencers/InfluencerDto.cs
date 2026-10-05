@@ -22,5 +22,10 @@ public class InfluencerDto
 
     public string? IslandName { get; set; }
 
+    public Guid? CategoryId { get; set; }
+
+    /// <summary>Empty when no category is set.</summary>
+    public string CategoryName { get; set; } = string.Empty;
+
     public int LinkedVoters { get; set; }
 }

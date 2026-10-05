@@ -20,11 +20,16 @@ public class Influencer
 
     public string Remarks { get; set; } = string.Empty;
 
+    /// <summary>Optional: MP, Island Council, GM Member, … (InfluencerCategories).</summary>
+    public Guid? CategoryId { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public Constituency Constituency { get; set; } = null!;
 
     public Island? Island { get; set; }
+
+    public InfluencerCategory? Category { get; set; }
 
     public ICollection<VoterInfluencer> Voters { get; set; }
         = new List<VoterInfluencer>();

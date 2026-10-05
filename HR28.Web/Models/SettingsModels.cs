@@ -134,7 +134,7 @@ public class PermissionMatrix
 
 public class SettingsViewModel
 {
-    /// <summary>appearance | account | system | geography | permissions</summary>
+    /// <summary>appearance | account | system | geography | lists | permissions</summary>
     public string Tab { get; set; } = "appearance";
 
     public bool IsAdministrator { get; set; }
@@ -158,6 +158,12 @@ public class SettingsViewModel
 
     /// <summary>Roles × rights grid (Administrator only).</summary>
     public PermissionMatrix? Permissions { get; set; }
+
+    /// <summary>Lists tab: influencer categories.</summary>
+    public List<InfluencerCategoryDto> InfluencerCategories { get; set; } = new();
+
+    /// <summary>The category being renamed on the lists tab, if any.</summary>
+    public Guid? EditCategoryId { get; set; }
 
     public bool IsSuperAdministrator { get; set; }
 }

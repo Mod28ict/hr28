@@ -30,6 +30,9 @@ public class CreateInfluencerDto
     [Display(Name = "Island")]
     public Guid? IslandId { get; set; }
 
+    [Display(Name = "Category")]
+    public Guid? CategoryId { get; set; }
+
     [StringLength(500)]
     public string Remarks { get; set; } = string.Empty;
 }
@@ -44,4 +47,6 @@ public class CreateInfluencerViewModel
     public CreateInfluencerDto Influencer { get; set; } = new();
 
     public List<LookupDto> Constituencies { get; set; } = new();
+
+    public List<InfluencerCategoryDto> Categories { get; set; } = new();
 }

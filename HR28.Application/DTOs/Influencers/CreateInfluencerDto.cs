@@ -12,5 +12,8 @@
 
     public Guid? IslandId { get; set; }
 
+    /// <summary>Optional influencer category (MP, Island Council, …).</summary>
+    public Guid? CategoryId { get; set; }
+
     public string Remarks { get; set; } = string.Empty;
 }

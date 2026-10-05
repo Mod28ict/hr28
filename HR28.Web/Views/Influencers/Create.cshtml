@@ -82,12 +82,27 @@
                             <span asp-validation-for="Influencer.ContactNumber" class="ui-error"></span>
                         </div>
 
-                        <div class="ui-field ui-full">
+                        <div class="ui-field">
                             <label asp-for="Influencer.FullName" class="ui-label">Full name</label>
                             <input asp-for="Influencer.FullName"
                                    class="ui-input"
                                    placeholder="As shown on the national ID card" />
                             <span asp-validation-for="Influencer.FullName" class="ui-error"></span>
+                        </div>
+
+                        <div class="ui-field">
+                            <label asp-for="Influencer.CategoryId" class="ui-label">
+                                Category <span class="ui-optional">(optional)</span>
+                            </label>
+                            <select asp-for="Influencer.CategoryId" class="ui-select">
+                                <option value="">No category</option>
+                                @foreach (var category in Model.Categories)
+                                {
+                                    <option value="@category.Id" selected="@(category.Id == Model.Influencer.CategoryId)">@category.Name</option>
+                                }
+                            </select>
+                            <div class="ui-hint">For example MP, Island Council or GM Member.</div>
+                            <span asp-validation-for="Influencer.CategoryId" class="ui-error"></span>
                         </div>
                     </div>
                 </div>

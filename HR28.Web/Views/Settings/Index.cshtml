@@ -13,6 +13,7 @@
     {
         tabs.Add(("system", "System", "key"));
         tabs.Add(("geography", "Constituencies & islands", "map"));
+        tabs.Add(("lists", "Lists", "star"));
     }
 
     if (Model.IsSuperAdministrator)
@@ -329,6 +330,107 @@
         </section>
     }
 
+    @* ---------------- LISTS (administrators) ---------------- *@
+    @if (Model.Tab == "lists")
+    {
+        <div class="ui-note">
+            <partial name="_Icon" model='"info"' />
+            <span>These lists fill the drop-downs on the forms and filters. Renaming a category updates every influencer that uses it. A category can only be deleted when no influencer uses it.</span>
+        </div>
+
+        <div class="ui-settings-grid">
+            <section class="ui-card">
+                <div class="ui-card-head">
+                    <h2>Influencer categories <span class="ui-count is-violet">@Model.InfluencerCategories.Count</span></h2>
+                </div>
+
+                <form asp-action="SaveInfluencerCategory" method="post" class="ui-inline-form">
+                    @Html.AntiForgeryToken()
+                    <div class="ui-inline-form-title">New category</div>
+                    <div style="display: flex; gap: 8px; align-items: flex-end;">
+                        <div class="ui-field" style="flex: 1; margin: 0;">
+                            <label for="newCategoryName" class="ui-label">Name</label>
+                            <input id="newCategoryName" name="name" class="ui-input" required maxlength="60" placeholder="e.g. Atoll Council" />
+                        </div>
+                        <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">
+                            <partial name="_Icon" model='"plus"' /> Add
+                        </button>
+                    </div>
+                </form>
+
+                @if (!Model.InfluencerCategories.Any())
+                {
+                    <div class="ui-empty">No categories yet. Add the first one above.</div>
+                }
+                else
+                {
+                    <div class="ui-table-wrap">
+                        <table class="ui-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th class="is-right">Influencers</th>
+                                    <th><span class="visually-hidden">Actions</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var cat in Model.InfluencerCategories)
+                                {
+                                    <tr>
+                                        @if (Model.EditCategoryId == cat.Id)
+                                        {
+                                            <td colspan="3">
+                                                <form asp-action="SaveInfluencerCategory" method="post" style="display: flex; gap: 8px; align-items: center;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@cat.Id" />
+                                                    <label for="editCategoryName" class="visually-hidden">New name for @cat.Name</label>
+                                                    <input id="editCategoryName" name="name" class="ui-input" value="@cat.Name" required maxlength="60" autofocus style="flex: 1;" />
+                                                    <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">Save</button>
+                                                    <a asp-action="Index" asp-route-tab="lists" class="ui-btn ui-btn-ghost ui-btn-sm">Cancel</a>
+                                                </form>
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td class="ui-strong">@cat.Name</td>
+                                            <td class="ui-num is-right">
+                                                @if (cat.InfluencerCount > 0)
+                                                {
+                                                    <a asp-controller="Influencers" asp-action="Index" asp-route-category="@cat.Id" class="ui-link">@cat.InfluencerCount.ToString("N0")</a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="ui-faint">0</span>
+                                                }
+                                            </td>
+                                            <td class="is-right" style="white-space: nowrap;">
+                                                <a asp-action="Index" asp-route-tab="lists" asp-route-editCategory="@cat.Id" class="ui-btn ui-btn-ghost ui-btn-sm" aria-label="Rename @cat.Name" title="Rename">
+                                                    <partial name="_Icon" model='"edit"' />
+                                                </a>
+                                                @if (cat.InfluencerCount == 0)
+                                                {
+                                                    <form asp-action="DeleteInfluencerCategory" asp-route-id="@cat.Id" method="post" style="display: inline;"
+                                                          data-confirm="Delete the category &quot;@cat.Name&quot;?">
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm ui-btn-danger" aria-label="Delete @cat.Name" title="Delete">
+                                                            <partial name="_Icon" model='"trash"' />
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <p class="ui-muted" style="margin: 12px 0 0; font-size: 13px;">Every change is recorded in the audit trail.</p>
+            </section>
+        </div>
+    }
+
     @* ---------------- CONSTITUENCIES & ISLANDS (administrators) ---------------- *@
     @if (Model.Tab == "geography")
     {
@@ -521,6 +623,13 @@
                     });
                 });
             }
+
+            // Forms that ask before going ahead (text comes from data-confirm, never from script)
+            document.querySelectorAll('form[data-confirm]').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    if (!window.confirm(form.dataset.confirm)) e.preventDefault();
+                });
+            });
 
             // Client-side filter for long tables
             document.querySelectorAll('[data-filter-table]').forEach(function (input) {

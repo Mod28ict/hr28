@@ -1,5 +1,6 @@
 using HR28.Application.Common;
 using HR28.Application.DTOs.Access;
+using HR28.Application.DTOs.Common;
 using HR28.Application.DTOs.Influencers;
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
@@ -107,6 +108,9 @@ public class InfluencerService : IInfluencerService
                 throw new BusinessRuleException("The selected island does not belong to the selected constituency.");
         }
 
+        if (request.CategoryId.HasValue &&
+            !await _dbContext.InfluencerCategories.AnyAsync(c => c.Id == request.CategoryId.Value))
+            throw new BusinessRuleException("Please choose a category from the list.");
 
         var duplicate = await _dbContext.Influencers
             .AnyAsync(i => i.NationalId == nationalId && i.Id != existingId);
@@ -131,6 +135,7 @@ public class InfluencerService : IInfluencerService
             ContactNumber = request.ContactNumber?.Trim() ?? string.Empty,
             ConstituencyId = request.ConstituencyId,
             IslandId = request.IslandId,
+            CategoryId = request.CategoryId,
             Remarks = request.Remarks?.Trim() ?? string.Empty,
             CreatedAt = DateTime.UtcNow
         };
@@ -188,6 +193,18 @@ public class InfluencerService : IInfluencerService
         if (influencer.ConstituencyId != request.ConstituencyId || influencer.IslandId != request.IslandId) changes.Add("area");
         if (influencer.Remarks != remarks) changes.Add("remarks");
 
+        if (influencer.CategoryId != request.CategoryId)
+        {
+            var names = await _dbContext.InfluencerCategories
+                .Where(c => c.Id == influencer.CategoryId || c.Id == request.CategoryId)
+                .ToDictionaryAsync(c => c.Id, c => c.Name);
+
+            string NameOf(Guid? categoryId) =>
+                categoryId.HasValue && names.TryGetValue(categoryId.Value, out var n) ? n : "none";
+
+            changes.Add($"category \"{NameOf(influencer.CategoryId)}\" → \"{NameOf(request.CategoryId)}\"");
+        }
+
         if (changes.Count == 0)
             return await GetByIdAsync(id);
 
@@ -197,6 +214,7 @@ public class InfluencerService : IInfluencerService
         influencer.Address = address;
         influencer.ConstituencyId = request.ConstituencyId;
         influencer.IslandId = request.IslandId;
+        influencer.CategoryId = request.CategoryId;
         influencer.Remarks = remarks;
 
         await _dbContext.SaveChangesAsync();
@@ -250,6 +268,59 @@ public class InfluencerService : IInfluencerService
             .OrderBy(i => i.FullName)
             .Select(ToDto())
             .ToListAsync();
+    }
+
+    public async Task<PagedResult<InfluencerDto>> SearchAsync(
+        int page,
+        int pageSize,
+        InfluencerListFilter filter)
+    {
+        page = Math.Max(1, page);
+        pageSize = pageSize is < 1 or > 100 ? 20 : pageSize;
+
+        // Influencers are global: no area filter, only the user's own filters.
+        var query = _dbContext.Influencers.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            var term = filter.SearchTerm.Trim();
+            term = term.Length > 100 ? term[..100] : term;
+
+            query = query.Where(i =>
+                i.FullName.Contains(term) ||
+                i.NationalId.Contains(term) ||
+                i.ContactNumber.Contains(term) ||
+                (i.Island != null && i.Island.Name.Contains(term)));
+        }
+
+        if (filter.ConstituencyId.HasValue)
+            query = query.Where(i => i.ConstituencyId == filter.ConstituencyId.Value);
+
+        if (filter.IslandId.HasValue)
+            query = query.Where(i => i.IslandId == filter.IslandId.Value);
+
+        if (filter.NoCategory)
+            query = query.Where(i => i.CategoryId == null);
+        else if (filter.CategoryId.HasValue)
+            query = query.Where(i => i.CategoryId == filter.CategoryId.Value);
+
+        var total = await query.CountAsync();
+
+        var items = await query
+            .OrderBy(i => i.FullName)
+            .ThenBy(i => i.NationalId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(ToDto())
+            .ToListAsync();
+
+        return new PagedResult<InfluencerDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = total
+        };
     }
 
     public async Task LinkToVoterAsync(
@@ -370,6 +441,8 @@ public class InfluencerService : IInfluencerService
             Remarks = i.Remarks,
             ConstituencyName = i.Constituency.Name,
             IslandName = i.Island != null ? i.Island.Name : null,
+            CategoryId = i.CategoryId,
+            CategoryName = i.Category != null ? i.Category.Name : string.Empty,
             LinkedVoters = i.Voters.Count
         };
 

@@ -91,6 +91,7 @@ public class InfluencersController : AppController
                 ContactNumber = existing.Data.ContactNumber,
                 ConstituencyId = existing.Data.ConstituencyId,
                 IslandId = existing.Data.IslandId,
+                CategoryId = existing.Data.CategoryId,
                 Remarks = existing.Data.Remarks
             }
         };
@@ -224,20 +225,81 @@ public class InfluencersController : AppController
 
         model.Constituencies = result.Data ?? new();
 
+        var categories = await _apiClient.GetAsync<List<InfluencerCategoryDto>>("InfluencerCategories", Token);
+        model.Categories = categories.Data ?? new();
+
         return null;
     }
 
-    public async Task<IActionResult> Index()
+    /// <summary>
+    /// The Influencers table: same search and filters as Voters, plus category.
+    /// Searched and paged by the API. Influencers are global (not area-limited).
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> Index(
+        int page = 1,
+        int pageSize = 20,
+        string? searchTerm = null,
+        Guid? constituencyId = null,
+        Guid? islandId = null,
+        string? category = null)
     {
-        var token =
-            HttpContext.Session.GetString(
-                "JwtToken");
+        var filter = new InfluencerListFilterModel
+        {
+            SearchTerm = searchTerm?.Trim(),
+            ConstituencyId = constituencyId,
+            // An island only makes sense inside the chosen constituency.
+            IslandId = constituencyId.HasValue ? islandId : null,
+            NoCategory = category == InfluencerListFilterModel.NoCategoryValue,
+            CategoryId = Guid.TryParse(category, out var categoryId) ? categoryId : null,
+            PageSize = pageSize is 10 or 20 or 50 or 100 ? pageSize : 20
+        };
 
-        var influencers =
-            await _dashboardService
-                .GetInfluencersAsync(token);
+        var result = await _apiClient.GetAsync<PagedResult<InfluencerDto>>(
+            $"Influencers/search?page={Math.Max(1, page)}" + filter.ToApiQuery(),
+            Token);
 
-        return View(influencers ?? new());
+        if (HandleApiFailure(result) is { } redirect)
+            return redirect;
+
+        if (!result.Success)
+            ViewBag.ErrorMessage = result.Message;
+
+        var constituencies = await _apiClient.GetAsync<List<LookupDto>>("Constituencies", Token);
+        filter.Constituencies = (constituencies.Data ?? new()).OrderBy(c => c.Name).ToList();
+
+        if (filter.ConstituencyId.HasValue)
+        {
+            var islands = await _apiClient.GetAsync<List<LookupDto>>(
+                $"Constituencies/{filter.ConstituencyId}/islands", Token);
+
+            filter.Islands = (islands.Data ?? new()).OrderBy(i => i.Name).ToList();
+        }
+
+        var categories = await _apiClient.GetAsync<List<InfluencerCategoryDto>>("InfluencerCategories", Token);
+        filter.Categories = categories.Data ?? new();
+
+        ViewBag.Filter = filter;
+
+        return View(result.Data ?? new PagedResult<InfluencerDto>
+        {
+            Page = 1,
+            PageSize = filter.PageSize
+        });
+    }
+
+    /// <summary>All islands of a constituency, for the list filter (influencers are global).</summary>
+    [HttpGet]
+    public async Task<IActionResult> Islands(Guid constituencyId)
+    {
+        var result = await _apiClient.GetAsync<List<LookupDto>>(
+            $"Constituencies/{constituencyId}/islands",
+            Token);
+
+        if (!result.Success)
+            return StatusCode((int)result.StatusCode);
+
+        return Json((result.Data ?? new()).OrderBy(i => i.Name));
     }
 
     [HttpGet]

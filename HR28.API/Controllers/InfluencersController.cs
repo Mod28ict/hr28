@@ -32,6 +32,34 @@ public class InfluencersController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// The Influencers list: search (name, National ID, phone, island), constituency,
+    /// island and category filters, paged. Influencers are global, so not area-limited.
+    /// </summary>
+    [HttpGet("search")]
+    [EnableRateLimiting(RateLimitPolicies.Search)]
+    public async Task<IActionResult> Search(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] Guid? constituencyId = null,
+        [FromQuery] Guid? islandId = null,
+        [FromQuery] Guid? categoryId = null,
+        [FromQuery] bool noCategory = false)
+    {
+        return Ok(await _influencerService.SearchAsync(
+            page,
+            pageSize,
+            new InfluencerListFilter
+            {
+                SearchTerm = searchTerm,
+                ConstituencyId = constituencyId,
+                IslandId = islandId,
+                CategoryId = categoryId,
+                NoCategory = noCategory
+            }));
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
