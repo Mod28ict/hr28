@@ -1,3 +1,4 @@
+using HR28.Application.Common;
 using HR28.Application.DTOs.Access;
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
@@ -62,13 +63,22 @@ public class AccessScopeService : IAccessScopeService
         if (!isActive)
             return new AccessScope { UserId = userId, IsActive = false };
 
-        var roles = await _dbContext.UserRoles
+        var roleRows = await _dbContext.UserRoles
             .Where(ur => ur.UserId == userId)
-            .Select(ur => ur.Role.Name)
-            .Distinct()
+            .Select(ur => new { ur.Role.Name, ur.Role.VoterProfileView })
             .ToListAsync();
 
+        var roles = roleRows.Select(r => r.Name).Distinct().ToList();
+
         var isAdministrator = roles.Any(r => AdministratorRoles.Contains(r));
+
+        // The fullest view wins: one role with the full profile is enough.
+        var profileView =
+            roles.Contains(SuperAdministratorRole) ||
+            roleRows.Count == 0 ||
+            roleRows.Any(r => r.VoterProfileView != VoterProfileViews.AddEncounter)
+                ? VoterProfileViews.Full
+                : VoterProfileViews.AddEncounter;
 
         // Rights = those of every role the user has + those granted to the user.
         var rolePermissions = await _dbContext.RolePermissions
@@ -94,7 +104,8 @@ public class AccessScopeService : IAccessScopeService
                 Roles = roles,
                 IsAdministrator = true,
                 IsSuperAdministrator = roles.Contains(SuperAdministratorRole),
-                Permissions = permissions
+                Permissions = permissions,
+                VoterProfileView = profileView
             };
         }
 
@@ -129,6 +140,7 @@ public class AccessScopeService : IAccessScopeService
             Roles = roles,
             IsAdministrator = false,
             Permissions = permissions,
+            VoterProfileView = profileView,
             ConstituencyIds = constituencyIds,
             IslandIds = islandIds,
             VisibleConstituencyIds = visibleConstituencyIds

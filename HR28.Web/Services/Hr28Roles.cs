@@ -43,14 +43,6 @@ public static class Hr28Roles
         Parse(roles).Contains(SuperAdministrator);
 
     /// <summary>
-    /// Reporters only read reports. Someone who is a Reporter AND has another
-    /// role can still work with records (permissions combine). Matches the API's
-    /// RecordWriter policy, so an account with no role cannot change records either.
-    /// </summary>
-    public static bool CanManageRecords(string? roles) =>
-        Parse(roles).Any(r => r != Reporter);
-
-    /// <summary>
     /// The name shown on screen. "Super Administrator" is the client's own
     /// Administrator (the platform Owner works in Azure, not in the app);
     /// the stored name is kept so existing data and checks keep working.

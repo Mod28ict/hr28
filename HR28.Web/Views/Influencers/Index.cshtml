@@ -16,7 +16,7 @@
     }
 
     var role = Context.Session.GetString("UserRole");
-    var canManage = HR28.Web.Services.Hr28Roles.CanManageRecords(role);
+    var canManage = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.InfluencersAdd);
 
     // Rights granted by the Administrator (the API checks them again).
     var canEdit = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.InfluencersEdit);

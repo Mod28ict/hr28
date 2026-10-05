@@ -1,4 +1,5 @@
 ﻿using HR28.API.Extensions;
+using HR28.Application.Common;
 using HR28.Application.DTOs.Influencers;
 using HR28.Application.Interfaces;
 using HR28.Infrastructure.Services;
@@ -22,7 +23,7 @@ public class InfluencersController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
+    [RequirePermission(PermissionCatalog.InfluencersAdd)]
     public async Task<IActionResult> Create(
         [FromBody] CreateInfluencerDto request)
     {
@@ -37,6 +38,7 @@ public class InfluencersController : ControllerBase
     /// island and category filters, paged. Influencers are global, so not area-limited.
     /// </summary>
     [HttpGet("search")]
+    [RequirePermission(PermissionCatalog.InfluencersView)]
     [EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> Search(
         [FromQuery] int page = 1,
@@ -61,14 +63,15 @@ public class InfluencersController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [RequirePermission(PermissionCatalog.InfluencersView, PermissionCatalog.InfluencersEdit)]
     public async Task<IActionResult> GetById(Guid id)
     {
         return Ok(await _influencerService.GetByIdAsync(id));
     }
 
-    /// <summary>Needs the "Edit influencers" right and the influencer in the user's areas.</summary>
     /// <summary>Voters linked to this influencer that the user may see (paged, filterable).</summary>
     [HttpGet("{id:guid}/voters")]
+    [RequirePermission(PermissionCatalog.InfluencersView)]
     [EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> GetLinkedVoters(
         Guid id,
@@ -93,6 +96,7 @@ public class InfluencersController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [RequirePermission(PermissionCatalog.InfluencersEdit)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] CreateInfluencerDto request)
@@ -102,6 +106,7 @@ public class InfluencersController : ControllerBase
 
     /// <summary>Permanent. Needs the "Delete influencers" right and the influencer in the user's areas.</summary>
     [HttpDelete("{id:guid}")]
+    [RequirePermission(PermissionCatalog.InfluencersDelete)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var name = await _influencerService.DeleteAsync(id);
@@ -109,7 +114,9 @@ public class InfluencersController : ControllerBase
         return Ok(new { message = $"{name} was deleted." });
     }
 
+    /// <summary>Every influencer by name (the "link to voter" picker).</summary>
     [HttpGet]
+    [RequirePermission(PermissionCatalog.InfluencersView, PermissionCatalog.InfluencersLink)]
     public async Task<IActionResult> GetAll()
     {
         var result = await _influencerService
@@ -119,7 +126,7 @@ public class InfluencersController : ControllerBase
     }
 
     [HttpPost("link")]
-    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
+    [RequirePermission(PermissionCatalog.InfluencersLink)]
     public async Task<IActionResult> LinkToVoter(
         [FromBody] LinkInfluencerDto request)
     {
@@ -132,6 +139,7 @@ public class InfluencersController : ControllerBase
         });
     }
     [HttpGet("voter/{voterId:guid}")]
+    [RequirePermission(PermissionCatalog.InfluencersView)]
     public async Task<IActionResult> GetByVoter(
         Guid voterId)
     {
@@ -141,7 +149,7 @@ public class InfluencersController : ControllerBase
         return Ok(result);
     }
     [HttpPut("relationship")]
-    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
+    [RequirePermission(PermissionCatalog.InfluencersLink)]
     public async Task<IActionResult>
         UpdateRelationship(
             UpdateInfluencerRelationshipDto request)

@@ -184,4 +184,27 @@ public class PledgesController : Controller
                 id = model.VoterId
             });
     }
+
+    /// <summary>Permanent delete from the voter's profile (the page asks first). Needs "Delete pledges".</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id, Guid voterId)
+    {
+        var result = await _apiClient.DeleteAsync($"Pledges/{id}", HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (result.Success)
+            TempData["SuccessMessage"] = "The pledge was deleted.";
+        else
+            TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
+                ? "The pledge could not be deleted."
+                : result.Message;
+
+        return RedirectToAction("Profile", "Voters", new { id = voterId });
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using HR28.API.Extensions;
+using HR28.Application.Common;
 using System.Security.Claims;
 using HR28.Application.DTOs.Encounters;
 using HR28.Application.Interfaces;
@@ -22,7 +23,7 @@ public class EncountersController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
+    [RequirePermission(PermissionCatalog.EncountersAdd)]
     public async Task<IActionResult> Create(
         [FromBody] CreateEncounterDto request)
     {
@@ -38,6 +39,7 @@ public class EncountersController : ControllerBase
 
     /// <summary>All encounters inside the user's areas (paged, filterable). Rate-limited like voter search.</summary>
     [HttpGet]
+    [RequirePermission(PermissionCatalog.EncountersView)]
     [EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> GetList(
         [FromQuery] int page = 1,
@@ -60,6 +62,7 @@ public class EncountersController : ControllerBase
     }
 
     [HttpGet("voter/{voterId}")]
+    [RequirePermission(PermissionCatalog.EncountersView)]
     public async Task<IActionResult> GetByVoter(
         Guid voterId)
     {
@@ -70,6 +73,7 @@ public class EncountersController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [RequirePermission(PermissionCatalog.EncountersView, PermissionCatalog.EncountersEdit)]
     public async Task<IActionResult> GetById(Guid id)
     {
         return Ok(await _encounterService.GetByIdAsync(id));
@@ -77,10 +81,21 @@ public class EncountersController : ControllerBase
 
     /// <summary>Needs the granted right "Edit encounters" (checked in the service with the voter's area).</summary>
     [HttpPut("{id:guid}")]
+    [RequirePermission(PermissionCatalog.EncountersEdit)]
     public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateEncounterDto request)
     {
         return Ok(await _encounterService.UpdateAsync(id, request));
+    }
+
+    /// <summary>Permanent; needs the "Delete encounters" right and the voter in the user's areas.</summary>
+    [HttpDelete("{id:guid}")]
+    [RequirePermission(PermissionCatalog.EncountersDelete)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        await _encounterService.DeleteAsync(id);
+
+        return Ok(new { message = "The encounter was deleted." });
     }
 }

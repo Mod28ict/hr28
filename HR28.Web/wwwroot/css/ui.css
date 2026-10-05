@@ -377,6 +377,14 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
+    .ui-stats.is-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ui-stats.is-1 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
 .ui-stat {
     --tone: var(--ui-blue);
     --tone-soft: var(--ui-blue-soft);
@@ -1173,6 +1181,87 @@ a.ui-page-btn:hover {
         color: var(--ui-text);
     }
 
+/* ---------- Roles & rights (Settings) ---------- */
+
+.ui-roles-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+@media (max-width: 991.98px) {
+    .ui-roles-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ui-role-list {
+    display: grid;
+    gap: 6px;
+}
+
+.ui-role-item {
+    display: grid;
+    gap: 2px;
+    padding: 10px 12px;
+    border: 1px solid var(--ui-border);
+    border-radius: 12px;
+    color: var(--ui-text);
+    text-decoration: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+    .ui-role-item:hover {
+        border-color: var(--ui-border-strong);
+        background: var(--ui-subtle);
+    }
+
+    .ui-role-item:focus-visible {
+        outline: 2px solid var(--ui-blue);
+        outline-offset: 2px;
+    }
+
+    .ui-role-item.is-active {
+        border-color: var(--ui-blue);
+        background: var(--ui-blue-soft);
+    }
+
+    .ui-role-item small {
+        font-size: 12px;
+    }
+
+.ui-choice-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+@media (max-width: 767.98px) {
+    .ui-choice-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ui-rights-grid th[scope="row"] {
+    text-align: left;
+}
+
+.ui-rights-grid td,
+.ui-rights-grid th {
+    vertical-align: middle;
+}
+
+.ui-rights-help {
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+    .ui-rights-help summary {
+        color: var(--ui-blue);
+        cursor: pointer;
+    }
+
 /* ---------- Checkbox cards (roles) ---------- */
 
 .ui-check-list {
@@ -1625,7 +1714,8 @@ fieldset {
 }
 
 @media (max-width: 767.98px) {
-    .ui-stats.is-3 {
+    .ui-stats.is-3,
+    .ui-stats.is-2 {
         grid-template-columns: 1fr;
     }
 

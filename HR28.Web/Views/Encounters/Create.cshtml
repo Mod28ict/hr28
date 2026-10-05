@@ -10,6 +10,12 @@
         : null;
 
     ViewData["Title"] = isEdit ? "Edit Encounter" : "Add Encounter";
+
+    // Who the encounter is with (null on edit or if the voter can't be loaded).
+    var summary = ViewBag.Voter as HR28.Web.Models.VoterSearchDto;
+
+    // "Add encounter only" roles don't open the profile; lead them back to the list.
+    var addOnly = HR28.Web.Services.Hr28Permissions.OpensVotersOnAddEncounter(Context.Session);
 }
 
 <div class="ui-page is-narrow">
@@ -19,7 +25,14 @@
             <span class="ui-head-icon is-green"><partial name="_Icon" model='"message"' /></span>
             <div>
                 <nav class="ui-crumb" aria-label="Breadcrumb">
-                    <a asp-controller="Voters" asp-action="Profile" asp-route-id="@Model.VoterId">Voter profile</a>
+                    @if (addOnly && !isEdit)
+                    {
+                        <a asp-controller="Voters" asp-action="Index">Voters</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Voters" asp-action="Profile" asp-route-id="@Model.VoterId">Voter profile</a>
+                    }
                     <span aria-hidden="true">/</span> <span>@(isEdit ? "Edit encounter" : "Add encounter")</span>
                 </nav>
                 <h1 class="ui-title">@(isEdit ? "Edit Encounter" : "Add Encounter")</h1>
@@ -31,6 +44,27 @@
             </div>
         </div>
     </header>
+
+    @if (summary != null)
+    {
+        var who = string.IsNullOrWhiteSpace(summary.FullName) ? "Unnamed voter" : summary.FullName;
+        var place = string.Join(", ", new[] { summary.Address, summary.IslandName, summary.ConstituencyName }.Where(s => !string.IsNullOrWhiteSpace(s)));
+
+        <section class="ui-card" aria-label="Voter">
+            <div class="ui-person">
+                <span class="ui-avatar" aria-hidden="true">@string.Concat(who.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])))</span>
+                <span>
+                    <strong>@who</strong>
+                    <small class="ui-num">@summary.NationalId</small>
+                </span>
+                <span style="margin-left: auto;"><partial name="_StatusPill" model="summary.SupportStatus" /></span>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(place))
+            {
+                <div class="ui-muted" style="margin-top: 8px; font-size: 13px;">@place</div>
+            }
+        </section>
+    }
 
     <section class="ui-card ui-card-lg">
 
@@ -147,12 +181,19 @@
                     @(isEdit ? "Save changes" : "Save encounter")
                 </button>
 
-                <a asp-controller="Voters"
-                   asp-action="Profile"
-                   asp-route-id="@Model.VoterId"
-                   class="ui-btn ui-btn-secondary">
-                    Cancel
-                </a>
+                @if (addOnly && !isEdit)
+                {
+                    <a asp-controller="Voters" asp-action="Index" class="ui-btn ui-btn-secondary">Cancel</a>
+                }
+                else
+                {
+                    <a asp-controller="Voters"
+                       asp-action="Profile"
+                       asp-route-id="@Model.VoterId"
+                       class="ui-btn ui-btn-secondary">
+                        Cancel
+                    </a>
+                }
             </div>
 
         </form>

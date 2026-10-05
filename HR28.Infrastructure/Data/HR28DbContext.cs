@@ -26,6 +26,12 @@ public class HR28DbContext : DbContext
                 ur.RoleId
             });
 
+        // What opens when someone with the role opens a voter ("Full" / "AddEncounter").
+        modelBuilder.Entity<Role>()
+            .Property(r => r.VoterProfileView)
+            .HasMaxLength(20)
+            .HasDefaultValue("Full");
+
         // --------------------------------------------------
         // User scope relationships
         // --------------------------------------------------

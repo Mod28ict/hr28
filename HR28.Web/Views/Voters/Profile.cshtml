@@ -15,12 +15,27 @@
 
     var mobile = voter?.MobileNumber;
 
-    // Reporters only read; the API refuses their changes too.
-    var canWrite = HR28.Web.Services.Hr28Roles.CanManageRecords(Context.Session.GetString("UserRole"));
+    // Each section and button follows the person's rights; the API checks them again
+    // (a section without its view right comes back empty from the API too).
+    bool Can(string right) => HR28.Web.Services.Hr28Permissions.Has(Context.Session, right);
 
-    // Granted right; the API checks it again together with the voter's area.
-    var canEditEncounters = HR28.Web.Services.Hr28Permissions.Has(
-        Context.Session, HR28.Web.Services.Hr28Permissions.EncountersEdit);
+    var canEditVoter = Can(HR28.Web.Services.Hr28Permissions.VotersEdit);
+    var canDeleteVoter = Can(HR28.Web.Services.Hr28Permissions.VotersDelete);
+
+    var showInfluencers = Can(HR28.Web.Services.Hr28Permissions.InfluencersView);
+    var canLinkInfluencers = Can(HR28.Web.Services.Hr28Permissions.InfluencersLink);
+
+    var showEncounters = Can(HR28.Web.Services.Hr28Permissions.EncountersView);
+    var canAddEncounters = Can(HR28.Web.Services.Hr28Permissions.EncountersAdd);
+    var canEditEncounters = Can(HR28.Web.Services.Hr28Permissions.EncountersEdit);
+    var canDeleteEncounters = Can(HR28.Web.Services.Hr28Permissions.EncountersDelete);
+
+    var showPledges = Can(HR28.Web.Services.Hr28Permissions.PledgesView);
+    var canAddPledges = Can(HR28.Web.Services.Hr28Permissions.PledgesAdd);
+    var canEditPledges = Can(HR28.Web.Services.Hr28Permissions.PledgesEdit);
+    var canDeletePledges = Can(HR28.Web.Services.Hr28Permissions.PledgesDelete);
+
+    var statCount = new[] { showInfluencers, showEncounters, showPledges }.Count(x => x);
 
     string OrDash(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
 }
@@ -55,12 +70,30 @@
 
         <div class="ui-head-actions">
             <partial name="_StatusPill" model="voter?.SupportStatus" />
-            @if (canWrite)
+            @if (canAddEncounters && !showEncounters)
+            {
+                @* Without the encounter history the main job here is adding one. *@
+                <a asp-controller="Encounters" asp-action="Create" asp-route-voterId="@voterId" class="ui-btn ui-btn-primary">
+                    <partial name="_Icon" model='"plus"' />
+                    Add encounter
+                </a>
+            }
+            @if (canEditVoter)
             {
                 <a asp-action="Edit" asp-route-id="@voterId" class="ui-btn ui-btn-secondary">
                     <partial name="_Icon" model='"edit"' />
                     Edit voter
                 </a>
+            }
+            @if (canDeleteVoter)
+            {
+                <form asp-action="Delete" asp-route-id="@voterId" method="post" class="h28-confirm"
+                      data-confirm="Permanently delete @name with all their encounters and pledges? This cannot be undone.">
+                    <button type="submit" class="ui-btn ui-btn-ghost ui-btn-danger">
+                        <partial name="_Icon" model='"trash"' />
+                        Delete
+                    </button>
+                </form>
             }
         </div>
     </header>
@@ -117,8 +150,12 @@
         </div>
     </section>
 
-    <!-- COUNTS -->
-    <section class="ui-stats is-3">
+    <!-- COUNTS (only for the sections this person may see) -->
+    @if (statCount > 0)
+    {
+    <section class="ui-stats is-@statCount">
+        @if (showInfluencers)
+        {
         <div class="ui-stat is-violet">
             <span class="ui-stat-icon"><partial name="_Icon" model='"star"' /></span>
             <div>
@@ -126,6 +163,9 @@
                 <div class="ui-stat-value">@influencers.Count</div>
             </div>
         </div>
+        }
+        @if (showEncounters)
+        {
         <div class="ui-stat is-green">
             <span class="ui-stat-icon"><partial name="_Icon" model='"message"' /></span>
             <div>
@@ -133,6 +173,9 @@
                 <div class="ui-stat-value">@encounters.Count</div>
             </div>
         </div>
+        }
+        @if (showPledges)
+        {
         <div class="ui-stat is-amber">
             <span class="ui-stat-icon"><partial name="_Icon" model='"handshake"' /></span>
             <div>
@@ -140,14 +183,18 @@
                 <div class="ui-stat-value">@pledges.Count</div>
             </div>
         </div>
+        }
     </section>
+    }
 
     <!-- INFLUENCERS -->
+    @if (showInfluencers)
+    {
     <section class="ui-card">
         <div class="ui-card-head">
             <h2>Influencers <span class="ui-count is-violet">@influencers.Count</span></h2>
 
-            @if (canWrite)
+            @if (canLinkInfluencers)
             {
                 <a asp-controller="Influencers"
                    asp-action="Link"
@@ -185,7 +232,7 @@
                                 <td class="ui-num">@OrDash(influencer.ContactNumber)</td>
                                 <td><span class="ui-tag">@influencer.RelationshipType</span></td>
                                 <td class="is-right">
-                                    @if (canWrite)
+                                    @if (canLinkInfluencers)
                                     {
                                         <a asp-controller="Influencers"
                                            asp-action="EditRelationship"
@@ -203,13 +250,16 @@
             </div>
         }
     </section>
+    }
 
     <!-- ENCOUNTERS -->
+    @if (showEncounters)
+    {
     <section class="ui-card">
         <div class="ui-card-head">
             <h2>Encounters <span class="ui-count is-green">@encounters.Count</span></h2>
 
-            @if (canWrite)
+            @if (canAddEncounters)
             {
                 <a asp-controller="Encounters"
                    asp-action="Create"
@@ -236,7 +286,7 @@
                             <th>Outcome</th>
                             <th>Response</th>
                             <th>Notes</th>
-                            @if (canEditEncounters)
+                            @if (canEditEncounters || canDeleteEncounters)
                             {
                                 <th><span class="visually-hidden">Actions</span></th>
                             }
@@ -260,16 +310,30 @@
                                     }
                                 </td>
                                 <td class="ui-muted">@encounter.Notes</td>
-                                @if (canEditEncounters)
+                                @if (canEditEncounters || canDeleteEncounters)
                                 {
-                                    <td class="is-right">
-                                        <a asp-controller="Encounters"
-                                           asp-action="Edit"
-                                           asp-route-id="@encounter.Id"
-                                           class="ui-btn ui-btn-secondary ui-btn-sm">
-                                            <partial name="_Icon" model='"edit"' />
-                                            Edit
-                                        </a>
+                                    <td class="is-right" style="white-space: nowrap;">
+                                        @if (canEditEncounters)
+                                        {
+                                            <a asp-controller="Encounters"
+                                               asp-action="Edit"
+                                               asp-route-id="@encounter.Id"
+                                               class="ui-btn ui-btn-secondary ui-btn-sm">
+                                                <partial name="_Icon" model='"edit"' />
+                                                Edit
+                                            </a>
+                                        }
+                                        @if (canDeleteEncounters)
+                                        {
+                                            <form asp-controller="Encounters" asp-action="Delete" asp-route-id="@encounter.Id" method="post"
+                                                  class="h28-confirm" style="display: inline;"
+                                                  data-confirm="Permanently delete this encounter (@encounter.EncounterDate.ToString("dd MMM yyyy"))? This cannot be undone.">
+                                                <input type="hidden" name="voterId" value="@voterId" />
+                                                <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm ui-btn-danger" aria-label="Delete encounter" title="Delete">
+                                                    <partial name="_Icon" model='"trash"' />
+                                                </button>
+                                            </form>
+                                        }
                                     </td>
                                 }
                             </tr>
@@ -279,13 +343,16 @@
             </div>
         }
     </section>
+    }
 
     <!-- PLEDGES -->
+    @if (showPledges)
+    {
     <section class="ui-card">
         <div class="ui-card-head">
             <h2>Pledges <span class="ui-count is-amber">@pledges.Count</span></h2>
 
-            @if (canWrite)
+            @if (canAddPledges)
             {
                 <a asp-controller="Pledges"
                    asp-action="Create"
@@ -337,8 +404,8 @@
                                 </td>
                                 <td class="ui-num" style="white-space: nowrap;">@HR28.Web.Services.Hr28Time.FromUtc(pledge.PledgeDate).ToString("dd MMM yyyy")</td>
                                 <td class="ui-num" style="white-space: nowrap;">@(pledge.DueDate.HasValue ? pledge.DueDate.Value.ToString("dd MMM yyyy") : "—")</td>
-                                <td class="is-right">
-                                    @if (canWrite)
+                                <td class="is-right" style="white-space: nowrap;">
+                                    @if (canEditPledges)
                                     {
                                         <a asp-controller="Pledges"
                                            asp-action="Update"
@@ -346,6 +413,17 @@
                                            class="ui-btn ui-btn-secondary ui-btn-sm">
                                             Update
                                         </a>
+                                    }
+                                    @if (canDeletePledges)
+                                    {
+                                        <form asp-controller="Pledges" asp-action="Delete" asp-route-id="@pledge.Id" method="post"
+                                              class="h28-confirm" style="display: inline;"
+                                              data-confirm="Permanently delete the pledge &quot;@pledge.Title&quot;? This cannot be undone.">
+                                            <input type="hidden" name="voterId" value="@voterId" />
+                                            <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm ui-btn-danger" aria-label="Delete pledge" title="Delete">
+                                                <partial name="_Icon" model='"trash"' />
+                                            </button>
+                                        </form>
                                     }
                                 </td>
                             </tr>
@@ -355,5 +433,18 @@
             </div>
         }
     </section>
+    }
 
 </div>
+
+@section Scripts
+{
+    <script>
+        // Permanent deletes ask first (the text comes from data-confirm, never from script).
+        document.querySelectorAll('form.h28-confirm').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                if (!window.confirm(form.dataset.confirm)) e.preventDefault();
+            });
+        });
+    </script>
+}

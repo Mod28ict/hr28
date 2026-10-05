@@ -39,13 +39,10 @@ public class AccessScope
     public IReadOnlyList<Guid> VisibleConstituencyIds { get; init; } = Array.Empty<Guid>();
 
     /// <summary>
-    /// May create or change records (voters, encounters, pledges, influencer links).
-    /// Reporters only read; someone who is a Reporter AND has another role may write.
+    /// What opens when the user opens a voter: "Full" if any of their roles says so,
+    /// otherwise "AddEncounter". Sections are still limited by view rights.
     /// </summary>
-    public bool CanWriteRecords =>
-        IsActive && Roles.Any(r => !string.Equals(r, ReporterRole, StringComparison.Ordinal));
-
-    public const string ReporterRole = "Reporter";
+    public string VoterProfileView { get; init; } = HR28.Application.Common.VoterProfileViews.Full;
 
     public bool HasAnyScope =>
         IsAdministrator || ConstituencyIds.Count > 0 || IslandIds.Count > 0;

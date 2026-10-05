@@ -17,7 +17,9 @@
 
     var userRole = Context.Session.GetString("UserRole");
     var isAdministrator = HR28.Web.Services.Hr28Roles.IsAdministrator(userRole);
-    var canWrite = HR28.Web.Services.Hr28Roles.CanManageRecords(userRole);
+    // Rights (the API checks them again): adding voters, and changing status from the list.
+    var canAdd = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.VotersAdd);
+    var canWrite = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.VotersEdit);
 
     var startRecord = Model.TotalCount == 0
         ? 0
@@ -64,7 +66,7 @@
                     Upload voter list
                 </a>
             }
-            @if (canWrite)
+            @if (canAdd)
             {
                 <a asp-action="Create" class="ui-btn ui-btn-primary">
                     <partial name="_Icon" model='"plus"' />

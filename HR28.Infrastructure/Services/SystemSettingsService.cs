@@ -181,6 +181,7 @@ public class SystemSettingsService : ISystemSettingsService
                 .Where(scope.HasPermission)
                 .ToList(),
             IsAdministrator = scope.IsAdministrator,
+            VoterProfileView = scope.VoterProfileView,
             Scopes = scopeLines,
             LastLoginAt = user.LastLoginAt
         };

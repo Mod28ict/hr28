@@ -75,21 +75,12 @@
                         Given on top of their roles, only within their own areas. Administrators already have every right.
                     </p>
 
-                    <div class="ui-check-list">
-                        @foreach (var p in Model.AvailablePermissions)
-                        {
-                            <label class="ui-check-card">
-                                <input type="checkbox"
-                                       name="SelectedPermissions"
-                                       value="@p.Key"
-                                       checked="@Model.SelectedPermissions.Contains(p.Key)" />
-                                <span>
-                                    <strong>@p.Name</strong>
-                                    <small>@p.Description</small>
-                                </span>
-                            </label>
-                        }
-                    </div>
+                    <partial name="_RightsGrid" model='new HR28.Web.Models.RightsGridModel
+                    {
+                        Permissions = Model.AvailablePermissions,
+                        Selected = Model.SelectedPermissions.ToHashSet(),
+                        InputName = "SelectedPermissions"
+                    }' />
                 </fieldset>
             }
 

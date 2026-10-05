@@ -1,4 +1,5 @@
 ﻿using HR28.API.Extensions;
+using HR28.Application.Common;
 using HR28.Application.DTOs.Voters;
 using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
@@ -22,7 +23,7 @@ public class VotersController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
+    [RequirePermission(PermissionCatalog.VotersAdd)]
     public async Task<IActionResult> CreateVoter(
         CreateVoterDto request)
     {
@@ -33,6 +34,7 @@ public class VotersController : ControllerBase
     }
 
     [HttpGet]
+    [RequirePermission(PermissionCatalog.VotersView)]
     [EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> GetVoters(
         [FromQuery] int page = 1,
@@ -80,6 +82,7 @@ public class VotersController : ControllerBase
 
 
     [HttpGet("{id}")]
+    [RequirePermission(PermissionCatalog.VotersView)]
     public async Task<IActionResult> GetVoter(Guid id)
     {
         var userIdClaim =
@@ -103,8 +106,8 @@ await _voterService.GetVoterByIdAsync(
 
         return Ok(result);
     }
-    //[Authorize]
     [HttpGet("search")]
+    [RequirePermission(PermissionCatalog.VotersView)]
     [EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> Search(
         [FromQuery] string searchTerm)
@@ -128,7 +131,7 @@ await _voterService.GetVoterByIdAsync(
         return Ok(result);
     }
     [HttpPut("{id}")]
-    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
+    [RequirePermission(PermissionCatalog.VotersEdit)]
     public async Task<IActionResult> UpdateVoter(
         Guid id,
         UpdateVoterDto request)
@@ -148,7 +151,7 @@ await _voterService.GetVoterByIdAsync(
 
     /// <summary>Changes only the support status (status pop-up). Audited.</summary>
     [HttpPut("{id:guid}/status")]
-    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
+    [RequirePermission(PermissionCatalog.VotersEdit)]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request)
     {
         var status = await _voterService.UpdateStatusAsync(id, request.Status);
@@ -156,8 +159,9 @@ await _voterService.GetVoterByIdAsync(
         return Ok(new { status });
     }
 
+    /// <summary>Permanent; needs the "Delete voters" right and the voter in the user's areas.</summary>
     [HttpDelete("{id}")]
-    [Authorize(Policy = AuthorizationPolicies.Administrator)]
+    [RequirePermission(PermissionCatalog.VotersDelete)]
     public async Task<IActionResult> DeleteVoter(Guid id)
     {
         await _voterService.DeleteVoterAsync(id);
@@ -169,6 +173,7 @@ await _voterService.GetVoterByIdAsync(
     /// can't be used to sweep the registry; reveals details only for voters in scope.
     /// </summary>
     [HttpGet("national-id-check")]
+    [RequirePermission(PermissionCatalog.VotersAdd, PermissionCatalog.VotersEdit)]
     [EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> CheckNationalId(
         [FromQuery] string nationalId,
@@ -180,7 +185,9 @@ await _voterService.GetVoterByIdAsync(
         return Ok(await _voterService.CheckNationalIdAsync(userId, nationalId, excludeId));
     }
 
+    /// <summary>The profile; sections the user has no view right for come back empty.</summary>
     [HttpGet("{id}/profile")]
+    [RequirePermission(PermissionCatalog.VotersView)]
     public async Task<IActionResult> GetProfile(
         Guid id)
     {
@@ -212,6 +219,7 @@ await _voterService.GetVoterByIdAsync(
         }
     }
     [HttpGet("recent")]
+    [RequirePermission(PermissionCatalog.VotersView)]
     public async Task<IActionResult> GetRecent(
         [FromQuery] int count = 10)
     {

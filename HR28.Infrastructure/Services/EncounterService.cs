@@ -232,6 +232,32 @@ public class EncounterService : IEncounterService
         return ToDto(encounter);
     }
 
+    public async Task DeleteAsync(Guid id)
+    {
+        var userId = GetCurrentUserId()
+            ?? throw new AccessDeniedException("You must be signed in.");
+
+        var scope = await _accessScopeService.GetAsync(userId);
+        var encounter = await FindInScopeAsync(scope, id);
+
+        var voter = await _dbContext.Voters
+            .Where(v => v.Id == encounter.VoterId)
+            .Select(v => new { v.FullName, v.NationalId })
+            .FirstAsync();
+
+        var label = $"{encounter.Outcome} on {encounter.EncounterDate:dd MMM yyyy} — {voter.FullName} ({voter.NationalId})";
+
+        _dbContext.Encounters.Remove(encounter);
+        await _dbContext.SaveChangesAsync();
+
+        // The record is gone, so the audit entry carries what it was (notes are not copied).
+        await _auditService.LogAsync(
+            userId,
+            $"Delete (permanent): {label}",
+            "Encounter",
+            id.ToString());
+    }
+
     public async Task<HR28.Application.DTOs.Common.PagedResult<EncounterListItemDto>> GetListAsync(
         int page,
         int pageSize,

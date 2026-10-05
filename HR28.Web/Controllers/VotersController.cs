@@ -215,6 +215,14 @@ public class VotersController : Controller
     public async Task<IActionResult>
         Profile(Guid id)
     {
+        // Roles set to "Add encounter only" (Settings → Roles & rights) open voters
+        // straight on the encounter form. The API limits what the profile returns anyway.
+        if (Hr28Permissions.OpensVotersOnAddEncounter(HttpContext.Session) &&
+            Hr28Permissions.Has(HttpContext.Session, Hr28Permissions.EncountersAdd))
+        {
+            return RedirectToAction("Create", "Encounters", new { voterId = id });
+        }
+
         var token =
             HttpContext.Session.GetString(
                 "JwtToken");
@@ -414,5 +422,32 @@ public class VotersController : Controller
         return RedirectToAction(
             "Profile",
             new { id = model.Voter.Id });
+    }
+
+    /// <summary>Permanent delete from the profile (the page asks first). Needs "Delete voters".</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var result = await _apiClient.DeleteAsync($"Voters/{id}", HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!result.Success)
+        {
+            TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
+                ? "The voter could not be deleted."
+                : result.Message;
+
+            return RedirectToAction(nameof(Profile), new { id });
+        }
+
+        TempData["SuccessMessage"] = "The voter was deleted.";
+
+        return RedirectToAction(nameof(Index));
     }
 }

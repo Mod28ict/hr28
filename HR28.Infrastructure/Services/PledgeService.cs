@@ -178,6 +178,28 @@ public class PledgeService : IPledgeService
         return ToDto(pledge);
     }
 
+    public async Task DeleteAsync(Guid pledgeId)
+    {
+        var pledge = await _dbContext.Pledges
+            .Include(p => p.Voter)
+            .FirstOrDefaultAsync(x => x.Id == pledgeId)
+            ?? throw new KeyNotFoundException("Pledge not found.");
+
+        await EnsureVoterInScopeAsync(pledge.VoterId);
+
+        var label = $"{pledge.Title} — {pledge.Voter.FullName} ({pledge.Voter.NationalId})";
+
+        _dbContext.Pledges.Remove(pledge);
+        await _dbContext.SaveChangesAsync();
+
+        // The record is gone, so the audit entry carries what it was.
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            $"Delete (permanent): {label}",
+            "Pledge",
+            pledgeId.ToString());
+    }
+
     public static readonly string[] AllowedStatuses = { "Open", "In Progress", "Completed", "Cancelled" };
 
     /// <summary>One pledge, if its voter is in the caller's areas (404 otherwise).</summary>

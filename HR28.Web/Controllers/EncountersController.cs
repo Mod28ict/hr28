@@ -124,21 +124,46 @@ public class EncountersController : AppController
     }
 
     [HttpGet]
-    public IActionResult Create(Guid voterId)
+    public async Task<IActionResult> Create(Guid voterId)
     {
         if (voterId == Guid.Empty)
         {
             return BadRequest();
         }
 
+        // To the minute, so the date box doesn't show seconds.
+        var now = Hr28Time.Now;
+
         var model = new CreateEncounterDto
         {
             VoterId = voterId,
-            EncounterDate = Hr28Time.Now
+            EncounterDate = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0)
         };
+
+        if (await LoadVoterSummaryAsync(voterId) is { } failure)
+            return failure;
 
         return View(model);
     }
+
+    /// <summary>Who the encounter is with, shown above the form (voters in the user's areas only).</summary>
+    private async Task<IActionResult?> LoadVoterSummaryAsync(Guid voterId)
+    {
+        var voter = await _apiClient.GetAsync<VoterSearchDto>($"Voters/{voterId}", Token);
+
+        if (voter.IsUnauthorized)
+            return HandleApiFailure(voter);
+
+        ViewBag.Voter = voter.Data;
+
+        return null;
+    }
+
+    /// <summary>Where to go after saving: the profile, or the voter list for "Add encounter only" roles.</summary>
+    private IActionResult AfterEncounterSaved(Guid voterId) =>
+        Hr28Permissions.OpensVotersOnAddEncounter(HttpContext.Session)
+            ? RedirectToAction("Index", "Voters")
+            : RedirectToAction("Profile", "Voters", new { id = voterId });
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -147,6 +172,7 @@ public class EncountersController : AppController
     {
         if (!ModelState.IsValid)
         {
+            await LoadVoterSummaryAsync(model.VoterId);
             return View(model);
         }
 
@@ -175,18 +201,33 @@ public class EncountersController : AppController
                     ? "The encounter could not be saved. Please try again."
                     : result.Message);
 
+            await LoadVoterSummaryAsync(model.VoterId);
             return View(model);
         }
 
         TempData["SuccessMessage"] =
             "Encounter recorded successfully.";
 
-        return RedirectToAction(
-            "Profile",
-            "Voters",
-            new
-            {
-                id = model.VoterId
-            });
+        return AfterEncounterSaved(model.VoterId);
+    }
+
+    /// <summary>Permanent delete from the voter's profile (the page asks first). Needs "Delete encounters".</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id, Guid voterId)
+    {
+        var result = await _apiClient.DeleteAsync($"Encounters/{id}", Token);
+
+        if (result.IsUnauthorized)
+            return HandleApiFailure(result)!;
+
+        if (result.Success)
+            TempData["SuccessMessage"] = "The encounter was deleted.";
+        else
+            TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
+                ? "The encounter could not be deleted."
+                : result.Message;
+
+        return RedirectToAction("Profile", "Voters", new { id = voterId });
     }
 }

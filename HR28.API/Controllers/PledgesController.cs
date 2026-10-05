@@ -1,4 +1,5 @@
 ﻿using HR28.API.Extensions;
+using HR28.Application.Common;
 using System.Security.Claims;
 using HR28.Application.DTOs.Pledges;
 using HR28.Application.Interfaces;
@@ -23,6 +24,7 @@ public class PledgesController : ControllerBase
 
     /// <summary>All pledges inside the user's areas (paged, filterable). Rate-limited like voter search.</summary>
     [HttpGet]
+    [RequirePermission(PermissionCatalog.PledgesView)]
     [EnableRateLimiting(RateLimitPolicies.Search)]
     public async Task<IActionResult> GetList(
         [FromQuery] int page = 1,
@@ -43,7 +45,7 @@ public class PledgesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
+    [RequirePermission(PermissionCatalog.PledgesAdd)]
     public async Task<IActionResult> Create(
         [FromBody] CreatePledgeDto request)
     {
@@ -58,6 +60,7 @@ public class PledgesController : ControllerBase
     }
 
     [HttpGet("voter/{voterId}")]
+    [RequirePermission(PermissionCatalog.PledgesView)]
     public async Task<IActionResult> GetByVoter(
         Guid voterId)
     {
@@ -67,13 +70,14 @@ public class PledgesController : ControllerBase
         return Ok(result);
     }
     [HttpGet("{pledgeId:guid}")]
+    [RequirePermission(PermissionCatalog.PledgesView, PermissionCatalog.PledgesEdit)]
     public async Task<IActionResult> GetById(Guid pledgeId)
     {
         return Ok(await _pledgeService.GetByIdAsync(pledgeId));
     }
 
     [HttpPut("{pledgeId}/status")]
-    [Authorize(Policy = AuthorizationPolicies.RecordWriter)]
+    [RequirePermission(PermissionCatalog.PledgesEdit)]
     public async Task<IActionResult> UpdateStatus(
     Guid pledgeId,
     [FromBody] UpdatePledgeStatusDto request)
@@ -82,5 +86,15 @@ public class PledgesController : ControllerBase
             .UpdateStatusAsync(pledgeId, request);
 
         return Ok(result);
+    }
+
+    /// <summary>Permanent; needs the "Delete pledges" right and the voter in the user's areas.</summary>
+    [HttpDelete("{pledgeId:guid}")]
+    [RequirePermission(PermissionCatalog.PledgesDelete)]
+    public async Task<IActionResult> Delete(Guid pledgeId)
+    {
+        await _pledgeService.DeleteAsync(pledgeId);
+
+        return Ok(new { message = "The pledge was deleted." });
     }
 }

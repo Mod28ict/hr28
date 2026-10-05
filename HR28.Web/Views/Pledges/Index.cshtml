@@ -7,7 +7,8 @@
     var errorMessage = ViewBag.ErrorMessage as string;
 
     // Reporters only read; the API refuses their changes too.
-    var canWrite = HR28.Web.Services.Hr28Roles.CanManageRecords(Context.Session.GetString("UserRole"));
+    // Changing a pledge's status needs the "Edit pledges" right (the API checks it again).
+    var canWrite = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.PledgesEdit);
 
     var startRecord = Model.TotalCount == 0 ? 0 : ((Model.Page - 1) * Model.PageSize) + 1;
     var endRecord = Math.Min(Model.Page * Model.PageSize, Model.TotalCount);

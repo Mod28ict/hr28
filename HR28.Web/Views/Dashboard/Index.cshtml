@@ -10,7 +10,10 @@
     var constituencies = Model?.Constituencies ?? new();
 
     var role = Context.Session.GetString("UserRole");
-    var isReporter = !HR28.Web.Services.Hr28Roles.CanManageRecords(role);
+    // Rights decide which shortcuts appear (the API checks them again).
+    bool Can(string right) => HR28.Web.Services.Hr28Permissions.Has(Context.Session, right);
+    var canViewVoters = Can(HR28.Web.Services.Hr28Permissions.VotersView);
+    var canAddVoters = Can(HR28.Web.Services.Hr28Permissions.VotersAdd);
     var isSuperAdmin = HR28.Web.Services.Hr28Roles.IsSuperAdministrator(role);
 
     // The API decides scope; administrators get national figures.
@@ -170,7 +173,7 @@
                 </span>
             </div>
 
-            @if (!isReporter)
+            @if (canAddVoters)
             {
                 <a class="hd-btn-primary" asp-controller="Voters" asp-action="Create">
                     <partial name="_Icon" model='"plus"' />
@@ -473,14 +476,13 @@
             }
         </div>
 
-        <!-- Recently added voters -->
+        <!-- Recently added voters (needs the "View voters" right) -->
+        @if (canViewVoters)
+        {
         <div class="hd-card">
             <div class="hd-card-head">
                 <h2>Recently Added Voters</h2>
-                @if (!isReporter)
-                {
-                    <a class="hd-link" asp-controller="Voters" asp-action="Index">View all</a>
-                }
+                <a class="hd-link" asp-controller="Voters" asp-action="Index">View all</a>
             </div>
 
             @if (!recentVoters.Any())
@@ -499,14 +501,7 @@
                         <li>
                             <span class="hd-avatar" aria-hidden="true">@InitialsOf(name)</span>
                             <span class="hd-list-text">
-                                @if (!isReporter)
-                                {
-                                    <a asp-controller="Voters" asp-action="Profile" asp-route-id="@voter.Id"><strong>@name</strong></a>
-                                }
-                                else
-                                {
-                                    <strong>@name</strong>
-                                }
+                                <a asp-controller="Voters" asp-action="Profile" asp-route-id="@voter.Id"><strong>@name</strong></a>
                                 <small>@(string.IsNullOrEmpty(place) ? "No location set" : place)</small>
                             </span>
                             <span class="hd-pill @StatusClass(voter.SupportStatus)">@status</span>
@@ -515,6 +510,7 @@
                 </ul>
             }
         </div>
+        }
 
         <!-- Quick actions -->
         <div class="hd-card">
@@ -523,20 +519,29 @@
             </div>
 
             <div class="hd-actions">
-                @if (!isReporter)
+                @if (canAddVoters)
                 {
                     <a class="hd-action is-blue" asp-controller="Voters" asp-action="Create">
                         <partial name="_Icon" model='"user-plus"' />
                         <span>Add Voter</span>
                     </a>
+                }
+                @if (canViewVoters && Can(HR28.Web.Services.Hr28Permissions.EncountersAdd))
+                {
                     <a class="hd-action is-blue" asp-controller="Voters" asp-action="Index" title="Choose a voter, then record an encounter">
                         <partial name="_Icon" model='"calendar"' />
                         <span>Record Encounter</span>
                     </a>
+                }
+                @if (canViewVoters && Can(HR28.Web.Services.Hr28Permissions.PledgesAdd))
+                {
                     <a class="hd-action is-green" asp-controller="Voters" asp-action="Index" title="Choose a voter, then add a pledge">
                         <partial name="_Icon" model='"handshake"' />
                         <span>Add Pledge</span>
                     </a>
+                }
+                @if (Can(HR28.Web.Services.Hr28Permissions.InfluencersAdd))
+                {
                     <a class="hd-action is-violet" asp-controller="Influencers" asp-action="Create">
                         <partial name="_Icon" model='"star"' />
                         <span>Add Influencer</span>
@@ -560,7 +565,7 @@
                     <partial name="_Icon" model='"chart"' />
                     <span>Reports</span>
                 </a>
-                @if (isReporter)
+                @if (!canAddVoters)
                 {
                     <a class="hd-action is-amber" asp-controller="Reports" asp-action="Pledges">
                         <partial name="_Icon" model='"file"' />

@@ -30,6 +30,7 @@ public class SettingsController : AppController
         Guid? editIsland,
         Guid? editCategory,
         Guid? editParty,
+        Guid? role,
         bool newConstituency = false,
         bool newIsland = false)
     {
@@ -57,6 +58,11 @@ public class SettingsController : AppController
                 return redirect;
 
             model.Permissions = matrix.Data;
+
+            // The role being edited: the one asked for, or the first in the list.
+            model.SelectedRoleId = matrix.Data?.Roles.Any(r => r.RoleId == role) == true
+                ? role
+                : matrix.Data?.Roles.FirstOrDefault()?.RoleId;
         }
 
         if (tab == "lists")
@@ -370,13 +376,55 @@ public class SettingsController : AppController
         return RedirectToAction(nameof(Index), new { tab = "lists" });
     }
 
+    /// <summary>A new custom role; it has no rights until they are ticked.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateRole(string? name, string? description, string? voterProfileView)
+    {
+        if (!IsSuperAdministrator)
+            return RedirectToAction(nameof(Index));
+
+        var result = await _apiClient.PostAsync<CreatedRole>(
+            "Permissions/roles",
+            new
+            {
+                name = name?.Trim() ?? string.Empty,
+                description = description?.Trim() ?? string.Empty,
+                voterProfileView = voterProfileView ?? "Full"
+            },
+            Token);
+
+        if (HandleApiFailure(result) is { } redirect)
+            return redirect;
+
+        if (!result.Success || result.Data == null)
+        {
+            TempData["ErrorMessage"] = result.Message;
+            return RedirectToAction(nameof(Index), new { tab = "permissions" });
+        }
+
+        TempData["SuccessMessage"] = $"The role \"{name?.Trim()}\" was created. Now tick what it may do and save.";
+
+        return RedirectToAction(nameof(Index), new { tab = "permissions", role = result.Data.Id });
+    }
+
+    private class CreatedRole
+    {
+        public Guid Id { get; set; }
+    }
+
     /// <summary>
-    /// Saves the roles × rights grid. Each ticked box posts "roleId:permission".
-    /// Only roles whose ticks changed are sent to the API.
+    /// Saves one role: name and description (custom roles), what opens when a voter is
+    /// opened, and its rights. Only changed parts are sent; every change is audited.
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SavePermissions(List<string>? grants)
+    public async Task<IActionResult> SaveRole(
+        Guid roleId,
+        string? name,
+        string? description,
+        string? voterProfileView,
+        List<string>? grants)
     {
         if (!IsSuperAdministrator)
             return RedirectToAction(nameof(Index));
@@ -386,49 +434,78 @@ public class SettingsController : AppController
         if (HandleApiFailure(current) is { } redirect)
             return redirect;
 
-        if (!current.Success || current.Data == null)
+        var role = current.Data?.Roles.FirstOrDefault(r => r.RoleId == roleId);
+
+        if (role == null)
         {
-            TempData["ErrorMessage"] = current.Message;
+            TempData["ErrorMessage"] = string.IsNullOrWhiteSpace(current.Message) ? "That role no longer exists." : current.Message;
             return RedirectToAction(nameof(Index), new { tab = "permissions" });
         }
 
-        var ticked = (grants ?? new())
-            .Select(g => g.Split(':', 2))
-            .Where(p => p.Length == 2 && Guid.TryParse(p[0], out _))
-            .GroupBy(p => Guid.Parse(p[0]))
-            .ToDictionary(g => g.Key, g => g.Select(p => p[1]).ToHashSet());
+        var details = await _apiClient.PutAsync<object>(
+            $"Permissions/roles/{roleId}/details",
+            new
+            {
+                name = role.IsBuiltIn ? role.RoleName : name?.Trim() ?? string.Empty,
+                description = role.IsBuiltIn ? role.Description : description?.Trim() ?? string.Empty,
+                voterProfileView = voterProfileView ?? role.VoterProfileView
+            },
+            Token);
 
-        var changedRoles = 0;
+        if (HandleApiFailure(details) is { } failed)
+            return failed;
 
-        foreach (var role in current.Data.Roles.Where(r => !r.HasAllPermissions))
+        if (!details.Success)
         {
-            var wanted = ticked.TryGetValue(role.RoleId, out var set) ? set : new HashSet<string>();
+            TempData["ErrorMessage"] = details.Message;
+            return RedirectToAction(nameof(Index), new { tab = "permissions", role = roleId });
+        }
 
-            if (wanted.SetEquals(role.Permissions))
-                continue;
+        var wanted = (grants ?? new()).ToHashSet();
 
-            var result = await _apiClient.PutAsync<object>(
-                $"Permissions/roles/{role.RoleId}",
+        if (!role.HasAllPermissions && !wanted.SetEquals(role.Permissions))
+        {
+            var rights = await _apiClient.PutAsync<object>(
+                $"Permissions/roles/{roleId}",
                 new { permissions = wanted.ToList() },
                 Token);
 
-            if (HandleApiFailure(result) is { } failed)
-                return failed;
+            if (HandleApiFailure(rights) is { } rightsFailed)
+                return rightsFailed;
 
-            if (!result.Success)
+            if (!rights.Success)
             {
-                TempData["ErrorMessage"] = $"{Hr28Roles.DisplayName(role.RoleName)}: {result.Message}";
-                return RedirectToAction(nameof(Index), new { tab = "permissions" });
+                TempData["ErrorMessage"] = rights.Message;
+                return RedirectToAction(nameof(Index), new { tab = "permissions", role = roleId });
             }
-
-            changedRoles++;
         }
 
-        TempData["SuccessMessage"] = changedRoles == 0
-            ? "No changes to save."
-            : "Permissions saved. They apply straight away.";
+        TempData["SuccessMessage"] = "Saved. The changes apply straight away.";
 
-        return RedirectToAction(nameof(Index), new { tab = "permissions" });
+        return RedirectToAction(nameof(Index), new { tab = "permissions", role = roleId });
+    }
+
+    /// <summary>Deletes a custom role nobody has.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteRole(Guid roleId)
+    {
+        if (!IsSuperAdministrator)
+            return RedirectToAction(nameof(Index));
+
+        var result = await _apiClient.DeleteAsync($"Permissions/roles/{roleId}", Token);
+
+        if (HandleApiFailure(result) is { } redirect)
+            return redirect;
+
+        if (result.Success)
+        {
+            TempData["SuccessMessage"] = "The role was deleted.";
+            return RedirectToAction(nameof(Index), new { tab = "permissions" });
+        }
+
+        TempData["ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(Index), new { tab = "permissions", role = roleId });
     }
 
     private string FirstError() =>

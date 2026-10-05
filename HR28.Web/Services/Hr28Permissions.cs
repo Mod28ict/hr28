@@ -2,16 +2,36 @@ namespace HR28.Web.Services;
 
 /// <summary>
 /// Rights granted by the Administrator (to a role or a user), as kept in the
-/// session by SessionRoleRefreshFilter. Only used to show or hide buttons; the
-/// API checks the same rights on every request.
+/// session by SessionRoleRefreshFilter. Only used to show or hide menus and buttons;
+/// the API checks the same rights on every request. Mirrors the API's PermissionCatalog.
 /// </summary>
 public static class Hr28Permissions
 {
     public const string SessionKey = "UserPermissions";
 
+    /// <summary>"Full" or "AddEncounter": what opens when the user opens a voter.</summary>
+    public const string ProfileViewSessionKey = "VoterProfileView";
+
+    public const string VotersView = "Voters.View";
+    public const string VotersAdd = "Voters.Add";
+    public const string VotersEdit = "Voters.Edit";
+    public const string VotersDelete = "Voters.Delete";
+
+    public const string EncountersView = "Encounters.View";
+    public const string EncountersAdd = "Encounters.Add";
+    public const string EncountersEdit = "Encounters.Edit";
+    public const string EncountersDelete = "Encounters.Delete";
+
+    public const string PledgesView = "Pledges.View";
+    public const string PledgesAdd = "Pledges.Add";
+    public const string PledgesEdit = "Pledges.Edit";
+    public const string PledgesDelete = "Pledges.Delete";
+
+    public const string InfluencersView = "Influencers.View";
+    public const string InfluencersAdd = "Influencers.Add";
+    public const string InfluencersLink = "Influencers.Link";
     public const string InfluencersEdit = "Influencers.Edit";
     public const string InfluencersDelete = "Influencers.Delete";
-    public const string EncountersEdit = "Encounters.Edit";
 
     public static string ToSession(IEnumerable<string>? permissions) =>
         string.Join('|', (permissions ?? Array.Empty<string>()).Distinct());
@@ -26,4 +46,9 @@ public static class Hr28Permissions
             .Split('|', StringSplitOptions.RemoveEmptyEntries)
             .Contains(permission);
     }
+
+    /// <summary>True when the user's roles open voters straight on "Add encounter".</summary>
+    public static bool OpensVotersOnAddEncounter(ISession session) =>
+        !Hr28Roles.IsSuperAdministrator(session.GetString("UserRole")) &&
+        session.GetString(ProfileViewSessionKey) == "AddEncounter";
 }

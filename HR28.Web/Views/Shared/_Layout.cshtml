@@ -214,7 +214,9 @@
         initials = "U";
     }
 
-    var canManageRecords = HR28.Web.Services.Hr28Roles.CanManageRecords(role);
+    // Menus follow the person's rights (the API checks them again on every request).
+    bool Can(string right) => HR28.Web.Services.Hr28Permissions.Has(Context.Session, right);
+    var canViewVoters = Can(HR28.Web.Services.Hr28Permissions.VotersView);
     var isSuperAdmin = HR28.Web.Services.Hr28Roles.IsSuperAdministrator(role);
 
     var campaignName = Context.Session.GetString("CampaignName");
@@ -255,14 +257,17 @@
                 <span>Dashboard</span>
             </a>
 
-            @if (canManageRecords)
+            @if (canViewVoters)
             {
                 <a class="@NavClass(currentController == "Voters")"
                    asp-controller="Voters" asp-action="Index">
                     <partial name="_Icon" model='"users"' />
                     <span>Voters</span>
                 </a>
+            }
 
+            @if (Can(HR28.Web.Services.Hr28Permissions.InfluencersView))
+            {
                 <a class="@NavClass(currentController == "Influencers")"
                    asp-controller="Influencers" asp-action="Index">
                     <partial name="_Icon" model='"star"' />
@@ -270,17 +275,23 @@
                 </a>
             }
 
-            <a class="@NavClass(currentController == "Encounters")"
-               asp-controller="Encounters" asp-action="Index">
-                <partial name="_Icon" model='"calendar"' />
-                <span>Encounters</span>
-            </a>
+            @if (Can(HR28.Web.Services.Hr28Permissions.EncountersView))
+            {
+                <a class="@NavClass(currentController == "Encounters")"
+                   asp-controller="Encounters" asp-action="Index">
+                    <partial name="_Icon" model='"calendar"' />
+                    <span>Encounters</span>
+                </a>
+            }
 
-            <a class="@NavClass(currentController == "Pledges")"
-               asp-controller="Pledges" asp-action="Index">
-                <partial name="_Icon" model='"handshake"' />
-                <span>Pledges</span>
-            </a>
+            @if (Can(HR28.Web.Services.Hr28Permissions.PledgesView))
+            {
+                <a class="@NavClass(currentController == "Pledges")"
+                   asp-controller="Pledges" asp-action="Index">
+                    <partial name="_Icon" model='"handshake"' />
+                    <span>Pledges</span>
+                </a>
+            }
 
             <a class="@NavClass(currentController == "Reports")"
                asp-controller="Reports" asp-action="Index">
@@ -349,7 +360,7 @@
                 <partial name="_Icon" model='"menu"' />
             </button>
 
-            @if (canManageRecords)
+            @if (canViewVoters)
             {
                 <form class="shell-search"
                       role="search"

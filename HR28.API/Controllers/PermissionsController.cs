@@ -36,6 +36,33 @@ public class PermissionsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>A new custom role (no rights until they are ticked).</summary>
+    [HttpPost("roles")]
+    public async Task<IActionResult> CreateRole([FromBody] SaveRoleDto request)
+    {
+        var id = await _permissionService.CreateRoleAsync(request);
+
+        return Ok(new { id });
+    }
+
+    /// <summary>Rename / describe a custom role; choose any role's voter-profile view.</summary>
+    [HttpPut("roles/{roleId:guid}/details")]
+    public async Task<IActionResult> UpdateRole(Guid roleId, [FromBody] SaveRoleDto request)
+    {
+        await _permissionService.UpdateRoleAsync(roleId, request);
+
+        return NoContent();
+    }
+
+    /// <summary>Only custom roles that nobody has.</summary>
+    [HttpDelete("roles/{roleId:guid}")]
+    public async Task<IActionResult> DeleteRole(Guid roleId)
+    {
+        var name = await _permissionService.DeleteRoleAsync(roleId);
+
+        return Ok(new { message = $"The role \"{name}\" was deleted." });
+    }
+
     /// <summary>Extra rights granted to one user on top of their roles.</summary>
     [HttpGet("users/{userId:guid}")]
     public async Task<IActionResult> GetUserPermissions(Guid userId)

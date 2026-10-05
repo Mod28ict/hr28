@@ -70,9 +70,20 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   - Other roles: National Administrator (all data, no user management),
     Constituency Administrator, Island Administrator, Collector, Reporter (read-only
     reports). "Sees everything" = Super Administrator or National Administrator.
-  - Writing records (voters, encounters, pledges, influencer create/link) needs the
-    API `RecordWriter` policy: any role except Reporter-only (`AccessScope.CanWriteRecords`;
-    web mirror `Hr28Roles.CanManageRecords`). Influencer edit/delete use granted rights.
+  - Records (voters, encounters, pledges, influencers) are protected by **named
+    rights** per action (owner decision 2026-10-05, replaces the old `RecordWriter`
+    rule): every endpoint has `[RequirePermission(PermissionCatalog.X)]`
+    (API `Extensions/PermissionAuthorization.cs`), and screens show only what the
+    person's rights allow (`Hr28Permissions.Has`). Administrators can create **custom
+    roles** (Settings → Roles & rights); built-in roles can't be renamed or deleted,
+    a role in use can't be deleted. Built-in defaults (migration `AddRoleRights`, same
+    access as before): admin-type roles and Collector = view + add on everything,
+    edit voters, edit pledges, link influencers (National Administrator also deletes
+    voters); Reporter = view encounters and pledges only.
+  - **Default voter-profile view per role** (`Roles.VoterProfileView`): "Full" or
+    "AddEncounter" (opening a voter goes straight to Add encounter with a voter
+    summary). Several roles: Full wins. Profile sections still need their view right;
+    the API returns them empty without it.
   - **Voter list upload** (Voters → Upload voter list, API `POST api/VoterImports`) is
     for administrators only (`Administrator` policy: Super + National), max 20 MB
     .xlsx/.xls, 10 uploads per hour per user, one audit entry per upload with counts.
@@ -118,15 +129,18 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
     Deactivated accounts get 401 on their next request.
   - Assigning or removing a role or scope is audited, and assignment screens must be
     simple for non-technical administrators.
-- **Granted rights (owner decision, 2026-10-02).** Some actions are not part of any
-  role by default; the Administrator grants them as named rights, either to a role
-  (Settings → Permissions grid: everyone with the role gets it) or to one user
-  (Users → Roles → "Extra rights"). Effective rights = rights of all the user's roles
-  + the user's extra rights; the Administrator always has every right.
-  - Catalog: `PermissionCatalog` (Application/Common). Current rights:
-    `Influencers.Edit`, `Influencers.Delete`, `Encounters.Edit` (voter profile → Edit
-    on an encounter; changed fields audited, notes only as "notes"). Add new rights there; the screens list
-    them automatically. Mirror the keys in web `Hr28Permissions`.
+- **Granted rights (owner decision, 2026-10-02; extended 2026-10-05).** The
+  Administrator grants named rights either to a role (Settings → Roles & rights:
+  everyone with the role gets them) or to one user (Users → Roles → "Extra rights").
+  Both screens show the same grid (rows = Voters / Encounters / Pledges / Influencers,
+  columns = View / Add / Edit / Delete / Link). Effective rights = rights of all the
+  user's roles + the user's extra rights; the Administrator always has every right.
+  - Catalog: `PermissionCatalog` (Application/Common): `Voters.View/Add/Edit/Delete`,
+    `Encounters.View/Add/Edit/Delete`, `Pledges.View/Add/Edit/Delete`,
+    `Influencers.View/Add/Edit/Delete/Link`. Encounter edits audit changed fields
+    (notes only as "notes"). Deletes of voters, encounters and pledges are permanent,
+    area-checked and audited with a readable name. Add new rights there; the screens
+    list them automatically. Mirror the keys in web `Hr28Permissions`.
   - Stored in `RolePermissions` (RoleId, Permission) and `UserPermissions`
     (UserId, Permission) — migration `AddPermissions`; rollback:
     `dotnet ef database update HashAuthorizationCodes`.
@@ -312,13 +326,11 @@ Status as of 2026-10-02 (update when an item changes):
 2. Multiple roles and multiple scopes per user — **done** (no migration was needed;
    the tables already allowed many rows). Roles page = tick list; Areas page =
    add/remove.
-3. Permission matrix and API authorization policies — **mostly done.** Policies:
-   default (active account), `Administrator`, `SuperAdministrator`, `RecordWriter`
-   (blocks Reporter-only accounts from writing), resolved live.
-   Granted rights (`PermissionCatalog`) cover influencer edit/delete, managed in
-   Settings → Permissions and per user. Still to do: a written matrix of what each
-   role may do by default; consider moving other
-   sensitive actions (voter delete, exports) to granted rights.
+3. Permission matrix and API authorization policies — **done (2026-10-05).** Policies:
+   default (active account), `Administrator`, `SuperAdministrator`, plus a named right
+   on every record endpoint, all resolved live. Custom roles and the full rights grid
+   are in Settings → Roles & rights. Still open: report downloads/exports are not
+   rights yet (scoped, rate-limited and audited).
 4. Central session / 401 handling — **partly done.** `ApiClient` + `AppController`
    handle 401/403 for newer pages; `SessionRoleRefreshFilter` ends sessions of
    deactivated users. Older pages still call `DashboardService` directly (raw errors

@@ -1,0 +1,73 @@
+@model HR28.Web.Models.RightsGridModel
+@*
+    Rights as a grid: one row per record type, one column per action (View, Add,
+    Edit, Delete, Link). Each ticked box posts its key under Model.InputName.
+    Used for a role (Settings → Roles & rights) and for one person's extra rights.
+*@
+@{
+    var actions = new[] { "View", "Add", "Edit", "Delete", "Link" }
+        .Where(a => Model.Permissions.Any(p => p.Action == a))
+        .ToArray();
+
+    var groups = Model.Permissions
+        .Select(p => p.Group)
+        .Distinct()
+        .ToList();
+}
+
+<div class="ui-table-wrap">
+    <table class="ui-table ui-rights-grid">
+        <thead>
+            <tr>
+                <th scope="col">Records</th>
+                @foreach (var a in actions)
+                {
+                    <th scope="col" class="is-center">@a</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var g in groups)
+            {
+                <tr>
+                    <th scope="row" class="ui-strong">@g</th>
+                    @foreach (var a in actions)
+                    {
+                        var p = Model.Permissions.FirstOrDefault(x => x.Group == g && x.Action == a);
+
+                        <td class="is-center">
+                            @if (p == null)
+                            {
+                                <span class="ui-faint" aria-hidden="true">—</span>
+                            }
+                            else if (Model.AllGranted)
+                            {
+                                <span class="ui-pill is-blue" title="@p.Description">Always</span>
+                            }
+                            else
+                            {
+                                <input type="checkbox"
+                                       class="ui-perm-check"
+                                       name="@Model.InputName"
+                                       value="@p.Key"
+                                       checked="@Model.Selected.Contains(p.Key)"
+                                       title="@p.Description"
+                                       aria-label="@p.Name" />
+                            }
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<details class="ui-rights-help">
+    <summary>What each right allows</summary>
+    <ul class="ui-perm-legend">
+        @foreach (var p in Model.Permissions)
+        {
+            <li><strong>@p.Name</strong> — @p.Description</li>
+        }
+    </ul>
+</details>

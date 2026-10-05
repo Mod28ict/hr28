@@ -348,19 +348,26 @@ public class VoterService : IVoterService
 
     public async Task DeleteVoterAsync(Guid id)
     {
+        var scope = await GetCurrentScopeAsync();
+
+        // Only voters inside the user's areas; others behave as not found.
         var voter = await _dbContext.Voters
+            .InScope(scope)
             .FirstOrDefaultAsync(v => v.Id == id);
 
         if (voter == null)
             throw new KeyNotFoundException("Voter not found.");
 
+        var label = $"{voter.FullName} ({voter.NationalId})";
+
         _dbContext.Voters.Remove(voter);
 
         await _dbContext.SaveChangesAsync();
 
+        // The record is gone, so the audit entry carries the name.
         await _auditService.LogAsync(
             GetCurrentUserId(),
-            "Delete",
+            $"Delete (permanent): {label}",
             "Voter",
             id.ToString());
     }
@@ -379,7 +386,12 @@ public class VoterService : IVoterService
                 "Voter not found.");
         }
 
-        var influencers =
+        // Each section needs its own view right; without it the section stays empty.
+        var scope = await _accessScopeService.GetAsync(userId);
+
+        var influencers = !scope.HasPermission(HR28.Application.Common.PermissionCatalog.InfluencersView)
+            ? new List<VoterInfluencerDto>()
+            :
             await _dbContext.VoterInfluencers
                 .Where(x =>
                     x.VoterId == voterId)
@@ -400,7 +412,9 @@ public class VoterService : IVoterService
                         })
                 .ToListAsync();
 
-        var encounters =
+        var encounters = !scope.HasPermission(HR28.Application.Common.PermissionCatalog.EncountersView)
+            ? new List<EncounterDto>()
+            :
             await _dbContext.Encounters
                 .Where(x =>
                     x.VoterId == voterId)
@@ -423,7 +437,9 @@ public class VoterService : IVoterService
                     })
                 .ToListAsync();
 
-        var pledges =
+        var pledges = !scope.HasPermission(HR28.Application.Common.PermissionCatalog.PledgesView)
+            ? new List<PledgeDto>()
+            :
             await _dbContext.Pledges
                 .Where(x =>
                     x.VoterId == voterId)
@@ -459,8 +475,6 @@ public class VoterService : IVoterService
         };
     }
 
-    // Keep your existing influencer,
-    // encounter and pledge queries below.
     public async Task<NationalIdCheckDto> CheckNationalIdAsync(
         Guid userId,
         string nationalId,

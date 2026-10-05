@@ -57,15 +57,21 @@ state the migration and its rollback before any schema change (CLAUDE.md).
    Party changes on a voter are audited ("party Not known → MDP"). Migration
    `AddPoliticalParties`; rollback `dotnet ef database update AddEncounterResponse`
    (recorded parties are lost; backup `HR28Db_before_political_parties_2026-10-05.bak`).
-5. **User roles**
-   - Administrators create **custom roles**.
-   - Rights assignable per role for every action (view / add / edit / delete) on voters,
-     voter photos, influencers, encounters, pledges, etc. Build on the existing granted
-     rights (`PermissionCatalog`, Settings → Permissions).
-   - **Default voter-profile view per role**, chosen by administrators. Example: a
-     Collector's default view is "add encounter" only — no encounter history, no
-     delete — unless an administrator allows more. Enforce in the API too, not only
-     the screen.
+5. **User roles — DONE**
+   - Administrators create, rename and delete **custom roles** (Settings → Roles &
+     rights). Built-in roles can't be renamed or deleted; a role in use can't be deleted.
+   - Rights per role for every action: Voters, Encounters, Pledges (view / add / edit /
+     delete) and Influencers (view / add / edit / delete / link to voters), shown as one
+     grid; the same grid is used for a person's extra rights. Voter-photo rights come
+     with step 6. Every API endpoint checks its right; screens hide what isn't allowed.
+     New: encounter and pledge delete (permanent, audited); voter delete is now limited
+     to the user's areas.
+   - **Default voter-profile view per role**: "Full profile" or "Add encounter only".
+     Example from the client: set Collector to "Add encounter only" and untick its
+     "View encounters" — collectors then open a voter straight on Add encounter, see no
+     history and can't delete (the API returns no history either). Not applied
+     automatically: on upgrade every built-in role keeps exactly its current access
+     (migration `AddRoleRights`; rollback `dotnet ef database update AddPoliticalParties`).
 6. **Voter photos** — see decisions.
 
 ## Client's original comments (verbatim)

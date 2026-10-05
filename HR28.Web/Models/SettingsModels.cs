@@ -43,6 +43,9 @@ public class MyAccountDto
 
     public bool IsAdministrator { get; set; }
 
+    /// <summary>"Full" or "AddEncounter": what opens when the user opens a voter.</summary>
+    public string? VoterProfileView { get; set; }
+
     public List<string> Scopes { get; set; } = new();
 
     public DateTime? LastLoginAt { get; set; }
@@ -112,6 +115,23 @@ public class PermissionInfo
     public string Description { get; set; } = string.Empty;
 
     public string Group { get; set; } = string.Empty;
+
+    /// <summary>View, Add, Edit, Delete or Link (a column of the rights grid).</summary>
+    public string Action { get; set; } = string.Empty;
+}
+
+/// <summary>Input for the shared _RightsGrid partial.</summary>
+public class RightsGridModel
+{
+    public List<PermissionInfo> Permissions { get; set; } = new();
+
+    public HashSet<string> Selected { get; set; } = new();
+
+    /// <summary>Form field name each ticked box posts.</summary>
+    public string InputName { get; set; } = "grants";
+
+    /// <summary>The Administrator: every box shows "Always" instead of a tick box.</summary>
+    public bool AllGranted { get; set; }
 }
 
 public class RolePermissions
@@ -123,6 +143,16 @@ public class RolePermissions
     public bool HasAllPermissions { get; set; }
 
     public List<string> Permissions { get; set; } = new();
+
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>Built-in roles can't be renamed or deleted.</summary>
+    public bool IsBuiltIn { get; set; }
+
+    /// <summary>"Full" or "AddEncounter".</summary>
+    public string VoterProfileView { get; set; } = "Full";
+
+    public int UserCount { get; set; }
 }
 
 public class PermissionMatrix
@@ -134,7 +164,7 @@ public class PermissionMatrix
 
 public class SettingsViewModel
 {
-    /// <summary>appearance | account | system | geography | lists | permissions</summary>
+    /// <summary>appearance | account | system | geography | lists | permissions (roles &amp; rights)</summary>
     public string Tab { get; set; } = "appearance";
 
     public bool IsAdministrator { get; set; }
@@ -158,6 +188,9 @@ public class SettingsViewModel
 
     /// <summary>Roles × rights grid (Administrator only).</summary>
     public PermissionMatrix? Permissions { get; set; }
+
+    /// <summary>Roles &amp; rights tab: the role being edited (first role when none chosen).</summary>
+    public Guid? SelectedRoleId { get; set; }
 
     /// <summary>Lists tab: influencer categories.</summary>
     public List<InfluencerCategoryDto> InfluencerCategories { get; set; } = new();

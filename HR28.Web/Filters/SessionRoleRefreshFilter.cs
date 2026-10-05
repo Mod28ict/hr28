@@ -61,6 +61,9 @@ public class SessionRoleRefreshFilter : IAsyncActionFilter
             session.SetString(
                 Hr28Permissions.SessionKey,
                 Hr28Permissions.ToSession(account.Data.Permissions));
+            session.SetString(
+                Hr28Permissions.ProfileViewSessionKey,
+                account.Data.VoterProfileView ?? "Full");
         }
 
         // The campaign name (Settings → System) appears in the sidebar; keep it current too.

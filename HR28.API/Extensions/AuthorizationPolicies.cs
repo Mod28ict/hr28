@@ -16,14 +16,16 @@ public static class AuthorizationPolicies
     /// <summary>The client's Administrator (stored as "Super Administrator"): users, roles and scopes.</summary>
     public const string SuperAdministrator = "SuperAdministrator";
 
-    /// <summary>Anyone who may create or change records: every role except Reporter-only accounts.</summary>
-    public const string RecordWriter = "RecordWriter";
+    // Records (voters, encounters, pledges, influencers) are protected by named rights
+    // instead: [RequirePermission(PermissionCatalog.X)] (see PermissionAuthorization.cs).
 
     public static IServiceCollection AddHr28AuthorizationPolicies(
         this IServiceCollection services)
     {
         services.AddMemoryCache();
         services.AddScoped<IAuthorizationHandler, AccessRequirementHandler>();
+        services.AddScoped<IAuthorizationHandler, PermissionRequirementHandler>();
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
         services.AddSingleton<
             Microsoft.AspNetCore.Authorization.IAuthorizationMiddlewareResultHandler,
             InactiveAccountResultHandler>();
@@ -44,9 +46,6 @@ public static class AuthorizationPolicies
                 .RequireAuthenticatedUser()
                 .AddRequirements(new AccessRequirement(AccessLevel.SuperAdministrator)));
 
-            options.AddPolicy(RecordWriter, policy => policy
-                .RequireAuthenticatedUser()
-                .AddRequirements(new AccessRequirement(AccessLevel.RecordWriter)));
         });
 
         return services;
@@ -57,8 +56,7 @@ public enum AccessLevel
 {
     ActiveUser,
     Administrator,
-    SuperAdministrator,
-    RecordWriter
+    SuperAdministrator
 }
 
 public class AccessRequirement : IAuthorizationRequirement
@@ -98,7 +96,6 @@ public class AccessRequirementHandler : AuthorizationHandler<AccessRequirement>
             AccessLevel.ActiveUser => true,
             AccessLevel.Administrator => access.IsAdministrator,
             AccessLevel.SuperAdministrator => access.IsSuperAdministrator,
-            AccessLevel.RecordWriter => access.CanWriteRecords,
             _ => false
         };
 

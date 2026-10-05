@@ -16,6 +16,9 @@ public interface IPledgeService
         Guid pledgeId,
         UpdatePledgeStatusDto request);
 
+    /// <summary>Permanently deletes a pledge whose voter is in the caller's areas. Audited.</summary>
+    Task DeleteAsync(Guid pledgeId);
+
     /// <summary>One pledge whose voter is in the caller's areas.</summary>
     Task<PledgeDto> GetByIdAsync(Guid pledgeId);
 

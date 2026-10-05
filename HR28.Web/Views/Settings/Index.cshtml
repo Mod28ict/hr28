@@ -18,7 +18,7 @@
 
     if (Model.IsSuperAdministrator)
     {
-        tabs.Add(("permissions", "Permissions", "shield"));
+        tabs.Add(("permissions", "Roles & rights", "shield"));
     }
 
     string LocalTime(DateTime? value) =>
@@ -253,81 +253,172 @@
         </section>
     }
 
-    @* ---------------- PERMISSIONS (Administrator) ---------------- *@
+    @* ---------------- ROLES & RIGHTS (Administrator) ---------------- *@
     @if (Model.Tab == "permissions" && Model.Permissions != null)
     {
         var matrix = Model.Permissions;
+        var selected = matrix.Roles.FirstOrDefault(r => r.RoleId == Model.SelectedRoleId);
 
         <div class="ui-note">
             <partial name="_Icon" model='"info"' />
             <span>
-                Tick a box to give that right to <strong style="display: inline;">everyone</strong> with the role.
-                To give a right to just one person, open Users → Roles for that person.
-                Rights only ever apply inside the person's own areas.
+                A role is a set of rights. Everyone with the role gets them, but only inside their own areas
+                (Users → Areas). To give a right to just one person, use Users → Roles → Extra rights.
             </span>
         </div>
 
-        <section class="ui-card ui-card-lg">
-            <form asp-action="SavePermissions" method="post">
-                @Html.AntiForgeryToken()
+        <div class="ui-roles-layout">
 
-                <div class="ui-table-wrap">
-                    <table class="ui-table ui-perm-table">
-                        <thead>
-                            <tr>
-                                <th>Role</th>
-                                @foreach (var p in matrix.Permissions)
-                                {
-                                    <th class="is-center" title="@p.Description">@p.Name</th>
-                                }
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var role in matrix.Roles)
-                            {
-                                <tr>
-                                    <td class="ui-strong">@HR28.Web.Services.Hr28Roles.DisplayName(role.RoleName)</td>
-
-                                    @foreach (var p in matrix.Permissions)
-                                    {
-                                        <td class="is-center">
-                                            @if (role.HasAllPermissions)
-                                            {
-                                                <span class="ui-pill is-blue" title="The Administrator always has every right">Always</span>
-                                            }
-                                            else
-                                            {
-                                                <input type="checkbox"
-                                                       class="ui-perm-check"
-                                                       name="grants"
-                                                       value="@role.RoleId:@p.Key"
-                                                       checked="@role.Permissions.Contains(p.Key)"
-                                                       aria-label="@p.Name for @HR28.Web.Services.Hr28Roles.DisplayName(role.RoleName)" />
-                                            }
-                                        </td>
-                                    }
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+            <!-- Roles -->
+            <section class="ui-card">
+                <div class="ui-card-head">
+                    <h2>Roles <span class="ui-count is-blue">@matrix.Roles.Count</span></h2>
                 </div>
 
-                <ul class="ui-perm-legend">
-                    @foreach (var p in matrix.Permissions)
+                <nav class="ui-role-list" aria-label="Roles">
+                    @foreach (var r in matrix.Roles)
                     {
-                        <li><strong>@p.Name</strong> — @p.Description</li>
+                        <a asp-action="Index"
+                           asp-route-tab="permissions"
+                           asp-route-role="@r.RoleId"
+                           class="ui-role-item @(r.RoleId == Model.SelectedRoleId ? "is-active" : "")"
+                           aria-current="@(r.RoleId == Model.SelectedRoleId ? "true" : null)">
+                            <span class="ui-strong">@HR28.Web.Services.Hr28Roles.DisplayName(r.RoleName)</span>
+                            <small class="ui-muted">
+                                @(r.UserCount == 1 ? "1 person" : $"{r.UserCount} people")
+                                @(r.IsBuiltIn ? " · built-in" : " · custom")
+                            </small>
+                        </a>
                     }
-                </ul>
+                </nav>
 
-                <div class="ui-form-actions">
-                    <button type="submit" class="ui-btn ui-btn-primary">
-                        <partial name="_Icon" model='"check"' />
-                        Save permissions
+                <form asp-action="CreateRole" method="post" class="ui-inline-form" style="margin-top: 14px;">
+                    @Html.AntiForgeryToken()
+                    <div class="ui-inline-form-title">New role</div>
+                    <div class="ui-field" style="margin: 0 0 8px;">
+                        <label for="newRoleName" class="ui-label">Name</label>
+                        <input id="newRoleName" name="name" class="ui-input" required minlength="2" maxlength="50" placeholder="e.g. Field Coordinator" />
+                    </div>
+                    <div class="ui-field" style="margin: 0 0 8px;">
+                        <label for="newRoleDescription" class="ui-label">Description <span class="ui-optional">(optional)</span></label>
+                        <input id="newRoleDescription" name="description" class="ui-input" maxlength="200" />
+                    </div>
+                    <input type="hidden" name="voterProfileView" value="Full" />
+                    <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">
+                        <partial name="_Icon" model='"plus"' /> Create role
                     </button>
-                    <span class="ui-muted" style="font-size: 13px; align-self: center;">Every change is recorded in the audit trail.</span>
-                </div>
-            </form>
-        </section>
+                </form>
+            </section>
+
+            <!-- The selected role -->
+            @if (selected != null)
+            {
+                var display = HR28.Web.Services.Hr28Roles.DisplayName(selected.RoleName);
+
+                <section class="ui-card ui-card-lg">
+                    <form asp-action="SaveRole" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="roleId" value="@selected.RoleId" />
+
+                        <div class="ui-card-head">
+                            <h2>@display</h2>
+                            @if (selected.IsBuiltIn)
+                            {
+                                <span class="ui-pill is-muted" title="Built-in roles can't be renamed or deleted">Built-in</span>
+                            }
+                        </div>
+
+                        @if (!selected.IsBuiltIn)
+                        {
+                            <div class="ui-grid-2">
+                                <div class="ui-field">
+                                    <label for="roleName" class="ui-label">Name</label>
+                                    <input id="roleName" name="name" class="ui-input" value="@selected.RoleName" required minlength="2" maxlength="50" />
+                                </div>
+                                <div class="ui-field">
+                                    <label for="roleDescription" class="ui-label">Description <span class="ui-optional">(optional)</span></label>
+                                    <input id="roleDescription" name="description" class="ui-input" value="@selected.Description" maxlength="200" />
+                                </div>
+                            </div>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(selected.Description))
+                        {
+                            <p class="ui-muted" style="margin: -6px 0 14px;">@selected.Description</p>
+                        }
+
+                        <fieldset class="ui-field">
+                            <legend class="ui-label">When someone with this role opens a voter</legend>
+                            @if (selected.HasAllPermissions)
+                            {
+                                <p class="ui-muted" style="margin: 0;">The Administrator always sees the full profile.</p>
+                                <input type="hidden" name="voterProfileView" value="Full" />
+                            }
+                            else
+                            {
+                                <div class="ui-choice-row">
+                                    <label class="ui-check-card">
+                                        <input type="radio" name="voterProfileView" value="Full" checked="@(selected.VoterProfileView != "AddEncounter")" />
+                                        <span>
+                                            <strong>Full profile</strong>
+                                            <small>Details, plus the sections this role may view below.</small>
+                                        </span>
+                                    </label>
+                                    <label class="ui-check-card">
+                                        <input type="radio" name="voterProfileView" value="AddEncounter" checked="@(selected.VoterProfileView == "AddEncounter")" />
+                                        <span>
+                                            <strong>Add encounter only</strong>
+                                            <small>Goes straight to recording an encounter, with a short summary of the voter.</small>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="ui-hint">If someone has several roles, the full profile wins when any of them allows it.</div>
+                            }
+                        </fieldset>
+
+                        <div class="ui-field">
+                            <span class="ui-label">What this role may do</span>
+                            <partial name="_RightsGrid" model='new HR28.Web.Models.RightsGridModel
+                            {
+                                Permissions = matrix.Permissions,
+                                Selected = selected.Permissions.ToHashSet(),
+                                InputName = "grants",
+                                AllGranted = selected.HasAllPermissions
+                            }' />
+                            @if (!selected.HasAllPermissions)
+                            {
+                                <div class="ui-hint">
+                                    Example: a Collector who should only add encounters needs "View" voters and "Add" encounters, with "View" encounters left unticked so no history is shown.
+                                </div>
+                            }
+                        </div>
+
+                        <div class="ui-form-actions" style="align-items: center;">
+                            <button type="submit" class="ui-btn ui-btn-primary">
+                                <partial name="_Icon" model='"check"' />
+                                Save role
+                            </button>
+                            <span class="ui-muted" style="font-size: 13px;">Changes apply straight away and are recorded in the audit trail.</span>
+                        </div>
+                    </form>
+
+                    @if (!selected.IsBuiltIn)
+                    {
+                        <form asp-action="DeleteRole" method="post" style="margin-top: 16px;"
+                              data-confirm="Delete the role &quot;@display&quot;?">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="roleId" value="@selected.RoleId" />
+                            <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm ui-btn-danger" disabled="@(selected.UserCount > 0)">
+                                <partial name="_Icon" model='"trash"' /> Delete role
+                            </button>
+                            @if (selected.UserCount > 0)
+                            {
+                                <span class="ui-muted" style="font-size: 13px;">Remove this role from everyone who has it first (Users → Roles).</span>
+                            }
+                        </form>
+                    }
+                </section>
+            }
+        </div>
     }
 
     @* ---------------- LISTS (administrators) ---------------- *@
