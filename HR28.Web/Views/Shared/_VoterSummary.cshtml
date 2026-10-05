@@ -1,0 +1,21 @@
+@model HR28.Web.Models.VoterSearchDto
+@* Short voter summary (name, National ID, status, place) above quick-add pages. *@
+@{
+    var who = string.IsNullOrWhiteSpace(Model.FullName) ? "Unnamed voter" : Model.FullName;
+    var place = string.Join(", ", new[] { Model.Address, Model.IslandName, Model.ConstituencyName }.Where(s => !string.IsNullOrWhiteSpace(s)));
+}
+
+<section class="ui-card" aria-label="Voter">
+    <div class="ui-person">
+        <span class="ui-avatar" aria-hidden="true">@string.Concat(who.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])))</span>
+        <span>
+            <strong>@who</strong>
+            <small class="ui-num">@Model.NationalId@(string.IsNullOrEmpty(Model.GenderAndAge) ? "" : " · " + Model.GenderAndAge)</small>
+        </span>
+        <span style="margin-left: auto;"><partial name="_StatusPill" model="Model.SupportStatus" /></span>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(place))
+    {
+        <div class="ui-muted" style="margin-top: 8px; font-size: 13px;">@place</div>
+    }
+</section>

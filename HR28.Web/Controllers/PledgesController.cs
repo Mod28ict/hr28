@@ -176,6 +176,10 @@ public class PledgesController : Controller
         TempData["SuccessMessage"] =
             "Pledge recorded successfully.";
 
+        // "Add encounter only" roles go back to the same filtered voter list.
+        if (Hr28Permissions.OpensVotersOnAddEncounter(HttpContext.Session))
+            return LocalRedirect(VotersController.LastVoterListUrl(Url, HttpContext.Session));
+
         return RedirectToAction(
             "Profile",
             "Voters",

@@ -231,12 +231,35 @@ public class VotersController : Controller
     public async Task<IActionResult>
         Profile(Guid id)
     {
-        // Roles set to "Add encounter only" (Settings → Roles & rights) open voters
-        // straight on the encounter form. The API limits what the profile returns anyway.
-        if (Hr28Permissions.OpensVotersOnAddEncounter(HttpContext.Session) &&
-            Hr28Permissions.Has(HttpContext.Session, Hr28Permissions.EncountersAdd))
+        // Roles set to "Add encounter only" (Settings → Roles & rights): with only "Add
+        // encounters" they go straight to that form; with more add rights (pledges, linking
+        // influencers) they choose from cards. The API limits what the profile returns anyway.
+        if (Hr28Permissions.OpensVotersOnAddEncounter(HttpContext.Session))
         {
-            return RedirectToAction("Create", "Encounters", new { voterId = id });
+            var choices = VoterQuickActions.For(HttpContext.Session);
+
+            if (VoterQuickActions.OnlyEncounter(HttpContext.Session))
+                return RedirectToAction("Create", "Encounters", new { voterId = id });
+
+            if (choices.Count > 0)
+            {
+                var voter = await _apiClient.GetAsync<VoterSearchDto>($"Voters/{id}", HttpContext.Session.GetString("JwtToken"));
+
+                if (voter.IsUnauthorized)
+                {
+                    HttpContext.Session.Clear();
+                    return RedirectToAction("Login", "Auth");
+                }
+
+                if (!voter.Success || voter.Data == null)
+                {
+                    TempData["FlashError"] = "That voter could not be found.";
+                    return LocalRedirect(LastVoterListUrl(Url, HttpContext.Session));
+                }
+
+                ViewBag.Choices = choices;
+                return View("Choose", voter.Data);
+            }
         }
 
         var token =

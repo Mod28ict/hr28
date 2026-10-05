@@ -20,8 +20,11 @@
     // "Add encounter only" roles don't open the profile; lead them back to the list.
     var addOnly = HR28.Web.Services.Hr28Permissions.OpensVotersOnAddEncounter(Context.Session);
 
-    // Back to the same filtered Voters page the person came from.
-    var votersUrl = HR28.Web.Controllers.VotersController.LastVoterListUrl(Url, Context.Session);
+    // Back to the same filtered Voters page the person came from, or to the
+    // "what would you like to add?" page when they may add more than encounters.
+    var votersUrl = HR28.Web.Services.VoterQuickActions.OnlyEncounter(Context.Session)
+        ? HR28.Web.Controllers.VotersController.LastVoterListUrl(Url, Context.Session)
+        : Url.Action("Profile", "Voters", new { id = Model.VoterId });
 }
 
 <div class="ui-page is-narrow">
@@ -53,23 +56,7 @@
 
     @if (summary != null)
     {
-        var who = string.IsNullOrWhiteSpace(summary.FullName) ? "Unnamed voter" : summary.FullName;
-        var place = string.Join(", ", new[] { summary.Address, summary.IslandName, summary.ConstituencyName }.Where(s => !string.IsNullOrWhiteSpace(s)));
-
-        <section class="ui-card" aria-label="Voter">
-            <div class="ui-person">
-                <span class="ui-avatar" aria-hidden="true">@string.Concat(who.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])))</span>
-                <span>
-                    <strong>@who</strong>
-                    <small class="ui-num">@summary.NationalId</small>
-                </span>
-                <span style="margin-left: auto;"><partial name="_StatusPill" model="summary.SupportStatus" /></span>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(place))
-            {
-                <div class="ui-muted" style="margin-top: 8px; font-size: 13px;">@place</div>
-            }
-        </section>
+        <partial name="_VoterSummary" model="summary" />
     }
 
     <section class="ui-card ui-card-lg">

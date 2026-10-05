@@ -1,0 +1,52 @@
+@model HR28.Web.Models.VoterSearchDto
+@{
+    ViewData["Title"] = "Voter";
+
+    var choices = ViewBag.Choices as List<HR28.Web.Services.VoterQuickActions.Choice> ?? new();
+    var votersUrl = HR28.Web.Controllers.VotersController.LastVoterListUrl(Url, Context.Session);
+}
+
+<div class="ui-page is-narrow">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ui-alert is-green" role="status">
+            <partial name="_Icon" model='"check-circle"' />
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-blue"><partial name="_Icon" model='"users"' /></span>
+            <div>
+                <nav class="ui-crumb" aria-label="Breadcrumb">
+                    <a href="@votersUrl">Voters</a> <span aria-hidden="true">/</span> <span>What would you like to add?</span>
+                </nav>
+                <h1 class="ui-title">What would you like to add?</h1>
+                <p class="ui-sub">Choose one. You come back to the voter list when it's saved.</p>
+            </div>
+        </div>
+    </header>
+
+    <partial name="_VoterSummary" model="Model" />
+
+    <section class="ui-choice-cards" aria-label="Choose what to add">
+        @foreach (var c in choices)
+        {
+            <a class="ui-choice-card @c.Tone"
+               href="@Url.Action(c.Action, c.Controller, new { voterId = Model.Id })">
+                <span class="ui-head-icon @c.Tone"><partial name="_Icon" model="@c.Icon" /></span>
+                <span>
+                    <strong>@c.Title</strong>
+                    <small class="ui-muted">@c.Text</small>
+                </span>
+            </a>
+        }
+    </section>
+
+    <div class="ui-form-actions">
+        <a href="@votersUrl" class="ui-btn ui-btn-secondary">Back to voters</a>
+    </div>
+
+</div>

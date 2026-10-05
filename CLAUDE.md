@@ -82,7 +82,9 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
     voters); Reporter = view encounters and pledges only.
   - **Default voter-profile view per role** (`Roles.VoterProfileView`): "Full" or
     "AddEncounter" (opening a voter goes straight to Add encounter with a voter
-    summary). Several roles: Full wins. Profile sections still need their view right;
+    summary; if the person may also add pledges or link influencers, they get a
+    "What would you like to add?" page of cards instead — `VoterQuickActions`).
+    After saving they return to the same filtered Voters list. Several roles: Full wins. Profile sections still need their view right;
     the API returns them empty without it.
   - **Voter list upload** (Voters → Upload voter list, API `POST api/VoterImports`) is
     for administrators only (`Administrator` policy: Super + National), max 20 MB

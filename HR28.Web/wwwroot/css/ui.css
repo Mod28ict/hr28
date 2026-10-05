@@ -1195,6 +1195,50 @@ a.ui-page-btn:hover {
         color: var(--ui-text);
     }
 
+/* ---------- Quick-add choice cards (Voters → choose what to add) ---------- */
+
+.ui-choice-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.ui-choice-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-surface);
+    box-shadow: var(--ui-shadow);
+    color: var(--ui-text);
+    text-decoration: none;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+    .ui-choice-card:hover {
+        border-color: var(--ui-blue);
+        transform: translateY(-1px);
+        color: var(--ui-text);
+    }
+
+    .ui-choice-card:focus-visible {
+        outline: 2px solid var(--ui-blue);
+        outline-offset: 2px;
+    }
+
+    .ui-choice-card strong {
+        display: block;
+        font-size: 16px;
+    }
+
+    .ui-choice-card small {
+        display: block;
+        font-size: 13px;
+    }
+
 /* ---------- Voter photo (profile) ---------- */
 
 .ui-voter-photo {
