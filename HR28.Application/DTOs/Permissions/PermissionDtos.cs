@@ -33,6 +33,9 @@ public class RolePermissionsDto
     /// <summary>"Full" or "AddEncounter": what opens when someone with this role opens a voter.</summary>
     public string VoterProfileView { get; set; } = "Full";
 
+    /// <summary>"Dashboard" or "QuickEntry": where someone with this role lands after signing in.</summary>
+    public string StartPage { get; set; } = "Dashboard";
+
     /// <summary>People who have this role (a role in use can't be deleted).</summary>
     public int UserCount { get; set; }
 }
@@ -45,6 +48,9 @@ public class SaveRoleDto
     public string Description { get; set; } = string.Empty;
 
     public string VoterProfileView { get; set; } = "Full";
+
+    /// <summary>"Dashboard" or "QuickEntry". Missing keeps the current value on update.</summary>
+    public string? StartPage { get; set; }
 }
 
 public class PermissionMatrixDto

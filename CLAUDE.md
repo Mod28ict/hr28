@@ -86,6 +86,17 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
     "What would you like to add?" page of cards instead — `VoterQuickActions`).
     After saving they return to the same filtered Voters list. Several roles: Full wins. Profile sections still need their view right;
     the API returns them empty without it.
+  - **Start page per role** (owner decision, 2026-10-06): `Roles.StartPage` "Dashboard"
+    or "QuickEntry" (Settings → Roles & rights, "When someone with this role signs
+    in"). QuickEntry hides the Dashboard link and sends sign-in to **Quick entry**
+    (`QuickEntryController`): fetch a voter by ID card (API
+    `GET api/voters/by-national-id/{nid}`, Voters.View, inside the user's areas only,
+    rate-limited like search; outside = "not found"), shows photo (with
+    `Voters.Photo.View`) and details, and keeps the Add encounter / Add pledge / Link
+    influencer forms open (each only with its right); every successful save reloads
+    the whole page. Several roles: Dashboard wins; the Administrator always gets the
+    Dashboard. Migration `AddRoleStartPage`; rollback
+    `dotnet ef database update AddVoterDateOfBirth`.
   - **Voter list upload** (Voters → Upload voter list, API `POST api/VoterImports`) is
     for administrators only (`Administrator` policy: Super + National), max 20 MB
     .xlsx/.xls, 10 uploads per hour per user, one audit entry per upload with counts.

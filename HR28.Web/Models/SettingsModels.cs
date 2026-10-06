@@ -46,6 +46,9 @@ public class MyAccountDto
     /// <summary>"Full" or "AddEncounter": what opens when the user opens a voter.</summary>
     public string? VoterProfileView { get; set; }
 
+    /// <summary>"Dashboard" or "QuickEntry": where the user lands after signing in.</summary>
+    public string? StartPage { get; set; }
+
     public List<string> Scopes { get; set; } = new();
 
     public DateTime? LastLoginAt { get; set; }
@@ -154,6 +157,9 @@ public class RolePermissions
 
     /// <summary>"Full" or "AddEncounter".</summary>
     public string VoterProfileView { get; set; } = "Full";
+
+    /// <summary>"Dashboard" or "QuickEntry": where someone with this role lands after signing in.</summary>
+    public string StartPage { get; set; } = "Dashboard";
 
     public int UserCount { get; set; }
 }

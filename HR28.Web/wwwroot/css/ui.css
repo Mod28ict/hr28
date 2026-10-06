@@ -1054,7 +1054,7 @@ a.ui-page-btn:hover {
 .ui-details {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0;
+    gap: 16px 0;
     margin: 0;
 }
 
@@ -1063,7 +1063,8 @@ a.ui-page-btn:hover {
         border-left: 1px solid #eef2f7;
     }
 
-        .ui-details > div:first-child {
+        /* The first item of every row of four starts flush left. */
+        .ui-details > div:nth-child(4n+1) {
             padding-left: 0;
             border-left: 0;
         }
@@ -1193,6 +1194,80 @@ a.ui-page-btn:hover {
 
     .ui-perm-legend strong {
         color: var(--ui-text);
+    }
+
+/* ---------- Quick entry (find by ID card + add forms on one page) ---------- */
+
+.ui-quick-find-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+    .ui-quick-find-row .ui-search {
+        flex: 0 1 320px;
+    }
+
+.ui-quick-voter {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.ui-quick-photo img,
+.ui-quick-photo .ui-avatar {
+    width: 128px;
+    height: 128px;
+    flex: 0 0 128px;
+    border-radius: 16px;
+    object-fit: cover;
+    border: 1px solid var(--ui-border);
+    background: var(--ui-subtle);
+    font-size: 36px;
+}
+
+.ui-quick-details {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.ui-quick-name {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+    .ui-quick-name h2 {
+        margin: 0;
+        font-size: 22px;
+    }
+
+@media (max-width: 640px) {
+    .ui-quick-voter {
+        flex-direction: column;
+    }
+}
+
+.ui-quick-forms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 18px;
+    align-items: start;
+}
+
+.ui-quick-form {
+    margin: 0;
+}
+
+    .ui-quick-form h3 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 14px;
+        font-size: 17px;
     }
 
 /* ---------- Quick-add choice cards (Voters → choose what to add) ---------- */

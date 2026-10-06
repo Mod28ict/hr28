@@ -42,6 +42,9 @@ public class MyAccountDto
     /// <summary>"Full" or "AddEncounter": what opens when this user opens a voter.</summary>
     public string VoterProfileView { get; set; } = "Full";
 
+    /// <summary>"Dashboard" or "QuickEntry": where this user lands after signing in.</summary>
+    public string StartPage { get; set; } = "Dashboard";
+
     /// <summary>Readable scope lines, e.g. "Malé Central (all islands)".</summary>
     public List<string> Scopes { get; set; } = new();
 

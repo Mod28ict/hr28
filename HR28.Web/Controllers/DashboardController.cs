@@ -23,6 +23,10 @@ public class DashboardController : Controller
 
     public async Task<IActionResult> Index()
     {
+        // Roles set to start on Quick entry (Settings → Roles & rights) skip the Dashboard.
+        if (Hr28Permissions.StartsOnQuickEntry(HttpContext.Session))
+            return RedirectToAction("Index", "QuickEntry");
+
         var token =
             HttpContext.Session.GetString(
                 "JwtToken");

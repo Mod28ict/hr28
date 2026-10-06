@@ -379,7 +379,7 @@ public class SettingsController : AppController
     /// <summary>A new custom role; it has no rights until they are ticked.</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateRole(string? name, string? description, string? voterProfileView)
+    public async Task<IActionResult> CreateRole(string? name, string? description, string? voterProfileView, string? startPage)
     {
         if (!IsSuperAdministrator)
             return RedirectToAction(nameof(Index));
@@ -390,7 +390,8 @@ public class SettingsController : AppController
             {
                 name = name?.Trim() ?? string.Empty,
                 description = description?.Trim() ?? string.Empty,
-                voterProfileView = voterProfileView ?? "Full"
+                voterProfileView = voterProfileView ?? "Full",
+                startPage = startPage ?? "Dashboard"
             },
             Token);
 
@@ -424,6 +425,7 @@ public class SettingsController : AppController
         string? name,
         string? description,
         string? voterProfileView,
+        string? startPage,
         List<string>? grants)
     {
         if (!IsSuperAdministrator)
@@ -448,7 +450,8 @@ public class SettingsController : AppController
             {
                 name = role.IsBuiltIn ? role.RoleName : name?.Trim() ?? string.Empty,
                 description = role.IsBuiltIn ? role.Description : description?.Trim() ?? string.Empty,
-                voterProfileView = voterProfileView ?? role.VoterProfileView
+                voterProfileView = voterProfileView ?? role.VoterProfileView,
+                startPage = startPage ?? role.StartPage
             },
             Token);
 

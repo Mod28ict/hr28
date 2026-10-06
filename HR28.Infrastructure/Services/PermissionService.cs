@@ -71,6 +71,7 @@ public class PermissionService : IPermissionService
                 r.Name,
                 r.Description,
                 r.VoterProfileView,
+                r.StartPage,
                 UserCount = r.UserRoles.Count
             })
             .ToListAsync();
@@ -105,6 +106,9 @@ public class PermissionService : IPermissionService
                     VoterProfileView = r.Name == AccessScopeService.SuperAdministratorRole
                         ? VoterProfileViews.Full
                         : r.VoterProfileView,
+                    StartPage = r.Name == AccessScopeService.SuperAdministratorRole
+                        ? StartPages.Dashboard
+                        : r.StartPage,
                     UserCount = r.UserCount,
                     Permissions = grants
                         .Where(g => g.RoleId == r.Id)
@@ -179,6 +183,10 @@ public class PermissionService : IPermissionService
         return (name, description);
     }
 
+    private static string RequireStartPage(string? page) =>
+        StartPages.All.FirstOrDefault(p => p == page)
+        ?? throw new BusinessRuleException("Please choose where people with this role start: Dashboard or Quick entry.");
+
     private static string RequireProfileView(string? view) =>
         VoterProfileViews.All.FirstOrDefault(v => v == view)
         ?? throw new BusinessRuleException("Please choose what opens when someone opens a voter.");
@@ -187,13 +195,15 @@ public class PermissionService : IPermissionService
     {
         var (name, description) = await ValidateRoleAsync(request, null);
         var view = RequireProfileView(request.VoterProfileView);
+        var startPage = RequireStartPage(request.StartPage ?? StartPages.Dashboard);
 
         var role = new Role
         {
             Id = Guid.NewGuid(),
             Name = name,
             Description = description,
-            VoterProfileView = view
+            VoterProfileView = view,
+            StartPage = startPage
         };
 
         _dbContext.Roles.Add(role);
@@ -201,7 +211,7 @@ public class PermissionService : IPermissionService
 
         await _auditService.LogAsync(
             GetCurrentUserId(),
-            $"Create role (opens voters on: {VoterProfileViews.Label(view)})",
+            $"Create role (opens voters on: {VoterProfileViews.Label(view)}; starts on: {StartPages.Label(startPage)})",
             "Role",
             name);
 
@@ -214,12 +224,16 @@ public class PermissionService : IPermissionService
             ?? throw new KeyNotFoundException("Role not found.");
 
         var view = RequireProfileView(request.VoterProfileView);
+        var startPage = RequireStartPage(request.StartPage ?? role.StartPage);
         var changes = new List<string>();
 
         if (role.Name == AccessScopeService.SuperAdministratorRole)
         {
             if (view != VoterProfileViews.Full)
                 throw new BusinessRuleException("The Administrator always sees the full voter profile.");
+
+            if (startPage != StartPages.Dashboard)
+                throw new BusinessRuleException("The Administrator always starts on the Dashboard.");
 
             return;
         }
@@ -239,6 +253,12 @@ public class PermissionService : IPermissionService
         {
             changes.Add($"opens voters on \"{VoterProfileViews.Label(role.VoterProfileView)}\" → \"{VoterProfileViews.Label(view)}\"");
             role.VoterProfileView = view;
+        }
+
+        if (role.StartPage != startPage)
+        {
+            changes.Add($"starts on \"{StartPages.Label(role.StartPage)}\" → \"{StartPages.Label(startPage)}\"");
+            role.StartPage = startPage;
         }
 
         if (changes.Count == 0)

@@ -65,7 +65,7 @@ public class AccessScopeService : IAccessScopeService
 
         var roleRows = await _dbContext.UserRoles
             .Where(ur => ur.UserId == userId)
-            .Select(ur => new { ur.Role.Name, ur.Role.VoterProfileView })
+            .Select(ur => new { ur.Role.Name, ur.Role.VoterProfileView, ur.Role.StartPage })
             .ToListAsync();
 
         var roles = roleRows.Select(r => r.Name).Distinct().ToList();
@@ -79,6 +79,14 @@ public class AccessScopeService : IAccessScopeService
             roleRows.Any(r => r.VoterProfileView != VoterProfileViews.AddEncounter)
                 ? VoterProfileViews.Full
                 : VoterProfileViews.AddEncounter;
+
+        // Same rule for the start page: one role with the Dashboard is enough.
+        var startPage =
+            roles.Contains(SuperAdministratorRole) ||
+            roleRows.Count == 0 ||
+            roleRows.Any(r => r.StartPage != StartPages.QuickEntry)
+                ? StartPages.Dashboard
+                : StartPages.QuickEntry;
 
         // Rights = those of every role the user has + those granted to the user.
         var rolePermissions = await _dbContext.RolePermissions
@@ -105,7 +113,8 @@ public class AccessScopeService : IAccessScopeService
                 IsAdministrator = true,
                 IsSuperAdministrator = roles.Contains(SuperAdministratorRole),
                 Permissions = permissions,
-                VoterProfileView = profileView
+                VoterProfileView = profileView,
+                StartPage = startPage
             };
         }
 
@@ -141,6 +150,7 @@ public class AccessScopeService : IAccessScopeService
             IsAdministrator = false,
             Permissions = permissions,
             VoterProfileView = profileView,
+            StartPage = startPage,
             ConstituencyIds = constituencyIds,
             IslandIds = islandIds,
             VisibleConstituencyIds = visibleConstituencyIds

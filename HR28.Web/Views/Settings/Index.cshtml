@@ -375,6 +375,35 @@
                             }
                         </fieldset>
 
+                        <fieldset class="ui-field">
+                            <legend class="ui-label">When someone with this role signs in</legend>
+                            @if (selected.HasAllPermissions)
+                            {
+                                <p class="ui-muted" style="margin: 0;">The Administrator always starts on the Dashboard.</p>
+                                <input type="hidden" name="startPage" value="Dashboard" />
+                            }
+                            else
+                            {
+                                <div class="ui-choice-row">
+                                    <label class="ui-check-card">
+                                        <input type="radio" name="startPage" value="Dashboard" checked="@(selected.StartPage != "QuickEntry")" />
+                                        <span>
+                                            <strong>Dashboard</strong>
+                                            <small>Figures and recent activity first.</small>
+                                        </span>
+                                    </label>
+                                    <label class="ui-check-card">
+                                        <input type="radio" name="startPage" value="QuickEntry" checked="@(selected.StartPage == "QuickEntry")" />
+                                        <span>
+                                            <strong>Quick entry (skip the Dashboard)</strong>
+                                            <small>Straight to "find a voter by ID card" with the add forms on the same page.</small>
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="ui-hint">Quick entry needs "View voters" and at least one of: add encounters, add pledges, link influencers. If someone has several roles, the Dashboard wins when any of them allows it.</div>
+                            }
+                        </fieldset>
+
                         <div class="ui-field">
                             <span class="ui-label">What this role may do</span>
                             <partial name="_RightsGrid" model='new HR28.Web.Models.RightsGridModel

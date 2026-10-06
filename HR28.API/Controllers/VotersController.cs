@@ -83,6 +83,25 @@ public class VotersController : ControllerBase
     }
 
 
+    /// <summary>
+    /// Quick entry: a voter by ID card (National ID), only inside the user's areas.
+    /// Rate-limited like search so it can't be used to sweep the registry.
+    /// </summary>
+    [HttpGet("by-national-id/{nationalId}")]
+    [RequirePermission(PermissionCatalog.VotersView)]
+    [EnableRateLimiting(RateLimitPolicies.Search)]
+    public async Task<IActionResult> GetByNationalId(string nationalId)
+    {
+        if (User.GetUserId() is not Guid userId)
+            return Unauthorized();
+
+        var voter = await _voterService.GetByNationalIdAsync(userId, nationalId);
+
+        return voter == null
+            ? NotFound(new { message = "No voter with that ID card was found in your areas." })
+            : Ok(voter);
+    }
+
     [HttpGet("{id}")]
     [RequirePermission(PermissionCatalog.VotersView)]
     public async Task<IActionResult> GetVoter(Guid id)

@@ -32,6 +32,12 @@ public class HR28DbContext : DbContext
             .HasMaxLength(20)
             .HasDefaultValue("Full");
 
+        // Where someone with the role lands after signing in ("Dashboard" / "QuickEntry").
+        modelBuilder.Entity<Role>()
+            .Property(r => r.StartPage)
+            .HasMaxLength(20)
+            .HasDefaultValue("Dashboard");
+
         // --------------------------------------------------
         // User scope relationships
         // --------------------------------------------------

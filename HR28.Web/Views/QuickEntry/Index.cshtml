@@ -1,0 +1,283 @@
+@model HR28.Web.Models.QuickEntryViewModel
+@{
+    ViewData["Title"] = "Quick entry";
+
+    bool Can(string right) => HR28.Web.Services.Hr28Permissions.Has(Context.Session, right);
+
+    var canEncounter = Can(HR28.Web.Services.Hr28Permissions.EncountersAdd);
+    var canPledge = Can(HR28.Web.Services.Hr28Permissions.PledgesAdd);
+    var canLink = Can(HR28.Web.Services.Hr28Permissions.InfluencersLink);
+    var canResponse = Can(HR28.Web.Services.Hr28Permissions.EncountersResponse);
+
+    var voter = Model.Voter;
+    var name = voter == null ? "" : (string.IsNullOrWhiteSpace(voter.FullName) ? "Unnamed voter" : voter.FullName);
+    var initials = string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
+    var today = DateOnly.FromDateTime(HR28.Web.Services.Hr28Time.Now).ToString("yyyy-MM-dd");
+
+    string OrDash(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
+}
+
+<div class="ui-page">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ui-alert is-green" role="status">
+            <partial name="_Icon" model='"check-circle"' />
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
+    <header class="ui-head">
+        <div class="ui-head-main">
+            <span class="ui-head-icon is-blue"><partial name="_Icon" model='"search"' /></span>
+            <div>
+                <h1 class="ui-title">Quick entry</h1>
+                <p class="ui-sub">Find a voter by ID card, then record what happened on this page.</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- 1. FIND BY ID CARD -->
+    <section class="ui-card">
+        <form asp-action="Find" method="post" class="ui-quick-find" role="search">
+            <label for="h28QuickNid" class="ui-label">ID card number</label>
+            <div class="ui-quick-find-row">
+                <div class="ui-search">
+                    <partial name="_Icon" model='"search"' />
+                    <input id="h28QuickNid"
+                           name="nationalId"
+                           value="@Model.NationalId"
+                           class="ui-input ui-upper"
+                           maxlength="7"
+                           autocomplete="off"
+                           placeholder="e.g. A123456"
+                           autofocus="@(voter == null)"
+                           required />
+                </div>
+                <button type="submit" class="ui-btn ui-btn-primary">Fetch voter</button>
+                @if (voter != null)
+                {
+                    <a asp-action="Index" class="ui-btn ui-btn-ghost">Clear</a>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.SearchMessage))
+            {
+                <div class="ui-alert is-amber" role="alert" style="margin: 12px 0 0;">
+                    <partial name="_Icon" model='"alert"' />
+                    <span>@Model.SearchMessage</span>
+                </div>
+            }
+        </form>
+    </section>
+
+    @if (voter != null)
+    {
+        <!-- 2. THE VOTER -->
+        <section class="ui-card ui-quick-voter" aria-label="Voter">
+            <div class="ui-quick-photo">
+                @if (voter.HasPhoto)
+                {
+                    <img src="@Url.Action("Photo", "Voters", new { id = voter.Id })" alt="Photo of @name" />
+                }
+                else
+                {
+                    <span class="ui-avatar ui-avatar-lg" aria-hidden="true">@initials</span>
+                }
+            </div>
+
+            <div class="ui-quick-details">
+                <div class="ui-quick-name">
+                    <h2>@name</h2>
+                    <partial name="_StatusPill" model="voter.SupportStatus" />
+                </div>
+
+                <dl class="ui-details">
+                    <div><dt>ID card</dt><dd class="ui-num">@voter.NationalId</dd></div>
+                    <div><dt>Gender</dt><dd>@OrDash(voter.GenderLabel)</dd></div>
+                    <div>
+                        <dt>Date of birth</dt>
+                        <dd>@(voter.DateOfBirth is { } dob ? $"{dob:dd MMM yyyy} ({voter.Age} years)" : "—")</dd>
+                    </div>
+                    <div><dt>Mobile</dt><dd class="ui-num">@OrDash(voter.MobileNumber)</dd></div>
+                    <div><dt>Address</dt><dd>@OrDash(voter.Address)</dd></div>
+                    <div><dt>Island</dt><dd>@OrDash(voter.IslandName)</dd></div>
+                    <div><dt>Constituency</dt><dd>@OrDash(voter.ConstituencyName)</dd></div>
+                    <div>
+                        <dt>Political party</dt>
+                        <dd>@(string.IsNullOrWhiteSpace(voter.PartyName) ? "Not known" : $"{voter.PartyName} ({voter.PartyShortName})")</dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+
+        <!-- 3. ADD FORMS (only those the person may use) -->
+        <section class="ui-quick-forms">
+
+            @if (canEncounter)
+            {
+                <form asp-action="AddEncounter" method="post" class="ui-card ui-quick-form" id="h28QuickEncounter">
+                    <input type="hidden" name="Encounter.VoterId" value="@voter.Id" />
+                    <h3><partial name="_Icon" model='"message"' /> Add encounter</h3>
+
+                    @if (Model.EncounterError != null)
+                    {
+                        <div class="ui-alert is-red" role="alert"><span>@Model.EncounterError</span></div>
+                    }
+
+                    <div class="ui-field">
+                        <label for="qeDate" class="ui-label">Date and time</label>
+                        <input id="qeDate" name="Encounter.EncounterDate" type="datetime-local" class="ui-input" required
+                               value="@Model.Encounter.EncounterDate.ToString("yyyy-MM-ddTHH:mm")" />
+                    </div>
+                    <div class="ui-field">
+                        <label for="qeType" class="ui-label">Encounter type</label>
+                        <select id="qeType" name="Encounter.EncounterType" class="ui-select" required>
+                            <option value="">Choose…</option>
+                            @foreach (var t in HR28.Web.Models.EncounterListFilterModel.Types)
+                            {
+                                <option value="@t" selected="@(Model.Encounter.EncounterType == t)">@t</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="ui-field">
+                        <label for="qeOutcome" class="ui-label">Outcome</label>
+                        <select id="qeOutcome" name="Encounter.Outcome" class="ui-select" required>
+                            <option value="">Choose…</option>
+                            @foreach (var o in HR28.Web.Models.EncounterListFilterModel.Outcomes)
+                            {
+                                <option value="@o" selected="@(Model.Encounter.Outcome == o)">@o</option>
+                            }
+                        </select>
+                    </div>
+                    @if (canResponse)
+                    {
+                        <div class="ui-field">
+                            <label for="qeResponse" class="ui-label">Response <span class="ui-optional">(optional)</span></label>
+                            <select id="qeResponse" name="Encounter.Response" class="ui-select">
+                                <option value="">Not set</option>
+                                @foreach (var r in HR28.Web.Models.EncounterListFilterModel.Responses)
+                                {
+                                    <option value="@r.Value" selected="@(Model.Encounter.Response == r.Value)">@r.Value</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                    <div class="ui-field">
+                        <label for="qeNotes" class="ui-label">Notes <span class="ui-optional">(optional)</span></label>
+                        <textarea id="qeNotes" name="Encounter.Notes" class="ui-textarea" rows="3" maxlength="1000"
+                                  placeholder="Concise, factual notes only.">@Model.Encounter.Notes</textarea>
+                    </div>
+                    <button type="submit" class="ui-btn ui-btn-primary">
+                        <partial name="_Icon" model='"check"' /> Save encounter
+                    </button>
+                </form>
+            }
+
+            @if (canPledge)
+            {
+                <form asp-action="AddPledge" method="post" class="ui-card ui-quick-form" id="h28QuickPledge">
+                    <input type="hidden" name="Pledge.VoterId" value="@voter.Id" />
+                    <h3><partial name="_Icon" model='"handshake"' /> Add pledge</h3>
+
+                    @if (Model.PledgeError != null)
+                    {
+                        <div class="ui-alert is-red" role="alert"><span>@Model.PledgeError</span></div>
+                    }
+
+                    <div class="ui-field">
+                        <label for="qpTitle" class="ui-label">Title</label>
+                        <input id="qpTitle" name="Pledge.Title" class="ui-input" maxlength="200" required
+                               value="@Model.Pledge.Title" placeholder="e.g. House rent assistance" />
+                    </div>
+                    <div class="ui-field">
+                        <label for="qpDescription" class="ui-label">What was pledged</label>
+                        <textarea id="qpDescription" name="Pledge.Description" class="ui-textarea" rows="3" maxlength="2000" required>@Model.Pledge.Description</textarea>
+                    </div>
+                    <div class="ui-field">
+                        <label for="qpDate" class="ui-label">Pledge date</label>
+                        <input id="qpDate" name="Pledge.PledgeDate" type="datetime-local" class="ui-input" required
+                               value="@Model.Pledge.PledgeDate.ToString("yyyy-MM-ddTHH:mm")" />
+                    </div>
+                    <div class="ui-field">
+                        <label for="qpDue" class="ui-label">Due date <span class="ui-optional">(optional)</span></label>
+                        <input id="qpDue" name="Pledge.DueDate" type="date" class="ui-input" min="@today"
+                               value="@(Model.Pledge.DueDate?.ToString("yyyy-MM-dd"))" />
+                    </div>
+                    <button type="submit" class="ui-btn ui-btn-primary">
+                        <partial name="_Icon" model='"check"' /> Save pledge
+                    </button>
+                </form>
+            }
+
+            @if (canLink)
+            {
+                <form asp-action="LinkInfluencer" method="post" class="ui-card ui-quick-form" id="h28QuickLink">
+                    <input type="hidden" name="Link.VoterId" value="@voter.Id" />
+                    <h3><partial name="_Icon" model='"star"' /> Link influencer</h3>
+
+                    @if (Model.LinkError != null)
+                    {
+                        <div class="ui-alert is-red" role="alert"><span>@Model.LinkError</span></div>
+                    }
+
+                    <div class="ui-field">
+                        <label for="qlInfluencer" class="ui-label">Influencer</label>
+                        <select id="qlInfluencer" name="Link.InfluencerId" class="ui-select" required>
+                            <option value="">Choose…</option>
+                            @foreach (var i in Model.Influencers.OrderBy(i => i.FullName))
+                            {
+                                <option value="@i.Id" selected="@(Model.Link.InfluencerId == i.Id)">@i.FullName (@i.NationalId)</option>
+                            }
+                        </select>
+                        <div class="ui-hint">Type a name or ID card to search.</div>
+                    </div>
+                    <div class="ui-field">
+                        <label for="qlRelationship" class="ui-label">Relationship to voter</label>
+                        <select id="qlRelationship" name="Link.RelationshipType" class="ui-select" required>
+                            <option value="">Choose…</option>
+                            @foreach (var r in HR28.Web.Models.QuickLinkForm.Relationships)
+                            {
+                                <option value="@r" selected="@(Model.Link.RelationshipType == r)">@r</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="ui-btn ui-btn-primary">
+                        <partial name="_Icon" model='"check"' /> Link influencer
+                    </button>
+                </form>
+            }
+
+        </section>
+    }
+
+</div>
+
+@section Scripts
+{
+    <script>
+        (function ($) {
+            // ID card: capitals as you type.
+            var nid = document.getElementById("h28QuickNid");
+            if (nid) {
+                nid.addEventListener("input", function () {
+                    var p = nid.selectionStart;
+                    nid.value = nid.value.toUpperCase();
+                    nid.setSelectionRange(p, p);
+                });
+            }
+
+            // Searchable influencer list.
+            if ($ && typeof $.fn.select2 === "function" && $("#qlInfluencer").length) {
+                $("#qlInfluencer").select2({ width: "100%", placeholder: "Choose…" });
+            }
+
+            // Stop double-clicks from saving twice.
+            document.querySelectorAll(".ui-quick-form").forEach(function (form) {
+                form.addEventListener("submit", function () {
+                    var b = form.querySelector("button[type=submit]");
+                    if (b) b.disabled = true;
+                });
+            });
+        })(window.jQuery);
+    </script>
+}

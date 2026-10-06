@@ -97,6 +97,20 @@ public static class PermissionCatalog
         All.FirstOrDefault(p => p.Key == key)?.Name ?? key;
 }
 
+/// <summary>Where someone with the role lands after signing in (Settings → Roles &amp; rights).</summary>
+public static class StartPages
+{
+    public const string Dashboard = "Dashboard";
+
+    /// <summary>Find a voter by ID card and add an encounter / pledge / influencer link on one page.</summary>
+    public const string QuickEntry = "QuickEntry";
+
+    public static readonly string[] All = { Dashboard, QuickEntry };
+
+    public static string Label(string page) =>
+        page == QuickEntry ? "Quick entry" : "Dashboard";
+}
+
 /// <summary>What opens when someone with the role opens a voter (Settings → Roles &amp; rights).</summary>
 public static class VoterProfileViews
 {

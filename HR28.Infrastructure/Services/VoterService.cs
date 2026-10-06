@@ -161,7 +161,7 @@ public class VoterService : IVoterService
         var query =
             await GetAuthorizedVoterQueryAsync(userId);
 
-        return await query
+        var voter = await query
             .Where(v => v.Id == voterId)
             .Select(v => new VoterDto
             {
@@ -193,6 +193,15 @@ public class VoterService : IVoterService
                 SupportStatus = v.SupportStatus
             })
             .FirstOrDefaultAsync();
+
+        // The photo flag only for people who may view photos.
+        if (voter != null &&
+            (await _accessScopeService.GetAsync(userId)).HasPermission(HR28.Application.Common.PermissionCatalog.VotersPhotoView))
+        {
+            voter.HasPhoto = await _dbContext.VoterPhotos.AnyAsync(p => p.VoterId == voterId);
+        }
+
+        return voter;
     }
 
     /// <summary>"M", "F", empty for not recorded; anything else is refused.</summary>
@@ -227,6 +236,25 @@ public class VoterService : IVoterService
             throw new HR28.Application.Common.BusinessRuleException(
                 "That island is not in the chosen constituency. Please choose the island again.");
         }
+    }
+
+    public async Task<VoterDto?> GetByNationalIdAsync(Guid userId, string nationalId)
+    {
+        var nid = HR28.Application.Common.MaldivesFormats.CleanNationalId(nationalId);
+
+        if (!HR28.Application.Common.MaldivesFormats.IsNationalId(nid))
+            return null;
+
+        // Only inside the user's areas.
+        var id = await (await GetAuthorizedVoterQueryAsync(userId))
+            .Where(v => v.NationalId == nid)
+            .Select(v => (Guid?)v.Id)
+            .FirstOrDefaultAsync();
+
+        if (id == null)
+            return null;
+
+        return await GetVoterByIdAsync(userId, id.Value);
     }
 
     /// <summary>The chosen party must be on the list; empty means "Not known".</summary>

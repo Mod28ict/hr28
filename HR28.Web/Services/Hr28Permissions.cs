@@ -12,6 +12,9 @@ public static class Hr28Permissions
     /// <summary>"Full" or "AddEncounter": what opens when the user opens a voter.</summary>
     public const string ProfileViewSessionKey = "VoterProfileView";
 
+    /// <summary>"Dashboard" or "QuickEntry": where the user lands after signing in.</summary>
+    public const string StartPageSessionKey = "StartPage";
+
     public const string VotersView = "Voters.View";
     public const string VotersAdd = "Voters.Add";
     public const string VotersEdit = "Voters.Edit";
@@ -50,6 +53,17 @@ public static class Hr28Permissions
             .Split('|', StringSplitOptions.RemoveEmptyEntries)
             .Contains(permission);
     }
+
+    /// <summary>True when the user's roles skip the Dashboard and start on Quick entry.</summary>
+    public static bool StartsOnQuickEntry(ISession session) =>
+        !Hr28Roles.IsSuperAdministrator(session.GetString("UserRole")) &&
+        session.GetString(StartPageSessionKey) == "QuickEntry" &&
+        CanUseQuickEntry(session);
+
+    /// <summary>Quick entry needs "View voters" and at least one thing to add for a voter.</summary>
+    public static bool CanUseQuickEntry(ISession session) =>
+        Has(session, VotersView) &&
+        (Has(session, EncountersAdd) || Has(session, PledgesAdd) || Has(session, InfluencersLink));
 
     /// <summary>True when the user's roles open voters straight on "Add encounter".</summary>
     public static bool OpensVotersOnAddEncounter(ISession session) =>

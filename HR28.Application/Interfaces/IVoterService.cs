@@ -5,6 +5,12 @@ namespace HR28.Application.Interfaces;
 
 public interface IVoterService
 {
+    /// <summary>
+    /// A voter by National ID, only if inside the user's areas (null otherwise, so other
+    /// areas look the same as an unknown ID). HasPhoto is set for people who may view photos.
+    /// </summary>
+    Task<HR28.Application.DTOs.Voters.VoterDto?> GetByNationalIdAsync(Guid userId, string nationalId);
+
     Task<VoterDto> CreateVoterAsync(
         CreateVoterDto request);
 

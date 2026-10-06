@@ -182,6 +182,7 @@ public class SystemSettingsService : ISystemSettingsService
                 .ToList(),
             IsAdministrator = scope.IsAdministrator,
             VoterProfileView = scope.VoterProfileView,
+            StartPage = scope.StartPage,
             Scopes = scopeLines,
             LastLoginAt = user.LastLoginAt
         };

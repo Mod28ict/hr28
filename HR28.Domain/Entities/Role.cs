@@ -14,6 +14,12 @@ public class Role
     /// </summary>
     public string VoterProfileView { get; set; } = "Full";
 
+    /// <summary>
+    /// Where someone with this role lands after signing in: "Dashboard" or "QuickEntry"
+    /// (find a voter by ID card and add records on one page). Chosen by the Administrator.
+    /// </summary>
+    public string StartPage { get; set; } = "Dashboard";
+
     public ICollection<UserRole> UserRoles { get; set; }
         = new List<UserRole>();
 }

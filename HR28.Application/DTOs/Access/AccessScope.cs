@@ -44,6 +44,12 @@ public class AccessScope
     /// </summary>
     public string VoterProfileView { get; init; } = HR28.Application.Common.VoterProfileViews.Full;
 
+    /// <summary>
+    /// Where the user lands after signing in: "Dashboard" if any of their roles says so
+    /// (and always for the Administrator), otherwise "QuickEntry".
+    /// </summary>
+    public string StartPage { get; init; } = HR28.Application.Common.StartPages.Dashboard;
+
     public bool HasAnyScope =>
         IsAdministrator || ConstituencyIds.Count > 0 || IslandIds.Count > 0;
 

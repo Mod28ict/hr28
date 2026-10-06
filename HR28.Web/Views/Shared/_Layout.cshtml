@@ -217,6 +217,10 @@
     // Menus follow the person's rights (the API checks them again on every request).
     bool Can(string right) => HR28.Web.Services.Hr28Permissions.Has(Context.Session, right);
     var canViewVoters = Can(HR28.Web.Services.Hr28Permissions.VotersView);
+
+    // Quick entry: find a voter by ID card and add records on one page.
+    var canQuickEntry = HR28.Web.Services.Hr28Permissions.CanUseQuickEntry(Context.Session);
+    var skipDashboard = HR28.Web.Services.Hr28Permissions.StartsOnQuickEntry(Context.Session);
     var isSuperAdmin = HR28.Web.Services.Hr28Roles.IsSuperAdministrator(role);
 
     var campaignName = Context.Session.GetString("CampaignName");
@@ -239,7 +243,7 @@
 
     <aside class="shell-sidebar" id="shellSidebar" aria-label="Main navigation">
 
-        <a class="shell-brand" asp-controller="Dashboard" asp-action="Index">
+        <a class="shell-brand" asp-controller="@(skipDashboard ? "QuickEntry" : "Dashboard")" asp-action="Index">
             <span class="shell-brand-mark" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5zm0 2.3 6.8 3.8L12 11.9 5.2 8.1 12 4.3zM5 9.8l6 3.4v6.6l-6-3.4V9.8zm8 10v-6.6l6-3.4v6.6l-6 3.4z" /></svg>
             </span>
@@ -251,11 +255,23 @@
 
         <nav class="shell-nav">
 
+            @if (!skipDashboard)
+            {
             <a class="@NavClass(currentController == "Dashboard")"
                asp-controller="Dashboard" asp-action="Index">
                 <partial name="_Icon" model='"dashboard"' />
                 <span>Dashboard</span>
             </a>
+            }
+
+            @if (canQuickEntry)
+            {
+                <a class="@NavClass(currentController == "QuickEntry")"
+                   asp-controller="QuickEntry" asp-action="Index">
+                    <partial name="_Icon" model='"search"' />
+                    <span>Quick entry</span>
+                </a>
+            }
 
             @if (canViewVoters)
             {
