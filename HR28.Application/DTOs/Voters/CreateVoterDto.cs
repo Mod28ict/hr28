@@ -22,7 +22,7 @@ public class CreateVoterDto
 
     public DateOnly? DateOfBirth { get; set; }
 
-    public string Remarks { get; set; } = string.Empty;
+    public string? Remarks { get; set; } = string.Empty;
     public string SupportStatus { get; set; }
     = "Undecided";
 

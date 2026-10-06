@@ -102,7 +102,7 @@ public class VoterService : IVoterService
             MobileNumber = request.MobileNumber,
             ConstituencyId = request.ConstituencyId,
             IslandId = request.IslandId,
-            Remarks = request.Remarks,
+            Remarks = request.Remarks ?? string.Empty,
             PoliticalPartyId = request.PoliticalPartyId,
             Gender = gender,
             DateOfBirth = request.DateOfBirth,

@@ -32,7 +32,7 @@ public class VoterCreateEditDto
     [System.ComponentModel.DataAnnotations.Display(Name = "Date of birth")]
     public DateOnly? DateOfBirth { get; set; }
 
-    public string Remarks { get; set; } = string.Empty;
+    public string? Remarks { get; set; } = string.Empty;
 
     public string SupportStatus { get; set; } = "";
 }

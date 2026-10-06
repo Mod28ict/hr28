@@ -24,5 +24,5 @@ public class UpdateVoterDto
 
     public string SupportStatus { get; set; } = "Undecided";
 
-    public string Remarks { get; set; } = string.Empty;
+    public string? Remarks { get; set; } = string.Empty;
 }

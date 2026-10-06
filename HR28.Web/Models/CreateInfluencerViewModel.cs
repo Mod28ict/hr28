@@ -34,7 +34,7 @@ public class CreateInfluencerDto
     public Guid? CategoryId { get; set; }
 
     [StringLength(500)]
-    public string Remarks { get; set; } = string.Empty;
+    public string? Remarks { get; set; } = string.Empty;
 }
 
 public class CreateInfluencerViewModel
