@@ -75,6 +75,8 @@ public class VoterService : IVoterService
                 "You can only add voters within your assigned area.");
         }
 
+        await RequireIslandInConstituencyAsync(request.ConstituencyId, request.IslandId);
+
         request.NationalId = HR28.Application.Common.MaldivesFormats.CleanNationalId(request.NationalId);
         request.MobileNumber = HR28.Application.Common.MaldivesFormats.CleanMobile(request.MobileNumber);
         HR28.Application.Common.MaldivesFormats.RequireNationalId(request.NationalId);
@@ -213,6 +215,20 @@ public class VoterService : IVoterService
         }
     }
 
+    /// <summary>
+    /// A voter's island must belong to the voter's constituency. Without this an
+    /// island-scoped user could file a voter under a constituency outside their areas.
+    /// </summary>
+    private async Task RequireIslandInConstituencyAsync(Guid constituencyId, Guid? islandId)
+    {
+        if (islandId.HasValue &&
+            !await _dbContext.Islands.AnyAsync(i => i.Id == islandId.Value && i.ConstituencyId == constituencyId))
+        {
+            throw new HR28.Application.Common.BusinessRuleException(
+                "That island is not in the chosen constituency. Please choose the island again.");
+        }
+    }
+
     /// <summary>The chosen party must be on the list; empty means "Not known".</summary>
     private async Task RequireKnownPartyAsync(Guid? partyId)
     {
@@ -294,6 +310,10 @@ public class VoterService : IVoterService
             throw new HR28.Application.Common.AccessDeniedException(
                 "You can only move voters within your assigned area.");
         }
+
+        // Older records may already be mismatched; only a change of area is checked.
+        if (movingArea)
+            await RequireIslandInConstituencyAsync(request.ConstituencyId, request.IslandId);
 
         request.NationalId = HR28.Application.Common.MaldivesFormats.CleanNationalId(request.NationalId);
         request.MobileNumber = HR28.Application.Common.MaldivesFormats.CleanMobile(request.MobileNumber);
