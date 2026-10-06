@@ -51,6 +51,40 @@ public static class RoleSeeder
 
         await context.Roles.AddRangeAsync(roles);
 
+        // A new database runs every migration before these roles exist, so the defaults
+        // that migration AddRoleRights grants to existing roles must be granted here too
+        // (same values), or a new client's built-in roles would start with no rights.
+        foreach (var role in roles)
+        {
+            if (!DefaultRights.TryGetValue(role.Name, out var rights))
+                continue;
+
+            foreach (var right in rights)
+                context.RolePermissions.Add(new RolePermission { RoleId = role.Id, Permission = right });
+        }
+
         await context.SaveChangesAsync();
     }
+
+    private static readonly string[] AdminAndCollectorRights =
+    {
+        "Voters.View", "Voters.Add", "Voters.Edit",
+        "Encounters.View", "Encounters.Add",
+        "Pledges.View", "Pledges.Add", "Pledges.Edit",
+        "Influencers.View", "Influencers.Add", "Influencers.Link"
+    };
+
+    /// <summary>
+    /// Built-in roles' rights on a new database: the same as migration AddRoleRights.
+    /// The Super Administrator needs none (it always has every right).
+    /// </summary>
+    public static readonly IReadOnlyDictionary<string, string[]> DefaultRights =
+        new Dictionary<string, string[]>
+        {
+            ["National Administrator"] = [.. AdminAndCollectorRights, "Voters.Delete"],
+            ["Constituency Administrator"] = AdminAndCollectorRights,
+            ["Island Administrator"] = AdminAndCollectorRights,
+            ["Collector"] = AdminAndCollectorRights,
+            ["Reporter"] = ["Encounters.View", "Pledges.View"]
+        };
 }

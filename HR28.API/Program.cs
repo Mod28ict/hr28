@@ -201,9 +201,11 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider
         .GetRequiredService<HR28DbContext>();
 
+    // Built-in roles (with their default rights) on a new database. Constituencies and
+    // islands are the client's own data (Settings → Constituencies, or the voter upload);
+    // the old placeholder seeders were removed: they crashed on an empty database and
+    // recreated the placeholder areas deleted from the dev data on 2026-10-04.
     await RoleSeeder.SeedRolesAsync(dbContext);
-    await ConstituencySeeder.SeedAsync(dbContext);
-    await IslandSeeder.SeedAsync(dbContext);
 
     var converted = await AuthorizationCodeBackfill.RunAsync(
         dbContext,
@@ -228,3 +230,5 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+// Lets the test project start the API in memory (WebApplicationFactory<Program>).
+public partial class Program;
