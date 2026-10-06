@@ -54,7 +54,15 @@ builder.Services.AddHsts(options =>
     options.IncludeSubDomains = true;
 });
 
+// Behind Cloudflare: the visitor's address comes from CF-Connecting-IP, trusted only
+// from Cloudflare's networks (ReverseProxy:Cloudflare = true). Off by default.
+var cloudflareClientIp = HR28.Web.Middleware.CloudflareClientIp.CreateOptions(builder.Configuration);
+
 var app = builder.Build();
+
+// First, so everything after it (including the address forwarded to the API) sees the visitor.
+if (cloudflareClientIp != null)
+    app.UseForwardedHeaders(cloudflareClientIp);
 
 app.UseMiddleware<HR28.Web.Middleware.SecurityHeadersMiddleware>();
 
