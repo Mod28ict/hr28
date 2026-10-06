@@ -145,6 +145,11 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   - Store assignments in separate tables (`UserRoles`, `UserScopes`), not single
     columns on the user.
   - Every scope check filters by the user's full scope list, never a single scope ID.
+  - **Voter searches stay in the user's areas** (owner decision, 2026-10-06): the
+    Voters list, `api/voters/search` and fetch by ID card use `InSearchScope` — an
+    administrator (Super/National) with areas assigned searches only those, one with
+    no areas searches the whole registry. Opening a record, reports and the Dashboard
+    still use `InScope` (administrators see everything).
   - Changes to roles or scopes take effect immediately: resolve them on the server
     (cached, with invalidation on change), not from a list frozen in the login token.
     Implemented in `AccessScopeService` (30s cache, `Invalidate(userId)` on change)

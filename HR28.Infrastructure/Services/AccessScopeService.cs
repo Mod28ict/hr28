@@ -103,21 +103,8 @@ public class AccessScopeService : IAccessScopeService
             .Concat(userPermissions)
             .ToHashSet(StringComparer.Ordinal);
 
-        if (isAdministrator)
-        {
-            return new AccessScope
-            {
-                UserId = userId,
-                IsActive = true,
-                Roles = roles,
-                IsAdministrator = true,
-                IsSuperAdministrator = roles.Contains(SuperAdministratorRole),
-                Permissions = permissions,
-                VoterProfileView = profileView,
-                StartPage = startPage
-            };
-        }
-
+        // Areas are loaded for administrators too: they see every record, but their
+        // voter searches stay inside their areas when they have any (owner, 2026-10-06).
         var scopes = await _dbContext.UserScopes
             .AsNoTracking()
             .Where(x => x.UserId == userId)
@@ -141,6 +128,24 @@ public class AccessScopeService : IAccessScopeService
             .Select(x => x.ConstituencyId!.Value)
             .Distinct()
             .ToList();
+
+        if (isAdministrator)
+        {
+            return new AccessScope
+            {
+                UserId = userId,
+                IsActive = true,
+                Roles = roles,
+                IsAdministrator = true,
+                IsSuperAdministrator = roles.Contains(SuperAdministratorRole),
+                Permissions = permissions,
+                VoterProfileView = profileView,
+                StartPage = startPage,
+                ConstituencyIds = constituencyIds,
+                IslandIds = islandIds,
+                VisibleConstituencyIds = visibleConstituencyIds
+            };
+        }
 
         return new AccessScope
         {
@@ -190,6 +195,32 @@ public static class ScopeQueryExtensions
         if (!scope.HasAnyScope)
             return query.Where(_ => false);
 
+        return query.InAreas(scope);
+    }
+
+    /// <summary>
+    /// For voter searches and lists: everyone searches only inside their areas.
+    /// An administrator with areas assigned searches only those; one without areas
+    /// searches the whole registry (owner decision, 2026-10-06). Opening a record
+    /// still uses <see cref="InScope(IQueryable{Voter}, AccessScope)"/>.
+    /// </summary>
+    public static IQueryable<Voter> InSearchScope(
+        this IQueryable<Voter> query,
+        AccessScope scope)
+    {
+        if (scope.IsAdministrator && scope.ConstituencyIds.Count == 0 && scope.IslandIds.Count == 0)
+            return query;
+
+        if (!scope.HasAnyScope)
+            return query.Where(_ => false);
+
+        return query.InAreas(scope);
+    }
+
+    private static IQueryable<Voter> InAreas(
+        this IQueryable<Voter> query,
+        AccessScope scope)
+    {
         var constituencyIds = scope.ConstituencyIds.ToList();
         var islandIds = scope.IslandIds.ToList();
 

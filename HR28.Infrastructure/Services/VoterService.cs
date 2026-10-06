@@ -17,19 +17,6 @@ public class VoterService : IVoterService
     private readonly HR28DbContext _dbContext;
     private readonly IAuditService _auditService;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private async Task<bool> HasFullAccessAsync(Guid userId)
-    {
-        return await _dbContext.UserRoles
-            .Include(ur => ur.Role)
-            .AnyAsync(ur =>
-                ur.UserId == userId &&
-                (
-                    ur.Role.Name == "Super Administrator" ||
-                    ur.Role.Name == "National Administrator"
-                ));
-    }
-
-
     private readonly IAccessScopeService _accessScopeService;
 
     public VoterService(
@@ -245,8 +232,8 @@ public class VoterService : IVoterService
         if (!HR28.Application.Common.MaldivesFormats.IsNationalId(nid))
             return null;
 
-        // Only inside the user's areas.
-        var id = await (await GetAuthorizedVoterQueryAsync(userId))
+        // Only inside the user's areas (an administrator's too, when they have any).
+        var id = await (await GetSearchVoterQueryAsync(userId))
             .Where(v => v.NationalId == nid)
             .Select(v => (Guid?)v.Id)
             .FirstOrDefaultAsync();
@@ -286,7 +273,7 @@ public class VoterService : IVoterService
         }
 
         var query =
-            await GetAuthorizedVoterQueryAsync(userId);
+            await GetSearchVoterQueryAsync(userId);
 
         return await query
             .Where(v =>
@@ -632,45 +619,21 @@ public class VoterService : IVoterService
     private async Task<IQueryable<Voter>>
         GetAuthorizedVoterQueryAsync(Guid userId)
     {
-        var query = _dbContext.Voters.AsQueryable();
+        var scope = await _accessScopeService.GetAsync(userId);
 
-        if (await HasFullAccessAsync(userId))
-        {
-            return query;
-        }
+        return _dbContext.Voters.InScope(scope);
+    }
 
-        var scopes = await _dbContext.UserScopes
-            .Where(x => x.UserId == userId)
-            .ToListAsync();
+    /// <summary>
+    /// Voters a search or list runs over: the user's areas. An administrator searches
+    /// the whole registry only when they have no areas assigned.
+    /// </summary>
+    private async Task<IQueryable<Voter>>
+        GetSearchVoterQueryAsync(Guid userId)
+    {
+        var scope = await _accessScopeService.GetAsync(userId);
 
-        if (scopes.Count == 0)
-        {
-            return query.Where(_ => false);
-        }
-
-        var constituencyOnlyIds = scopes
-            .Where(x =>
-                x.ConstituencyId.HasValue &&
-                !x.IslandId.HasValue)
-            .Select(x => x.ConstituencyId!.Value)
-            .Distinct()
-            .ToList();
-
-        var islandIds = scopes
-            .Where(x => x.IslandId.HasValue)
-            .Select(x => x.IslandId!.Value)
-            .Distinct()
-            .ToList();
-
-        return query.Where(v =>
-            constituencyOnlyIds.Contains(
-                v.ConstituencyId)
-            ||
-            (
-                v.IslandId.HasValue &&
-                islandIds.Contains(
-                    v.IslandId.Value)
-            ));
+        return _dbContext.Voters.InSearchScope(scope);
     }
 
     public async Task<PagedResult<VoterDto>>
@@ -692,7 +655,7 @@ public class VoterService : IVoterService
         };
 
         var query =
-            await GetAuthorizedVoterQueryAsync(
+            await GetSearchVoterQueryAsync(
                 userId);
 
         query = query.AsNoTracking();
