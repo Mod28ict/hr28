@@ -21,6 +21,10 @@
     var canAdd = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.VotersAdd);
     var canWrite = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.VotersEdit);
 
+    // Searches run only inside the user's areas; with no areas there is nothing to search.
+    var areaText = HR28.Web.Services.Hr28Permissions.SearchAreaText(Context.Session);
+    var noArea = Model.TotalCount == 0 && HR28.Web.Services.Hr28Permissions.HasNoSearchArea(Context.Session);
+
     var startRecord = Model.TotalCount == 0
         ? 0
         : ((Model.Page - 1) * Model.PageSize) + 1;
@@ -50,10 +54,17 @@
             <div>
                 <h1 class="ui-title">Voters</h1>
                 <p class="ui-sub">
-                    @Model.TotalCount.ToString("N0")
-                    @(filter.IsNarrowed
-                        ? (Model.TotalCount == 1 ? "voter matches your search and filters" : "voters match your search and filters")
-                        : (Model.TotalCount == 1 ? "voter within your assigned scope" : "voters within your assigned scope"))
+                    @if (noArea)
+                    {
+                        @:No area assigned yet
+                    }
+                    else
+                    {
+                        @Model.TotalCount.ToString("N0")
+                        @(filter.IsNarrowed
+                            ? (Model.TotalCount == 1 ? $"voter matches your search and filters {areaText}" : $"voters match your search and filters {areaText}")
+                            : (Model.TotalCount == 1 ? $"voter {areaText}" : $"voters {areaText}"))
+                    }
                 </p>
             </div>
         </div>
@@ -90,6 +101,16 @@
             </div>
         }
 
+        @if (noArea)
+        {
+            <div class="ui-empty" role="status">
+                <partial name="_Icon" model='"map"' />
+                <strong>You don't have an area yet</strong>
+                <span>Voter search works inside the areas (constituencies or islands) assigned to you. Ask your Administrator to assign an area to your account, then come back to this page.</span>
+            </div>
+        }
+        else
+        {
         <form asp-action="Index" method="get" role="search" id="h28VoterFilters">
 
             <div class="ui-toolbar">
@@ -239,14 +260,38 @@
             </div>
 
         </form>
+        }
 
-        @if (!Model.Items.Any())
+        @if (noArea)
         {
-            <div class="ui-empty">
+            @* Nothing else to show. *@
+        }
+        else if (!Model.Items.Any())
+        {
+            <div class="ui-empty" role="status">
                 <partial name="_Icon" model='"search"' />
-                @(filter.IsNarrowed
-                    ? "No voters match your search and filters."
-                    : "No voters found within your assigned scope.")
+                @if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+                {
+                    <strong>No voters found for “@filter.SearchTerm” @areaText</strong>
+                    <span>Check the spelling or the ID card number, or try fewer filters.</span>
+                }
+                else if (filter.IsNarrowed)
+                {
+                    <strong>No voters match these filters @areaText</strong>
+                    <span>Try fewer filters, or clear them to see everyone.</span>
+                }
+                else
+                {
+                    <strong>There are no voters @areaText yet</strong>
+                }
+
+                @if (filter.IsNarrowed)
+                {
+                    <a asp-action="Index"
+                       asp-route-pageSize="@filter.PageSize"
+                       asp-route-party="@HR28.Web.Models.VoterListFilterModel.AllParties"
+                       class="ui-btn ui-btn-secondary ui-btn-sm" style="margin-top: 6px;">Clear search and filters</a>
+                }
 
                 @if (filter.Party != HR28.Web.Models.VoterListFilterModel.AllParties)
                 {

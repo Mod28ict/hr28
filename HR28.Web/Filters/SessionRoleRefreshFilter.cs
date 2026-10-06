@@ -67,6 +67,9 @@ public class SessionRoleRefreshFilter : IAsyncActionFilter
             session.SetString(
                 Hr28Permissions.StartPageSessionKey,
                 account.Data.StartPage ?? "Dashboard");
+            session.SetString(
+                Hr28Permissions.SearchAreaSessionKey,
+                account.Data.SearchArea ?? "None");
         }
 
         // The campaign name (Settings → System) appears in the sidebar; keep it current too.

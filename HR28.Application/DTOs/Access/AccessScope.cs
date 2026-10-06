@@ -50,6 +50,15 @@ public class AccessScope
     /// </summary>
     public string StartPage { get; init; } = HR28.Application.Common.StartPages.Dashboard;
 
+    /// <summary>
+    /// Where voter searches run: "Areas" (the user's areas), "All" (an administrator
+    /// with no areas: the whole registry) or "None" (no areas: nothing to search).
+    /// </summary>
+    public string SearchArea =>
+        ConstituencyIds.Count > 0 || IslandIds.Count > 0 ? "Areas"
+        : IsActive && IsAdministrator ? "All"
+        : "None";
+
     public bool HasAnyScope =>
         IsAdministrator || ConstituencyIds.Count > 0 || IslandIds.Count > 0;
 

@@ -85,7 +85,7 @@ public class QuickEntryController : AppController
         if (!voter.Success || voter.Data == null)
         {
             model.SearchMessage = voter.StatusCode == System.Net.HttpStatusCode.NotFound
-                ? $"No voter with ID card {nid} was found in your areas."
+                ? $"No voter with ID card {nid} was found {Hr28Permissions.SearchAreaText(HttpContext.Session)}. Check the number and try again."
                 : string.IsNullOrWhiteSpace(voter.Message) ? "The voter could not be loaded. Please try again." : voter.Message;
             return View("Index", model);
         }

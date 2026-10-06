@@ -49,6 +49,9 @@ public class MyAccountDto
     /// <summary>"Dashboard" or "QuickEntry": where the user lands after signing in.</summary>
     public string? StartPage { get; set; }
 
+    /// <summary>Where voter searches run: "Areas", "All" or "None".</summary>
+    public string? SearchArea { get; set; }
+
     public List<string> Scopes { get; set; } = new();
 
     public DateTime? LastLoginAt { get; set; }

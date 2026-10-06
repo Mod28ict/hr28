@@ -18,6 +18,8 @@ public class VoterSearchScopeTests
 
     private sealed record VoterRow(Guid Id, string NationalId);
 
+    private sealed record MyAccount(string SearchArea);
+
     private sealed record Page(List<VoterRow> Items, int TotalCount);
 
     private static async Task<List<Guid>> ListAsync(HttpClient client, string term) =>
@@ -93,5 +95,24 @@ public class VoterSearchScopeTests
 
         Assert.Empty(await ListAsync(client, voter.NationalId));
         Assert.Empty(await SearchAsync(client, voter.NationalId));
+    }
+
+    [Fact]
+    public async Task The_account_says_where_searches_run_so_the_screens_can_explain_it()
+    {
+        var constituency = await _factory.Data.ConstituencyAsync();
+
+        async Task<string> SearchAreaOf(string role, bool withArea)
+        {
+            var user = await _factory.Data.UserAsync([role], withArea ? [(constituency, null)] : null);
+            var me = await (await _factory.ClientForAsync(user)).GetFromJsonAsync<MyAccount>("api/Settings/me");
+            return me!.SearchArea;
+        }
+
+        Assert.Equal("Areas", await SearchAreaOf("Collector", withArea: true));
+        Assert.Equal("None", await SearchAreaOf("Collector", withArea: false));
+        Assert.Equal("Areas", await SearchAreaOf("National Administrator", withArea: true));
+        Assert.Equal("All", await SearchAreaOf("National Administrator", withArea: false));
+        Assert.Equal("All", await SearchAreaOf("Super Administrator", withArea: false));
     }
 }

@@ -45,6 +45,9 @@ public class MyAccountDto
     /// <summary>"Dashboard" or "QuickEntry": where this user lands after signing in.</summary>
     public string StartPage { get; set; } = "Dashboard";
 
+    /// <summary>Where voter searches run: "Areas", "All" (administrator without areas) or "None".</summary>
+    public string SearchArea { get; set; } = "None";
+
     /// <summary>Readable scope lines, e.g. "Malé Central (all islands)".</summary>
     public List<string> Scopes { get; set; } = new();
 

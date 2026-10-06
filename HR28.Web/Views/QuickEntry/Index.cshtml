@@ -14,6 +14,8 @@
     var initials = string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
     var today = DateOnly.FromDateTime(HR28.Web.Services.Hr28Time.Now).ToString("yyyy-MM-dd");
 
+    var noArea = voter == null && HR28.Web.Services.Hr28Permissions.HasNoSearchArea(Context.Session);
+
     string OrDash(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
 }
 
@@ -37,6 +39,18 @@
         </div>
     </header>
 
+    @if (noArea)
+    {
+        <section class="ui-card">
+            <div class="ui-empty" role="status">
+                <partial name="_Icon" model='"map"' />
+                <strong>You don't have an area yet</strong>
+                <span>You can fetch voters only inside the areas (constituencies or islands) assigned to you. Ask your Administrator to assign an area to your account, then come back to this page.</span>
+            </div>
+        </section>
+    }
+    else
+    {
     <!-- 1. FIND BY ID CARD -->
     <section class="ui-card">
         <form asp-action="Find" method="post" class="ui-quick-find" role="search">
@@ -69,6 +83,7 @@
             }
         </form>
     </section>
+    }
 
     @if (voter != null)
     {

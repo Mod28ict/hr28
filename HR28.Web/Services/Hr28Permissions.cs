@@ -15,6 +15,9 @@ public static class Hr28Permissions
     /// <summary>"Dashboard" or "QuickEntry": where the user lands after signing in.</summary>
     public const string StartPageSessionKey = "StartPage";
 
+    /// <summary>Where voter searches run: "Areas", "All" (administrator without areas) or "None".</summary>
+    public const string SearchAreaSessionKey = "SearchArea";
+
     public const string VotersView = "Voters.View";
     public const string VotersAdd = "Voters.Add";
     public const string VotersEdit = "Voters.Edit";
@@ -64,6 +67,14 @@ public static class Hr28Permissions
     public static bool CanUseQuickEntry(ISession session) =>
         Has(session, VotersView) &&
         (Has(session, EncountersAdd) || Has(session, PledgesAdd) || Has(session, InfluencersLink));
+
+    /// <summary>No areas and not an administrator: there are no voters to search.</summary>
+    public static bool HasNoSearchArea(ISession session) =>
+        session.GetString(SearchAreaSessionKey) == "None";
+
+    /// <summary>"in your areas" or, for an administrator without areas, "in the registry".</summary>
+    public static string SearchAreaText(ISession session) =>
+        session.GetString(SearchAreaSessionKey) == "All" ? "in the registry" : "in your areas";
 
     /// <summary>True when the user's roles open voters straight on "Add encounter".</summary>
     public static bool OpensVotersOnAddEncounter(ISession session) =>
