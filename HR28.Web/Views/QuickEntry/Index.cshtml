@@ -107,7 +107,7 @@
                 </div>
 
                 <dl class="ui-details">
-                    <div><dt>ID card</dt><dd class="ui-num">@voter.NationalId</dd></div>
+                    <div><dt>ID card</dt><dd><partial name="_CopyId" model="voter.NationalId" /></dd></div>
                     <div><dt>Gender</dt><dd>@OrDash(voter.GenderLabel)</dd></div>
                     <div>
                         <dt>Date of birth</dt>

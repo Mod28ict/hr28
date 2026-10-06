@@ -10,7 +10,7 @@
         <span class="ui-avatar" aria-hidden="true">@string.Concat(who.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])))</span>
         <span>
             <strong>@who</strong>
-            <small class="ui-num">@Model.NationalId@(string.IsNullOrEmpty(Model.GenderAndAge) ? "" : " · " + Model.GenderAndAge)</small>
+            <small><partial name="_CopyId" model="Model.NationalId" />@(string.IsNullOrEmpty(Model.GenderAndAge) ? "" : " · " + Model.GenderAndAge)</small>
         </span>
         <span style="margin-left: auto;"><partial name="_StatusPill" model="Model.SupportStatus" /></span>
     </div>

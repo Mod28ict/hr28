@@ -70,7 +70,7 @@
                 </nav>
                 <h1 class="ui-title">@name</h1>
                 <p class="ui-sub">
-                    <span class="ui-num">@voter?.NationalId</span>
+                    <partial name="_CopyId" model="voter?.NationalId" />
                     @if (!string.IsNullOrWhiteSpace(voter?.ConstituencyName))
                     {
                         <text> · @voter.ConstituencyName</text>

@@ -2214,3 +2214,77 @@ a.ui-pill-link {
     font-weight: 600;
     cursor: pointer;
 }
+
+/* ---------- Copy ID card number (Shared/_CopyId) ---------- */
+
+.ui-copy-id {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.ui-copy-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ui-faint);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s, background-color .15s, color .15s;
+}
+
+    .ui-copy-btn .icon {
+        width: 14px;
+        height: 14px;
+    }
+
+    .ui-copy-id:hover .ui-copy-btn,
+    .ui-copy-btn:focus-visible,
+    .ui-copy-btn.is-copied {
+        opacity: 1;
+    }
+
+    .ui-copy-btn:hover {
+        color: var(--ui-text);
+        background: var(--ui-subtle);
+    }
+
+    .ui-copy-btn:focus-visible {
+        outline: 2px solid var(--ui-blue);
+        outline-offset: 1px;
+    }
+
+    .ui-copy-btn.is-copied {
+        color: var(--ui-green);
+    }
+
+        .ui-copy-btn.is-copied::after {
+            content: "Copied";
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: #111827;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+/* Touch screens have no hover: keep the button visible. */
+@media (hover: none) {
+    .ui-copy-btn {
+        opacity: 1;
+    }
+}

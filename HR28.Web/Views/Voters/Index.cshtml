@@ -356,7 +356,7 @@
                                     </div>
                                 </td>
 
-                                <td class="ui-num ui-muted">@voter.NationalId</td>
+                                <td class="ui-muted"><partial name="_CopyId" model="voter.NationalId" /></td>
 
                                 <td>
                                     @if (!string.IsNullOrWhiteSpace(voter.MobileNumber))

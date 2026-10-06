@@ -192,7 +192,7 @@
                                     <a asp-controller="Voters" asp-action="Profile" asp-route-id="@e.VoterId" class="ui-link">
                                         @(string.IsNullOrWhiteSpace(e.VoterName) ? "Unnamed voter" : e.VoterName)
                                     </a>
-                                    <div class="ui-muted ui-num" style="font-size: 12px;">@e.VoterNationalId</div>
+                                    <div class="ui-muted" style="font-size: 12px;"><partial name="_CopyId" model="e.VoterNationalId" /></div>
                                 </td>
 
                                 <td style="min-width: 130px;">
