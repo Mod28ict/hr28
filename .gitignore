@@ -24,3 +24,6 @@ TestResults/
 
 # One-time local secrets setup (contains secrets; deletes itself after running)
 set-dev-secrets.ps1
+
+# Temporary Claude Code worktrees (agents and sessions)
+.claude/worktrees/
