@@ -1253,9 +1253,9 @@ a.ui-page-btn:hover {
 
 .ui-quick-forms {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    /* One below the other: Encounter, then Pledge, then Influencer. */
+    grid-template-columns: 1fr;
     gap: 18px;
-    align-items: start;
 }
 
 .ui-quick-form {
