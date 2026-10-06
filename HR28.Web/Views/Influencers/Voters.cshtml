@@ -41,7 +41,7 @@
                 </nav>
                 <h1 class="ui-title">@name</h1>
                 <p class="ui-sub">
-                    <span class="ui-num">@influencer.NationalId</span>
+                    <partial name="_CopyId" model="influencer.NationalId" />
                     @if (!string.IsNullOrWhiteSpace(place))
                     {
                         @: · @place

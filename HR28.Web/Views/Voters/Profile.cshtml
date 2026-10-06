@@ -284,7 +284,7 @@
                         {
                             <tr>
                                 <td class="ui-strong">@influencer.FullName</td>
-                                <td class="ui-num ui-muted">@influencer.NationalId</td>
+                                <td class="ui-muted"><partial name="_CopyId" model="influencer.NationalId" /></td>
                                 <td class="ui-num">@OrDash(influencer.ContactNumber)</td>
                                 <td><span class="ui-tag">@influencer.RelationshipType</span></td>
                                 <td class="is-right">
