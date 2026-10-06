@@ -205,29 +205,64 @@ public class AuthService : IAuthService
 
         var maxAttempts = (await _settingsService.GetAsync()).OtpMaxAttempts;
 
-        if (otpRequest.FailedAttempts >= maxAttempts)
-            return Fail("Too many wrong codes. Go back and ask for a new code.");
+        // Every guess first takes one attempt in a single SQL statement, so requests sent
+        // in parallel can't all slip under the limit: at most maxAttempts guesses are ever
+        // checked against one code. (FailedAttempts therefore also counts the correct guess;
+        // the code is used up at that point anyway.)
+        var reserved = await _dbContext.OtpRequests
+            .Where(o => o.Id == otpRequest.Id &&
+                        !o.IsUsed &&
+                        o.ExpiresAt >= now &&
+                        o.FailedAttempts < maxAttempts)
+            .ExecuteUpdateAsync(s => s.SetProperty(o => o.FailedAttempts, o => o.FailedAttempts + 1));
+
+        if (reserved != 1)
+        {
+            var state = await _dbContext.OtpRequests
+                .AsNoTracking()
+                .Where(o => o.Id == otpRequest.Id)
+                .Select(o => new { o.IsUsed, o.ExpiresAt })
+                .FirstAsync();
+
+            return Fail(state.IsUsed
+                ? "This code is no longer valid. Go back and ask for a new code."
+                : state.ExpiresAt < now
+                    ? "This code has expired. Go back and ask for a new code."
+                    : "Too many wrong codes. Go back and ask for a new code.");
+        }
 
         if (!CodesMatch(otpRequest, request.OtpCode))
         {
-            otpRequest.FailedAttempts++;
+            // Account-wide count across codes (stops guessing by requesting fresh codes),
+            // also in one statement; reaching the limit locks sign-in and restarts the count.
+            DateTime? lockUntil = now.AddMinutes(LockoutMinutes);
 
-            // Account-wide count across codes: stops guessing by requesting fresh codes.
-            user.FailedLoginAttempts++;
+            await _dbContext.Users
+                .Where(u => u.Id == user.Id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(
+                        u => u.LockedUntilUtc,
+                        u => u.FailedLoginAttempts + 1 >= LockoutAfterFailedCodes ? lockUntil : u.LockedUntilUtc)
+                    .SetProperty(
+                        u => u.FailedLoginAttempts,
+                        u => u.FailedLoginAttempts + 1 >= LockoutAfterFailedCodes ? 0 : u.FailedLoginAttempts + 1));
 
-            if (user.FailedLoginAttempts >= LockoutAfterFailedCodes)
-            {
-                user.LockedUntilUtc = now.AddMinutes(LockoutMinutes);
-                user.FailedLoginAttempts = 0;
+            var lockedUntil = await _dbContext.Users
+                .AsNoTracking()
+                .Where(u => u.Id == user.Id)
+                .Select(u => u.LockedUntilUtc)
+                .FirstAsync();
 
-                await _dbContext.SaveChangesAsync();
+            if (lockedUntil > now)
+                return Fail(WaitMessage(SecondsUntil(lockedUntil.Value)));
 
-                return Fail(WaitMessage(LockoutMinutes * 60));
-            }
+            var attemptsUsed = await _dbContext.OtpRequests
+                .AsNoTracking()
+                .Where(o => o.Id == otpRequest.Id)
+                .Select(o => o.FailedAttempts)
+                .FirstAsync();
 
-            await _dbContext.SaveChangesAsync();
-
-            var left = maxAttempts - otpRequest.FailedAttempts;
+            var left = maxAttempts - attemptsUsed;
 
             return Fail(left > 0
                 ? $"That code is not correct. You have {left} {(left == 1 ? "try" : "tries")} left."
@@ -244,10 +279,15 @@ public class AuthService : IAuthService
 
         var token = await _tokenService.GenerateTokenAsync(user);
 
-        user.LastLoginAt = DateTime.UtcNow;
-        user.FailedLoginAttempts = 0;
-        user.LockedUntilUtc = null;
-        await _dbContext.SaveChangesAsync();
+        // In one statement too: the counters were changed outside change tracking above,
+        // so saving the tracked user would not reliably reset them.
+        await _dbContext.Users
+            .Where(u => u.Id == user.Id)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(u => u.LastLoginAt, DateTime.UtcNow)
+                .SetProperty(u => u.FailedLoginAttempts, 0)
+                .SetProperty(u => u.LockedUntilUtc, (DateTime?)null));
+
         var roles = HR28.Application.DTOs.Users.RoleOrder.Sort(
             await _dbContext.UserRoles
                 .Where(x => x.UserId == user.Id)
