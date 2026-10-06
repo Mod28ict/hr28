@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Security regression tests. They run the real API in memory against a throwaway
+    SQL Server database (created from the migrations, deleted afterwards), never against
+    HR28Db or any client database. Connection: HR28_TEST_SQL environment variable, or
+    the local SQL Server with Windows sign-in by default (see TestDatabase.cs).
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HR28.API\HR28.API.csproj" />
+    <ProjectReference Include="..\HR28.Infrastructure\HR28.Infrastructure.csproj" />
+    <ProjectReference Include="..\HR28.Application\HR28.Application.csproj" />
+    <ProjectReference Include="..\HR28.Domain\HR28.Domain.csproj" />
+    <!-- The web app also has a top-level Program; the alias keeps the two apart. -->
+    <ProjectReference Include="..\HR28.Web\HR28.Web.csproj" Aliases="web" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>
