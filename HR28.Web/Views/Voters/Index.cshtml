@@ -33,6 +33,44 @@
     var firstVisiblePage = Math.Max(1, Model.Page - 2);
     var lastVisiblePage = Math.Min(Model.TotalPages, Model.Page + 2);
 
+    // Column headings sort the whole list (on the server): first click A→Z, next Z→A.
+    Dictionary<string, string> SortRoute(string key)
+    {
+        var values = filter.RouteValues();
+        var active = filter.SortOrName == key;
+
+        if (key == "name") values.Remove("sort"); else values["sort"] = key;
+        if (active && !filter.Desc) values["desc"] = "true"; else values.Remove("desc");
+
+        return values;
+    }
+
+    // Clicking a voter's island (or constituency) shows only voters there, keeping the rest.
+    Dictionary<string, string> PlaceRoute(Guid? constituencyId, Guid? islandId)
+    {
+        var values = filter.RouteValues();
+        values.Remove("constituencyId");
+        values.Remove("islandId");
+        if (constituencyId.HasValue) values["constituencyId"] = constituencyId.Value.ToString();
+        if (islandId.HasValue) values["islandId"] = islandId.Value.ToString();
+        return values;
+    }
+
+    void SortHeading(string key, string label, string cssClass = "")
+    {
+        var active = filter.SortOrName == key;
+        var state = active ? (filter.Desc ? "descending" : "ascending") : "none";
+
+        <th class="@cssClass" aria-sort="@state">
+            <a href="@Url.Action("Index", new Microsoft.AspNetCore.Routing.RouteValueDictionary(SortRoute(key).ToDictionary(kv => kv.Key, kv => (object?)kv.Value)))"
+               class="ui-sort @(active ? "is-active" : "")"
+               title="@(active && !filter.Desc ? $"Sort by {label}, Z to A" : $"Sort by {label}, A to Z")">
+                @label
+                <span class="ui-sort-arrow" aria-hidden="true">@(active ? (filter.Desc ? "▼" : "▲") : "↕")</span>
+            </a>
+        </th>
+    }
+
     string InitialsOf(string name) =>
         string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
 }
@@ -111,6 +149,15 @@
         else
         {
         <form asp-action="Index" method="get" role="search" id="h28VoterFilters">
+            @* Searching and filtering keep the chosen sort. *@
+            @if (filter.Sort != null)
+            {
+                <input type="hidden" name="sort" value="@filter.Sort" />
+            }
+            @if (filter.Desc)
+            {
+                <input type="hidden" name="desc" value="true" />
+            }
 
             <div class="ui-toolbar">
                 <div class="ui-search">
@@ -316,14 +363,14 @@
                 <table class="ui-table">
                     <thead>
                         <tr>
-                            <th>Voter</th>
-                            <th>National ID</th>
-                            <th>Phone</th>
-                            <th>Island</th>
-                            <th class="ui-hide-sm">Address</th>
-                            <th>Party</th>
-                            <th class="is-center">Pledges</th>
-                            <th>Status</th>
+                            @{ SortHeading("name", "Voter"); }
+                            @{ SortHeading("nid", "National ID"); }
+                            @{ SortHeading("phone", "Phone"); }
+                            @{ SortHeading("island", "Island"); }
+                            @{ SortHeading("address", "Address", "ui-hide-sm"); }
+                            @{ SortHeading("party", "Party"); }
+                            @{ SortHeading("pledges", "Pledges", "is-center"); }
+                            @{ SortHeading("status", "Status"); }
                             <th><span class="visually-hidden">Actions</span></th>
                         </tr>
                     </thead>
@@ -371,9 +418,15 @@
                                 </td>
 
                                 <td style="min-width: 130px;">
-                                    @if (!string.IsNullOrWhiteSpace(voter.IslandName))
+                                    @if (!string.IsNullOrWhiteSpace(voter.IslandName) && voter.IslandId.HasValue)
                                     {
-                                        <div>@voter.IslandName</div>
+                                        <div>
+                                            <a asp-action="Index"
+                                               asp-all-route-data="PlaceRoute(voter.ConstituencyId, voter.IslandId)"
+                                               class="ui-place-link"
+                                               onclick="event.stopPropagation()"
+                                               title="Show only voters on @voter.IslandName">@voter.IslandName</a>
+                                        </div>
                                     }
                                     else
                                     {
@@ -381,7 +434,13 @@
                                     }
                                     @if (!string.IsNullOrWhiteSpace(voter.ConstituencyName))
                                     {
-                                        <div class="ui-muted" style="font-size: 12px;">@voter.ConstituencyLabel</div>
+                                        <div class="ui-muted" style="font-size: 12px;">
+                                            <a asp-action="Index"
+                                               asp-all-route-data="PlaceRoute(voter.ConstituencyId, null)"
+                                               class="ui-place-link is-muted"
+                                               onclick="event.stopPropagation()"
+                                               title="Show only voters in @voter.ConstituencyName">@voter.ConstituencyLabel</a>
+                                        </div>
                                     }
                                 </td>
 

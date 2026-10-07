@@ -57,6 +57,18 @@ public class VoterListFilterModel
 
     public int PageSize { get; set; } = 20;
 
+    /// <summary>Sortable columns (the API checks them again); empty = by name.</summary>
+    public static readonly string[] SortColumns = { "name", "nid", "phone", "island", "address", "party", "pledges", "status" };
+
+    /// <summary>Column the list is sorted by; null = name (A→Z).</summary>
+    public string? Sort { get; set; }
+
+    /// <summary>True: Z→A / largest first.</summary>
+    public bool Desc { get; set; }
+
+    /// <summary>The sort column, "name" when none is chosen.</summary>
+    public string SortOrName => Sort ?? "name";
+
     public List<LookupDto> Constituencies { get; set; } = new();
 
     public List<LookupDto> Islands { get; set; } = new();
@@ -85,6 +97,8 @@ public class VoterListFilterModel
         if (!string.IsNullOrWhiteSpace(House) && HouseExact) values["houseExact"] = "true";
         if (!string.IsNullOrWhiteSpace(Status)) values["status"] = Status;
         if (!string.IsNullOrWhiteSpace(Gender)) values["gender"] = Gender;
+        if (Sort != null) values["sort"] = Sort;
+        if (Desc) values["desc"] = "true";
         values["party"] = Party;
 
         return values;

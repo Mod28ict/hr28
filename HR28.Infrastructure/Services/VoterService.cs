@@ -728,9 +728,7 @@ public class VoterService : IVoterService
             await query.CountAsync();
 
         var items =
-            await query
-                .OrderBy(v => v.FullName)
-                .ThenBy(v => v.NationalId)
+            await Sorted(query, filter.Sort, filter.Descending)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .Select(v => new VoterDto
@@ -766,6 +764,34 @@ public class VoterService : IVoterService
             PageSize = pageSize,
             TotalCount = totalCount
         };
+    }
+
+    /// <summary>Column sorts for the Voters list (unknown values sort by name).</summary>
+    public static readonly string[] SortColumns = { "name", "nid", "phone", "island", "address", "party", "pledges", "status" };
+
+    /// <summary>
+    /// The Voters list order. Voters without an island or party come last either way; ties
+    /// are broken by name and ID card so every page holds different voters.
+    /// </summary>
+    private static IOrderedQueryable<Voter> Sorted(IQueryable<Voter> query, string? sort, bool descending)
+    {
+        IOrderedQueryable<Voter> ordered = (sort ?? "name").ToLowerInvariant() switch
+        {
+            "nid" => descending ? query.OrderByDescending(v => v.NationalId) : query.OrderBy(v => v.NationalId),
+            "phone" => descending ? query.OrderByDescending(v => v.MobileNumber) : query.OrderBy(v => v.MobileNumber),
+            "island" => descending
+                ? query.OrderBy(v => v.Island == null).ThenByDescending(v => v.Island!.Name)
+                : query.OrderBy(v => v.Island == null).ThenBy(v => v.Island!.Name),
+            "address" => descending ? query.OrderByDescending(v => v.Address) : query.OrderBy(v => v.Address),
+            "party" => descending
+                ? query.OrderBy(v => v.PoliticalParty == null).ThenByDescending(v => v.PoliticalParty!.ShortName)
+                : query.OrderBy(v => v.PoliticalParty == null).ThenBy(v => v.PoliticalParty!.ShortName),
+            "pledges" => descending ? query.OrderByDescending(v => v.Pledges.Count()) : query.OrderBy(v => v.Pledges.Count()),
+            "status" => descending ? query.OrderByDescending(v => v.SupportStatus) : query.OrderBy(v => v.SupportStatus),
+            _ => descending ? query.OrderByDescending(v => v.FullName) : query.OrderBy(v => v.FullName)
+        };
+
+        return ordered.ThenBy(v => v.FullName).ThenBy(v => v.NationalId);
     }
 
     public static readonly string[] SupportStatuses =

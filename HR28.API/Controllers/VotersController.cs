@@ -47,7 +47,9 @@ public class VotersController : ControllerBase
         [FromQuery] string? status = null,
         [FromQuery] Guid? partyId = null,
         [FromQuery] bool noParty = false,
-        [FromQuery] string? gender = null)
+        [FromQuery] string? gender = null,
+        [FromQuery] string? sort = null,
+        [FromQuery] bool desc = false)
     {
         var userIdValue =
             User.FindFirst(
@@ -76,7 +78,9 @@ public class VotersController : ControllerBase
                     Status = status,
                     PartyId = partyId,
                     NoParty = noParty,
-                    Gender = gender
+                    Gender = gender,
+                    Sort = sort,
+                    Descending = desc
                 });
 
         return Ok(result);

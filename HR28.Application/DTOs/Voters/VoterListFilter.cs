@@ -26,4 +26,13 @@ public class VoterListFilter
 
     /// <summary>True: only voters whose party is "Not known".</summary>
     public bool NoParty { get; set; }
+
+    /// <summary>
+    /// Column to sort by: name (default), nid, phone, island, address, party, pledges or status.
+    /// Ties are always broken by name and then ID card, so paging is stable.
+    /// </summary>
+    public string? Sort { get; set; }
+
+    /// <summary>True: Z→A / largest first.</summary>
+    public bool Descending { get; set; }
 }

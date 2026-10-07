@@ -73,7 +73,9 @@ public class VotersController : Controller
         bool houseExact = false,
         string? status = null,
         string? party = null,
-        string? gender = null)
+        string? gender = null,
+        string? sort = null,
+        bool desc = false)
     {
         var token =
             HttpContext.Session.GetString(
@@ -101,7 +103,9 @@ public class VotersController : Controller
             // No party in the address: the list opens on the default party (MDP).
             Party = VoterListFilterModel.ResolveParty(party, parties),
             Parties = parties,
-            PageSize = pageSize is 10 or 20 or 50 or 100 ? pageSize : 20
+            PageSize = pageSize is 10 or 20 or 50 or 100 ? pageSize : 20,
+            Sort = VoterListFilterModel.SortColumns.Contains(sort) && sort != "name" ? sort : null,
+            Desc = desc
         };
 
         // Only constituencies and islands inside the user's areas are offered.
