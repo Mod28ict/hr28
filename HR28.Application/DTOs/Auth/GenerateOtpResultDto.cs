@@ -14,4 +14,7 @@ public class GenerateOtpResultDto
     public string Message { get; set; } = string.Empty;
 
     public int RetryAfterSeconds { get; set; }
+
+    /// <summary>True when a remembered device key is no longer valid: forget it.</summary>
+    public bool DeviceNotRecognised { get; set; }
 }

@@ -251,9 +251,19 @@ strong despite that:
 - Use generic messages that don't reveal whether a user or phone number exists.
 - **Phone number changes** only by an administrator, always audited, and the user is
   notified. (Whoever controls the number controls the account.)
-- **Trusted devices**: after a successful login a device may be remembered for a
-  limited period so users enter codes less often. New devices always need a code.
-  Users and admins can revoke trusted devices.
+- **Trusted devices — implemented (owner, 2026-10-07: "Remember me" for collectors who
+  are not computer-oriented):** "Remember me on this device" on the sign-in page. After
+  the SMS code is verified the API issues a random 32-byte device key; the browser keeps
+  it only in the HttpOnly/Secure/SameSite=Strict cookie `HR28.Device`, the database only
+  its HMAC (`TrustedDevices`, `HashDeviceToken`). On that device the user skips the
+  authorization code ("Welcome back, <first name>" + "Send my sign-in code") but the SMS
+  code, attempt limits and lockout still apply. Lasts Settings → System "Remember devices
+  for (days)" (default 30, 0–90; 0 = off and stops all remembered devices); at most 5 per
+  user. Forgotten by "Not you?" on the sign-in page, by Reset code, and by the
+  administrator (Users → Edit → "Forget remembered devices"); deactivated accounts can't
+  use them. Remembering and forgetting are audited. The authorization code itself is
+  never stored in the browser. Migration `AddTrustedDevices`; rollback
+  `dotnet ef database update GrantReportRights`.
 - **Step-up verification**: require a fresh code before sensitive actions – data
   exports, role/scope changes, user management, phone number changes – even within
   a logged-in session.

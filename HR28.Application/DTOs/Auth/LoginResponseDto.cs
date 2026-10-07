@@ -16,4 +16,12 @@ public class LoginResponseDto
 
     /// <summary>All roles; the web app combines their permissions.</summary>
     public List<string> Roles { get; set; } = new();
+
+    /// <summary>New device key when "Remember me" was ticked (only returned once).</summary>
+    public string? DeviceToken { get; set; }
+
+    public DateTime? DeviceExpiresAt { get; set; }
+
+    /// <summary>True when sign-in used a device key that is no longer valid: forget it.</summary>
+    public bool DeviceNotRecognised { get; set; }
 }

@@ -38,6 +38,15 @@ public class HR28DbContext : DbContext
             .HasMaxLength(20)
             .HasDefaultValue("Dashboard");
 
+        // "Remember me on this device": only a keyed hash of the device key is stored.
+        modelBuilder.Entity<TrustedDevice>(e =>
+        {
+            e.Property(d => d.TokenHash).HasMaxLength(64).IsRequired();
+            e.HasIndex(d => d.TokenHash).IsUnique();
+            e.Property(d => d.Name).HasMaxLength(100);
+            e.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         // --------------------------------------------------
         // User scope relationships
         // --------------------------------------------------
@@ -362,6 +371,9 @@ public class HR28DbContext : DbContext
 
     public DbSet<OtpRequest> OtpRequests =>
         Set<OtpRequest>();
+
+    public DbSet<TrustedDevice> TrustedDevices =>
+        Set<TrustedDevice>();
 
     public DbSet<AuthorizationCodeHistory>
         AuthorizationCodeHistories =>

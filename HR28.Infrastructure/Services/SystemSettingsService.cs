@@ -12,11 +12,13 @@ public class SystemSettingsService : ISystemSettingsService
     public const string CampaignNameKey = "CampaignName";
     public const string OtpExpiryMinutesKey = "OtpExpiryMinutes";
     public const string OtpMaxAttemptsKey = "OtpMaxAttempts";
+    public const string RememberDeviceDaysKey = "RememberDeviceDays";
 
     // Defaults apply until an administrator saves a value.
     public const string DefaultCampaignName = "Campaign Intelligence";
     public const int DefaultOtpExpiryMinutes = 5;
     public const int DefaultOtpMaxAttempts = 5;
+    public const int DefaultRememberDeviceDays = 30;
 
     private readonly HR28DbContext _dbContext;
     private readonly IAuditService _auditService;
@@ -65,6 +67,7 @@ public class SystemSettingsService : ISystemSettingsService
             CampaignName = Text(CampaignNameKey, DefaultCampaignName),
             OtpExpiryMinutes = Number(OtpExpiryMinutesKey, DefaultOtpExpiryMinutes),
             OtpMaxAttempts = Number(OtpMaxAttemptsKey, DefaultOtpMaxAttempts),
+            RememberDeviceDays = Number(RememberDeviceDaysKey, DefaultRememberDeviceDays),
             UpdatedAt = latest?.UpdatedAt,
             UpdatedByName = updatedByName
         };
@@ -83,6 +86,9 @@ public class SystemSettingsService : ISystemSettingsService
         if (settings.OtpMaxAttempts is < 3 or > 10)
             throw new BusinessRuleException("Maximum OTP attempts must be between 3 and 10.");
 
+        if (settings.RememberDeviceDays is < 0 or > 90)
+            throw new BusinessRuleException("Remember devices for must be between 0 (off) and 90 days.");
+
         var current = await GetAsync();
 
         // Each changed value is saved and audited with its old and new value.
@@ -94,6 +100,9 @@ public class SystemSettingsService : ISystemSettingsService
 
         await SaveIfChangedAsync(OtpMaxAttemptsKey, "Maximum OTP attempts",
             current.OtpMaxAttempts.ToString(), settings.OtpMaxAttempts.ToString(), userId);
+
+        await SaveIfChangedAsync(RememberDeviceDaysKey, "Remember devices for (days)",
+            current.RememberDeviceDays.ToString(), settings.RememberDeviceDays.ToString(), userId);
 
         return await GetAsync();
     }

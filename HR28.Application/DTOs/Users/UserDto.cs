@@ -27,6 +27,9 @@ public class UserDto
     public string Remarks { get; set; } = string.Empty;
 
     public DateTime? LastLoginAt { get; set; }
+
+    /// <summary>Browsers remembered with "Remember me on this device" (not expired).</summary>
+    public int RememberedDevices { get; set; }
     /// <summary>The user's highest-authority role (kept for screens that show one).</summary>
     public string? RoleName { get; set; }
 

@@ -211,6 +211,7 @@ public class UsersController : Controller
         {
             EditId = id,
             IsActive = user.Data.IsActive,
+            RememberedDevices = user.Data.RememberedDevices,
             User = new CreateUserDto
             {
                 NationalId = user.Data.NationalId,
@@ -222,6 +223,30 @@ public class UsersController : Controller
                 Remarks = user.Data.Remarks
             }
         });
+    }
+
+    /// <summary>Forgets every device the user ticked "Remember me" on (they need their code there again).</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgetDevices(Guid id, string? name)
+    {
+        if (!IsSuperAdmin())
+            return RedirectToAction("Index", "Dashboard");
+
+        var result = await _apiClient.DeleteAsync($"Users/{id}/devices", HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (result.Success)
+            TempData["SuccessMessage"] = $"{(string.IsNullOrWhiteSpace(name) ? "This person" : name)} will need their authorization code again on every device.";
+        else
+            TempData["FlashError"] = "The remembered devices could not be forgotten. Please try again.";
+
+        return RedirectToAction(nameof(Edit), new { id });
     }
 
     [HttpPost]

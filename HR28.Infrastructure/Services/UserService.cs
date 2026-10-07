@@ -159,12 +159,46 @@ public class UserService : IUserService
         foreach (var otp in openOtps)
             otp.IsUsed = true;
 
+        // A new code starts afresh: every remembered device must sign in with it again.
+        var devices = await _dbContext.TrustedDevices
+            .Where(d => d.UserId == userId)
+            .ToListAsync();
+
+        _dbContext.TrustedDevices.RemoveRange(devices);
+
         await _dbContext.SaveChangesAsync();
 
         await _auditService.LogAsync(
-            GetCurrentUserId(), "Reset authorization code", "User", userId.ToString());
+            GetCurrentUserId(),
+            devices.Count > 0
+                ? $"Reset authorization code (and forgot {devices.Count} remembered {(devices.Count == 1 ? "device" : "devices")})"
+                : "Reset authorization code",
+            "User",
+            userId.ToString());
 
         return code;
+    }
+
+    /// <summary>Administrator: forgets all of a user's remembered devices. Returns how many.</summary>
+    public async Task<int> ForgetDevicesAsync(Guid userId)
+    {
+        var devices = await _dbContext.TrustedDevices
+            .Where(d => d.UserId == userId)
+            .ToListAsync();
+
+        if (devices.Count == 0)
+            return 0;
+
+        _dbContext.TrustedDevices.RemoveRange(devices);
+        await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            $"Forgot {devices.Count} remembered {(devices.Count == 1 ? "device" : "devices")}",
+            "User",
+            userId.ToString());
+
+        return devices.Count;
     }
 
     public async Task<List<UserDto>> GetUsersAsync()
@@ -248,7 +282,7 @@ public class UserService : IUserService
     }
 
     /// <summary>Loads users with all their roles and areas (no codes).</summary>
-    private static async Task<List<UserDto>> QueryUsersAsync(IQueryable<User> users)
+    private async Task<List<UserDto>> QueryUsersAsync(IQueryable<User> users)
     {
         var rows = await users
             .AsNoTracking()
@@ -265,6 +299,7 @@ public class UserService : IUserService
                 user.IsActive,
                 user.Remarks,
                 user.LastLoginAt,
+                RememberedDevices = _dbContext.TrustedDevices.Count(d => d.UserId == user.Id && d.ExpiresAt > DateTime.UtcNow),
                 Roles = user.UserRoles.Select(x => x.Role.Name).ToList(),
                 Scopes = user.UserScopes
                     .Select(s => new UserScopeDto
@@ -299,6 +334,7 @@ public class UserService : IUserService
                 IsActive = r.IsActive,
                 Remarks = r.Remarks ?? string.Empty,
                 LastLoginAt = r.LastLoginAt,
+                RememberedDevices = r.RememberedDevices,
                 Roles = roles,
                 RoleName = roles.FirstOrDefault(),
                 Scopes = scopes,

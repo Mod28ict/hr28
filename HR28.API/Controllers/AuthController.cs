@@ -35,13 +35,40 @@ public class AuthController : ControllerBase
         }
 
         if (!result.Success)
-            return BadRequest(new { message = result.Message });
+            return BadRequest(new { message = result.Message, deviceNotRecognised = result.DeviceNotRecognised });
 
         return Ok(new
         {
             message = "OTP Generated.",
             expiresInSeconds = result.ExpiresInSeconds
         });
+    }
+
+    /// <summary>Sign-in page options that don't need an account (shown before signing in).</summary>
+    [HttpGet("options")]
+    public async Task<IActionResult> Options([FromServices] ISystemSettingsService settings) =>
+        Ok(new { rememberDeviceDays = (await settings.GetAsync()).RememberDeviceDays });
+
+    /// <summary>"Welcome back" on a remembered device. Rate-limited like code checks.</summary>
+    [HttpPost("device")]
+    [EnableRateLimiting(RateLimitPolicies.OtpVerify)]
+    public async Task<IActionResult> RememberedDevice(DeviceTokenDto request)
+    {
+        var device = await _authService.GetRememberedDeviceAsync(request.DeviceToken);
+
+        return device == null
+            ? NotFound(new { message = "This device is no longer remembered." })
+            : Ok(device);
+    }
+
+    /// <summary>"Not you? Forget this device": the key stops working at once.</summary>
+    [HttpPost("forget-device")]
+    [EnableRateLimiting(RateLimitPolicies.OtpVerify)]
+    public async Task<IActionResult> ForgetDevice(DeviceTokenDto request)
+    {
+        await _authService.ForgetDeviceAsync(request.DeviceToken);
+
+        return NoContent();
     }
 
     [HttpPost("verify-otp")]

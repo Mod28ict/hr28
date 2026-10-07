@@ -17,4 +17,7 @@ public interface IAuthorizationCodeHasher
     /// Stored instead of the digits, so the database never holds a usable code.
     /// </summary>
     string HashOtp(Guid otpRequestId, string otp);
+
+    /// <summary>Hex HMAC-SHA256 of a remembered device's key ("Remember me on this device").</summary>
+    string HashDeviceToken(string token);
 }

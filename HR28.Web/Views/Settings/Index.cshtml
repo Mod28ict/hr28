@@ -234,6 +234,14 @@
                             <input id="OtpMaxAttempts" name="OtpMaxAttempts" type="number" class="ui-input" value="@s.OtpMaxAttempts" min="3" max="10" required />
                             <div class="ui-hint">After this many wrong entries the code is locked and a new one is needed.</div>
                         </div>
+                        <div class="ui-field">
+                            <label for="RememberDeviceDays" class="ui-label">Remember devices for (days)</label>
+                            <input id="RememberDeviceDays" name="RememberDeviceDays" type="number" class="ui-input" value="@s.RememberDeviceDays" min="0" max="90" required />
+                            <div class="ui-hint">
+                                With "Remember me on this device" ticked at sign-in, people only need the SMS code on that
+                                device for this many days. 0 turns it off and forgets every remembered device.
+                            </div>
+                        </div>
                     </div>
                 </div>
 

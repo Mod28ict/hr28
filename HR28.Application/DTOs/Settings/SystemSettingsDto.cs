@@ -11,6 +11,9 @@ public class SystemSettingsDto
     /// <summary>Wrong OTP entries allowed before the code is locked.</summary>
     public int OtpMaxAttempts { get; set; }
 
+    /// <summary>"Remember me on this device" lasts this many days; 0 turns it off.</summary>
+    public int RememberDeviceDays { get; set; }
+
     public DateTime? UpdatedAt { get; set; }
 
     public string? UpdatedByName { get; set; }

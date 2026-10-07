@@ -8,6 +8,10 @@
         ?? TempData["AuthorizationCode"]?.ToString()
         ?? string.Empty;
 
+    // Signing in on a remembered device (no authorization code), and "Remember me".
+    var useDevice = Model?.UseDevice == true || TempData.Peek("UseDevice")?.ToString() == "1";
+    var rememberDevice = Model?.RememberDevice == true || TempData.Peek("RememberDevice")?.ToString() == "1";
+
     // Show only the last two characters so the code isn't readable over a shoulder.
     var visibleCode = authorizationCode.Replace("-", "").Trim();
     var maskedCode = visibleCode.Length > 2
@@ -1033,13 +1037,26 @@
                     </div>
 
                     <div class="code-reference-text">
-                        <div class="code-reference-label">
-                            Authorization code
-                        </div>
+                        @if (useDevice)
+                        {
+                            <div class="code-reference-label">
+                                Signing in on
+                            </div>
 
-                        <div class="code-reference-value" aria-label="Authorization code ending in @(visibleCode.Length >= 2 ? visibleCode[^2..] : visibleCode)">
-                            @maskedCode
-                        </div>
+                            <div class="code-reference-value">
+                                This remembered device
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="code-reference-label">
+                                Authorization code
+                            </div>
+
+                            <div class="code-reference-value" aria-label="Authorization code ending in @(visibleCode.Length >= 2 ? visibleCode[^2..] : visibleCode)">
+                                @maskedCode
+                            </div>
+                        }
                     </div>
 
                 </div>
@@ -1075,6 +1092,9 @@
                     <input type="hidden"
                            name="AuthorizationCode"
                            value="@authorizationCode" />
+
+                    <input type="hidden" name="UseDevice" value="@(useDevice ? "true" : "false")" />
+                    <input type="hidden" name="RememberDevice" value="@(rememberDevice ? "true" : "false")" />
 
                     <input type="hidden"
                            name="OtpCode"

@@ -2,6 +2,11 @@
 
 @{
     Layout = null;
+
+    // "Remember me on this device" (Settings → System; 0 = off) and, on a remembered
+    // device, the "Welcome back" details. AuthController.Login prepares both.
+    var remembered = ViewBag.RememberedDevice as HR28.Web.Models.Auth.RememberedDevice;
+    var rememberDays = ViewBag.RememberDeviceDays as int? ?? 0;
 }
 
 <!DOCTYPE html>
@@ -810,12 +815,22 @@
                     </div>
                 </div>
 
-                <h2 class="login-heading">Welcome back</h2>
+                <h2 class="login-heading">Welcome back@(remembered != null && remembered.FirstName.Length > 0 ? ", " + remembered.FirstName : "")</h2>
 
-                <p class="login-description">
-                    Enter your assigned authorization code.
-                    A one-time verification code will be sent to continue.
-                </p>
+                @if (remembered != null)
+                {
+                    <p class="login-description">
+                        This device is remembered, so you don't need your authorization code.
+                        We'll send a one-time verification code to your phone@(string.IsNullOrEmpty(remembered.MaskedMobile) ? "" : " ending " + remembered.MaskedMobile).
+                    </p>
+                }
+                else
+                {
+                    <p class="login-description">
+                        Enter your assigned authorization code.
+                        A one-time verification code will be sent to continue.
+                    </p>
+                }
 
                 <div class="security-notice">
                     <div class="security-notice-icon">
@@ -835,8 +850,14 @@
                         </div>
 
                         <div class="security-notice-text">
-                            Your authorization code is verified before an OTP
-                            is issued.
+                            @if (remembered != null)
+                            {
+                                @:This device was remembered when you ticked "Remember me". The code sent to your phone is still required.
+                            }
+                            else
+                            {
+                                @:Your authorization code is verified before an OTP is issued.
+                            }
                         </div>
                     </div>
                 </div>
@@ -858,6 +879,39 @@
                     </div>
                 }
 
+                @if (remembered != null)
+                {
+                    <form method="post" id="loginForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="useDevice" value="true" />
+
+                        <button type="submit"
+                                id="loginButton"
+                                class="submit-button"
+                                autofocus>
+                            <span class="spinner" aria-hidden="true"></span>
+
+                            <span id="buttonText">Send my sign-in code</span>
+
+                            <svg class="button-arrow"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="2"
+                                 aria-hidden="true">
+                                <path d="M5 12h14M13 6l6 6-6 6" />
+                            </svg>
+                        </button>
+                    </form>
+
+                    <form asp-action="ForgetDevice" method="post" class="forget-device-form">
+                        <button type="submit" class="link-button">
+                            Not you? Use an authorization code instead
+                        </button>
+                    </form>
+                }
+                else
+                {
                 <form method="post" id="loginForm">
                     @Html.AntiForgeryToken()
 
@@ -910,6 +964,23 @@
                         </span>
                     </div>
 
+                    @if (rememberDays > 0)
+                    {
+                        <label class="remember-row">
+                            <input type="checkbox"
+                                   name="RememberDevice"
+                                   value="true"
+                                   checked="@(Model?.RememberDevice == true)" />
+                            <span>
+                                <strong>Remember me on this device</strong>
+                                <small>
+                                    For @rememberDays days you'll only need the code sent to your phone.
+                                    Don't tick this on a shared or public computer.
+                                </small>
+                            </span>
+                        </label>
+                    }
+
                     <button type="submit"
                             id="loginButton"
                             class="submit-button">
@@ -927,6 +998,7 @@
                         </svg>
                     </button>
                 </form>
+                }
 
                 <div class="login-footer">
                     Protected by secure OTP verification<br />

@@ -17,6 +17,10 @@ public class SystemSettingsDto
     [Display(Name = "Maximum OTP attempts")]
     public int OtpMaxAttempts { get; set; }
 
+    [Range(0, 90, ErrorMessage = "Remember devices for must be between 0 (off) and 90 days.")]
+    [Display(Name = "Remember devices for (days)")]
+    public int RememberDeviceDays { get; set; }
+
     public DateTime? UpdatedAt { get; set; }
 
     public string? UpdatedByName { get; set; }

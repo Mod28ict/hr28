@@ -37,6 +37,9 @@ public interface IUserService
     /// </summary>
     Task<string?> ResetAuthorizationCodeAsync(Guid userId);
 
+    /// <summary>Forgets all of a user's remembered devices; returns how many.</summary>
+    Task<int> ForgetDevicesAsync(Guid userId);
+
     /// <summary>
     /// Changes a user's details and whether the account is active. Changed fields are
     /// audited; a new mobile number is announced by SMS to the old number.

@@ -53,4 +53,14 @@ public class AuthorizationCodeHasher : IAuthorizationCodeHasher
 
         return Convert.ToHexString(hmac.ComputeHash(Encoding.UTF8.GetBytes(input)));
     }
+
+    public string HashDeviceToken(string token)
+    {
+        using var hmac = new HMACSHA256(_key);
+
+        // The "device|" prefix keeps these separate from code hashes.
+        var input = $"device|{(token ?? string.Empty).Trim()}";
+
+        return Convert.ToHexString(hmac.ComputeHash(Encoding.UTF8.GetBytes(input)));
+    }
 }

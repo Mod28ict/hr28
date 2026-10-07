@@ -15,4 +15,7 @@ public class UserCreateViewModel
 
     /// <summary>Editing only: false signs the person out on their next request.</summary>
     public bool IsActive { get; set; } = true;
+
+    /// <summary>Editing only: browsers remembered with "Remember me on this device".</summary>
+    public int RememberedDevices { get; set; }
 }

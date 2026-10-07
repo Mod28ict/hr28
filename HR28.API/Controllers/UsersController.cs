@@ -117,6 +117,13 @@ public class UsersController : ControllerBase
         return Ok(new { authorizationCode = code });
     }
 
+    /// <summary>Forgets every device the user ticked "Remember me" on; they need their code again there.</summary>
+    [HttpDelete("{userId}/devices")]
+    public async Task<IActionResult> ForgetDevices(Guid userId)
+    {
+        return Ok(new { forgotten = await _userService.ForgetDevicesAsync(userId) });
+    }
+
     /// <summary>Sets all of a user's roles at once (at least one).</summary>
     [HttpPut("{userId}/roles")]
     public async Task<IActionResult> SetRoles(

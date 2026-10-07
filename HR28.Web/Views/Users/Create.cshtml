@@ -8,6 +8,14 @@
 
 <div class="ui-page is-narrow">
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ui-alert is-green" role="status">
+            <partial name="_Icon" model='"check-circle"' />
+            <span>@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
     <header class="ui-head">
         <div class="ui-head-main">
             <span class="ui-head-icon is-blue"><partial name="_Icon" model='@(Model.IsEdit ? "edit" : "user-plus")' /></span>
@@ -198,11 +206,51 @@
 
     </section>
 
+    @if (Model.IsEdit)
+    {
+        <section class="ui-card" aria-labelledby="h28DevicesTitle">
+            <div class="ui-card-head">
+                <h2 id="h28DevicesTitle">Remembered devices</h2>
+            </div>
+
+            @if (Model.RememberedDevices > 0)
+            {
+                <p class="ui-muted" style="margin: 0 0 12px;">
+                    @Model.User.FullName ticked "Remember me" on
+                    <strong>@Model.RememberedDevices @(Model.RememberedDevices == 1 ? "device" : "devices")</strong>,
+                    so they only need the SMS code there. Forget them if a phone or computer is lost, shared or replaced.
+                    Resetting their authorization code also forgets them.
+                </p>
+
+                <form asp-action="ForgetDevices" asp-route-id="@Model.EditId" method="post" class="h28-confirm"
+                      data-confirm="Forget all remembered devices of @Model.User.FullName? They will need their authorization code again on every device.">
+                    <input type="hidden" name="name" value="@Model.User.FullName" />
+                    <button type="submit" class="ui-btn ui-btn-secondary">
+                        <partial name="_Icon" model='"key"' />
+                        Forget remembered devices
+                    </button>
+                </form>
+            }
+            else
+            {
+                <p class="ui-muted" style="margin: 0;">No remembered devices. This person enters their authorization code every time.</p>
+            }
+        </section>
+    }
+
 </div>
 
 @section Scripts
 {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Asks first (the text comes from data-confirm, never from script).
+        document.querySelectorAll('form.h28-confirm').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                if (!window.confirm(form.dataset.confirm)) e.preventDefault();
+            });
+        });
+    </script>
 
     <script>
         (function () {

@@ -15,6 +15,7 @@ public class AuthService : IAuthService
     private readonly ISystemSettingsService _settingsService;
     private readonly IAuthorizationCodeHasher _codeHasher;
     private readonly ISmsSender _smsSender;
+    private readonly IAuditService _auditService;
 
     /// <summary>
     /// Development only, until a real SMS provider is connected: keep SMS codes readable
@@ -31,8 +32,10 @@ public class AuthService : IAuthService
         ISystemSettingsService settingsService,
         IAuthorizationCodeHasher codeHasher,
         ISmsSender smsSender,
+        IAuditService auditService,
         IConfiguration configuration)
     {
+        _auditService = auditService;
         _storeReadableOtp = bool.TryParse(configuration[StoreReadableOtpSetting], out var readable) && readable;
         _dbContext = dbContext;
         _tokenService = tokenService;
@@ -55,6 +58,107 @@ public class AuthService : IAuthService
                 u.IsActive);
     }
 
+    /// <summary>At most this many remembered devices per user; the oldest are forgotten.</summary>
+    public const int MaxRememberedDevices = 5;
+
+    private const string DeviceNotRecognisedMessage =
+        "This device is no longer remembered. Please enter your authorization code.";
+
+    /// <summary>
+    /// The user signing in: by a remembered device's key (still valid, feature on, account
+    /// active) or by authorization code. A device key never falls back to anything else.
+    /// </summary>
+    private async Task<(User? User, TrustedDevice? Device)> FindSignInAsync(string? authorizationCode, string? deviceToken)
+    {
+        if (string.IsNullOrWhiteSpace(deviceToken))
+            return (await FindActiveUserAsync(authorizationCode), null);
+
+        if ((await _settingsService.GetAsync()).RememberDeviceDays <= 0)
+            return (null, null);
+
+        var hash = _codeHasher.HashDeviceToken(deviceToken);
+        var now = DateTime.UtcNow;
+
+        var device = await _dbContext.TrustedDevices
+            .Include(d => d.User)
+            .FirstOrDefaultAsync(d => d.TokenHash == hash && d.ExpiresAt > now);
+
+        return device == null || !device.User.IsActive
+            ? (null, null)
+            : (device.User, device);
+    }
+
+    /// <summary>On a remembered device: the first name and the end of the phone number, for "Welcome back".</summary>
+    public async Task<RememberedDeviceDto?> GetRememberedDeviceAsync(string? deviceToken)
+    {
+        var (user, device) = await FindSignInAsync(null, deviceToken);
+
+        if (user == null || device == null)
+            return null;
+
+        var mobile = new string((user.MobileNumber ?? string.Empty).Where(char.IsDigit).ToArray());
+
+        return new RememberedDeviceDto
+        {
+            FirstName = (user.FullName ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty,
+            MaskedMobile = mobile.Length >= 3 ? "•••" + mobile[^3..] : string.Empty
+        };
+    }
+
+    /// <summary>"Not you? Forget this device" on the sign-in page.</summary>
+    public async Task ForgetDeviceAsync(string? deviceToken)
+    {
+        if (string.IsNullOrWhiteSpace(deviceToken))
+            return;
+
+        var hash = _codeHasher.HashDeviceToken(deviceToken);
+        var device = await _dbContext.TrustedDevices.FirstOrDefaultAsync(d => d.TokenHash == hash);
+
+        if (device == null)
+            return;
+
+        _dbContext.TrustedDevices.Remove(device);
+        await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(device.UserId, $"Forgot a remembered device: {device.Name}", "User", device.UserId.ToString());
+    }
+
+    /// <summary>Remembers this browser for the user; returns the device key (given only to the browser, once).</summary>
+    private async Task<(string Token, DateTime ExpiresAt)> RememberDeviceAsync(User user, string? deviceName, int days)
+    {
+        var now = DateTime.UtcNow;
+
+        // Keep the newest few; expired ones go too.
+        var existing = await _dbContext.TrustedDevices
+            .Where(d => d.UserId == user.Id)
+            .OrderByDescending(d => d.CreatedAt)
+            .ToListAsync();
+
+        _dbContext.TrustedDevices.RemoveRange(
+            existing.Where((d, i) => d.ExpiresAt <= now || i >= MaxRememberedDevices - 1));
+
+        var token = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+        var name = string.IsNullOrWhiteSpace(deviceName) ? "A web browser" : deviceName.Trim();
+        var expiresAt = now.AddDays(days);
+
+        _dbContext.TrustedDevices.Add(new TrustedDevice
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            TokenHash = _codeHasher.HashDeviceToken(token),
+            Name = name.Length > 100 ? name[..100] : name,
+            CreatedAt = now,
+            ExpiresAt = expiresAt,
+            LastUsedAt = now
+        });
+
+        await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(user.Id, $"Remembered a device for {days} days: {name}", "User", user.Id.ToString());
+
+        return (token, expiresAt);
+    }
+
     // Per-account protection. These work no matter which IP the requests come from;
     // per-IP limits are applied separately by the API rate limiter.
     public const int ResendCooldownSeconds = 60;
@@ -73,14 +177,19 @@ public class AuthService : IAuthService
     public async Task<GenerateOtpResultDto> GenerateOtpAsync(
         GenerateOtpRequestDto request)
     {
-        var user = await FindActiveUserAsync(request.AuthorizationCode);
+        var (user, _) = await FindSignInAsync(request.AuthorizationCode, request.DeviceToken);
 
         if (user == null)
         {
+            var byDevice = !string.IsNullOrWhiteSpace(request.DeviceToken);
+
             return new GenerateOtpResultDto
             {
                 Success = false,
-                Message = "That authorization code was not recognised. Check it and try again."
+                DeviceNotRecognised = byDevice,
+                Message = byDevice
+                    ? DeviceNotRecognisedMessage
+                    : "That authorization code was not recognised. Check it and try again."
             };
         }
 
@@ -182,10 +291,14 @@ public class AuthService : IAuthService
         LoginResponseDto Fail(string message) =>
             new() { Success = false, Message = message };
 
-        var user = await FindActiveUserAsync(request.AuthorizationCode);
+        var (user, device) = await FindSignInAsync(request.AuthorizationCode, request.DeviceToken);
 
         if (user == null)
-            return Fail("That authorization code was not recognised. Go back and enter it again.");
+        {
+            return string.IsNullOrWhiteSpace(request.DeviceToken)
+                ? Fail("That authorization code was not recognised. Go back and enter it again.")
+                : new LoginResponseDto { Success = false, DeviceNotRecognised = true, Message = DeviceNotRecognisedMessage };
+        }
 
         var now = DateTime.UtcNow;
 
@@ -288,6 +401,24 @@ public class AuthService : IAuthService
                 .SetProperty(u => u.FailedLoginAttempts, 0)
                 .SetProperty(u => u.LockedUntilUtc, (DateTime?)null));
 
+        // Remembered device: note its use. "Remember me" ticked: remember this browser.
+        string? newDeviceToken = null;
+        DateTime? deviceExpiresAt = null;
+
+        if (device != null)
+        {
+            await _dbContext.TrustedDevices
+                .Where(d => d.Id == device.Id)
+                .ExecuteUpdateAsync(s => s.SetProperty(d => d.LastUsedAt, DateTime.UtcNow));
+        }
+        else if (request.RememberDevice)
+        {
+            var days = (await _settingsService.GetAsync()).RememberDeviceDays;
+
+            if (days > 0)
+                (newDeviceToken, deviceExpiresAt) = await RememberDeviceAsync(user, request.DeviceName, days);
+        }
+
         var roles = HR28.Application.DTOs.Users.RoleOrder.Sort(
             await _dbContext.UserRoles
                 .Where(x => x.UserId == user.Id)
@@ -304,7 +435,9 @@ public class AuthService : IAuthService
             UserId = user.Id,
             FullName = user.FullName,
             RoleName = roles.FirstOrDefault() ?? string.Empty,
-            Roles = roles
+            Roles = roles,
+            DeviceToken = newDeviceToken,
+            DeviceExpiresAt = deviceExpiresAt
         };
     }
 }
