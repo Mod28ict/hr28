@@ -172,8 +172,11 @@
         @if (canEditPhoto)
         {
             <div class="ui-photo-tools">
+                @* One photo per voter: upload only when there is none; otherwise only remove it. *@
+                @if (Model?.HasPhoto != true)
+                {
                 <form asp-action="UploadPhoto" asp-route-id="@voterId" method="post" enctype="multipart/form-data" class="ui-photo-upload">
-                    <label for="voterPhoto" class="ui-label">@(Model?.HasPhoto == true ? "Replace photo" : "Add a photo") <span class="ui-optional">(optional)</span></label>
+                    <label for="voterPhoto" class="ui-label">Add a photo <span class="ui-optional">(optional)</span></label>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                         <input id="voterPhoto" name="photo" type="file" accept="image/jpeg,image/png" class="ui-input" style="max-width: 320px;" required />
                         <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm">
@@ -183,9 +186,13 @@
                     </div>
                     <div class="ui-hint">JPG or PNG, up to 2 MB. Location details inside the photo are removed when it is saved.</div>
                 </form>
-
-                @if (Model?.HasPhoto == true)
+                }
+                else
                 {
+                    <div>
+                        <div class="ui-label">Photo</div>
+                        <div class="ui-hint" style="margin: 0;">To change the photo, remove this one first, then add the new one.</div>
+                    </div>
                     <form asp-action="RemovePhoto" asp-route-id="@voterId" method="post" class="h28-confirm"
                           data-confirm="Remove the photo of @name?">
                         <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm ui-btn-danger">

@@ -544,7 +544,11 @@ public class VoterService : IVoterService
                     })
                 .ToListAsync();
 
-        var hasPhoto = scope.HasPermission(HR28.Application.Common.PermissionCatalog.VotersPhotoView) &&
+        // Known to people who may view or change photos: the profile offers "Add a photo"
+        // only when there is none, and "Remove photo" when there is one.
+        var hasPhoto =
+            (scope.HasPermission(HR28.Application.Common.PermissionCatalog.VotersPhotoView) ||
+             scope.HasPermission(HR28.Application.Common.PermissionCatalog.VotersPhotoEdit)) &&
             await _dbContext.VoterPhotos.AnyAsync(p => p.VoterId == voterId);
 
         return new VoterProfileDto

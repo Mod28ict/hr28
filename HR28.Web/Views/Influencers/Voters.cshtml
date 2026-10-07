@@ -293,7 +293,8 @@
             </div>
         }
 
-        @if (voters.TotalPages > 1)
+        @* Always shown when there are linked voters, so the paging is clear even on one page. *@
+        @if (voters.TotalCount > 0)
         {
             <nav class="ui-pager" aria-label="Linked voter pagination">
                 @if (voters.HasPreviousPage)
