@@ -1,14 +1,34 @@
-@model List<HR28.Web.Models.Users.UserDto>
+@model HR28.Web.Models.Users.UserPageModel
 
 @{
     ViewData["Title"] = "Users";
 
-    var users = Model ?? new List<HR28.Web.Models.Users.UserDto>();
+    var users = Model.Items;
 
-    var totalUsers = users.Count;
-    var activeUsers = users.Count(u => u.IsActive);
-    var inactiveUsers = totalUsers - activeUsers;
-    var unassigned = users.Count(u => string.IsNullOrWhiteSpace(u.RoleName));
+    // Totals count every user, not just this page.
+    var totalUsers = Model.TotalUsers;
+    var activeUsers = Model.ActiveUsers;
+    var inactiveUsers = Model.InactiveUsers;
+    var unassigned = Model.NoRoleUsers;
+
+    var search = ViewBag.Search as string;
+    var status = ViewBag.Status as string;
+    var errorMessage = ViewBag.ErrorMessage as string;
+    var filtered = !string.IsNullOrWhiteSpace(search) || status != null;
+
+    // Page links keep the search, status and page size.
+    Dictionary<string, string> PageRoute(int pageNumber)
+    {
+        var values = new Dictionary<string, string> { ["page"] = pageNumber.ToString(), ["pageSize"] = Model.PageSize.ToString() };
+        if (!string.IsNullOrWhiteSpace(search)) values["search"] = search;
+        if (status != null) values["status"] = status;
+        return values;
+    }
+
+    var startRecord = Model.TotalCount == 0 ? 0 : ((Model.Page - 1) * Model.PageSize) + 1;
+    var endRecord = Math.Min(Model.Page * Model.PageSize, Model.TotalCount);
+    var firstVisiblePage = Math.Max(1, Model.Page - 2);
+    var lastVisiblePage = Math.Min(Model.TotalPages, Model.Page + 2);
 
     // You can't delete your own account (the API checks this too).
     var myId = Context.Session.GetString("UserId");
@@ -78,28 +98,78 @@
 
     <section class="ui-card">
 
-        <div class="ui-card-head">
-            <h2>All users</h2>
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="ui-alert is-red" role="alert">
+                <partial name="_Icon" model='"alert"' />
+                <span>@errorMessage</span>
+            </div>
+        }
 
-            <div class="ui-search" style="flex: 0 1 320px;">
+        <form asp-action="Index" method="get" role="search" class="ui-toolbar">
+            <div class="ui-search">
                 <partial name="_Icon" model='"search"' />
-                <label for="h28UserSearch" class="visually-hidden">Filter users</label>
+                <label for="h28UserSearch" class="visually-hidden">Search users</label>
                 <input type="search"
                        id="h28UserSearch"
+                       name="search"
+                       value="@search"
+                       maxlength="100"
                        class="ui-input"
-                       placeholder="Filter by name, ID, role or scope" />
+                       placeholder="Search by name, ID card, phone, role or area" />
             </div>
-        </div>
+
+            <label for="h28UserStatus" class="visually-hidden">Status</label>
+            <select id="h28UserStatus" name="status" class="ui-select" style="flex: 0 0 160px;">
+                <option value="">All statuses</option>
+                <option value="active" selected="@(status == "active")">Active</option>
+                <option value="inactive" selected="@(status == "inactive")">Inactive</option>
+            </select>
+
+            <label for="h28UserPageSize" class="visually-hidden">Users per page</label>
+            <select id="h28UserPageSize" name="pageSize" class="ui-select" style="flex: 0 0 130px;">
+                @foreach (var size in new[] { 10, 20, 50, 100 })
+                {
+                    <option value="@size" selected="@(Model.PageSize == size)">@size per page</option>
+                }
+            </select>
+
+            <button type="submit" class="ui-btn ui-btn-secondary">Search</button>
+            @if (filtered)
+            {
+                <a asp-action="Index" asp-route-pageSize="@Model.PageSize" class="ui-btn ui-btn-ghost">Clear</a>
+            }
+        </form>
 
         @if (!users.Any())
         {
-            <div class="ui-empty">
+            <div class="ui-empty" role="status">
                 <partial name="_Icon" model='"users"' />
-                No users created yet.
+                @if (filtered)
+                {
+                    <strong>No users match your search</strong>
+                    <span>Check the spelling, or clear the search to see everyone.</span>
+                    <a asp-action="Index" asp-route-pageSize="@Model.PageSize" class="ui-btn ui-btn-secondary ui-btn-sm" style="margin-top: 6px;">Clear search</a>
+                }
+                else if (Model.TotalCount == 0 && Model.TotalUsers == 0 && errorMessage == null)
+                {
+                    <span>No users created yet.</span>
+                }
+                else
+                {
+                    <span>There are no users on this page.</span>
+                    <a asp-action="Index" asp-route-pageSize="@Model.PageSize" class="ui-btn ui-btn-secondary ui-btn-sm" style="margin-top: 6px;">Go to the first page</a>
+                }
             </div>
         }
         else
         {
+            <div class="ui-meta">
+                Showing <strong>@startRecord.ToString("N0")</strong>
+                to <strong>@endRecord.ToString("N0")</strong>
+                of <strong>@Model.TotalCount.ToString("N0")</strong> @(Model.TotalCount == 1 ? "user" : "users")
+            </div>
+
             <div class="ui-table-wrap">
                 <table class="ui-table">
                     <thead>
@@ -271,7 +341,73 @@
                 </table>
             </div>
 
-            <div class="ui-empty" id="h28UserNoMatch" hidden>No users match your filter.</div>
+        }
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="ui-pager" aria-label="Users pagination">
+
+                @if (Model.HasPreviousPage)
+                {
+                    <a class="ui-page-btn"
+                       asp-action="Index"
+                       asp-all-route-data="PageRoute(Model.Page - 1)">‹ Previous</a>
+                }
+                else
+                {
+                    <span class="ui-page-btn is-disabled">‹ Previous</span>
+                }
+
+                @if (firstVisiblePage > 1)
+                {
+                    <a class="ui-page-btn"
+                       asp-action="Index"
+                       asp-all-route-data="PageRoute(1)">1</a>
+
+                    if (firstVisiblePage > 2)
+                    {
+                        <span class="ui-page-btn is-disabled">…</span>
+                    }
+                }
+
+                @for (var pageNumber = firstVisiblePage; pageNumber <= lastVisiblePage; pageNumber++)
+                {
+                    if (pageNumber == Model.Page)
+                    {
+                        <span class="ui-page-btn is-current" aria-current="page">@pageNumber</span>
+                    }
+                    else
+                    {
+                        <a class="ui-page-btn"
+                           asp-action="Index"
+                           asp-all-route-data="PageRoute(pageNumber)">@pageNumber</a>
+                    }
+                }
+
+                @if (lastVisiblePage < Model.TotalPages)
+                {
+                    if (lastVisiblePage < Model.TotalPages - 1)
+                    {
+                        <span class="ui-page-btn is-disabled">…</span>
+                    }
+
+                    <a class="ui-page-btn"
+                       asp-action="Index"
+                       asp-all-route-data="PageRoute(Model.TotalPages)">@Model.TotalPages.ToString("N0")</a>
+                }
+
+                @if (Model.HasNextPage)
+                {
+                    <a class="ui-page-btn"
+                       asp-action="Index"
+                       asp-all-route-data="PageRoute(Model.Page + 1)">Next ›</a>
+                }
+                else
+                {
+                    <span class="ui-page-btn is-disabled">Next ›</span>
+                }
+
+            </nav>
         }
 
     </section>
@@ -310,26 +446,6 @@
 {
     <script>
         (function () {
-            // Filter
-            var search = document.getElementById("h28UserSearch");
-            var body = document.getElementById("h28UserBody");
-            var noMatch = document.getElementById("h28UserNoMatch");
-
-            if (search && body) {
-                search.addEventListener("input", function () {
-                    var term = search.value.trim().toLowerCase();
-                    var shown = 0;
-
-                    body.querySelectorAll("tr").forEach(function (row) {
-                        var match = row.textContent.toLowerCase().includes(term);
-                        row.style.display = match ? "" : "none";
-                        if (match) shown++;
-                    });
-
-                    if (noMatch) noMatch.hidden = shown > 0;
-                });
-            }
-
             // Status pop-up: click Active / Inactive to change it.
             var activeDialog = document.getElementById("h28ActiveDialog");
 

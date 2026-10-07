@@ -79,8 +79,17 @@ public class UsersController : Controller
         public string AuthorizationCode { get; set; } = string.Empty;
     }
 
+    private const string LastListKey = "LastUserListQuery";
+
+    /// <summary>The Users list with the last page, search and status filter.</summary>
+    private IActionResult BackToList()
+    {
+        var query = HttpContext.Session.GetString(LastListKey) ?? string.Empty;
+        return Redirect((Url.Action(nameof(Index)) ?? "/Users") + (query.StartsWith('?') ? query : string.Empty));
+    }
+
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1, int pageSize = 20, string? search = null, string? status = null)
     {
         if (!IsSuperAdmin())
         {
@@ -88,15 +97,33 @@ public class UsersController : Controller
                 "Index",
                 "Dashboard");
         }
-        var token =
-            HttpContext.Session.GetString(
-                "JwtToken");
 
-        var users =
-            await _dashboardService
-                .GetUsersAsync(token);
+        search = search?.Trim();
+        status = status is "active" or "inactive" ? status : null;
+        pageSize = pageSize is 10 or 20 or 50 or 100 ? pageSize : 20;
 
-        return View(users ?? new List<UserDto>());
+        var query = $"Users/search?page={Math.Max(1, page)}&pageSize={pageSize}"
+            + (string.IsNullOrEmpty(search) ? "" : "&search=" + Uri.EscapeDataString(search))
+            + (status == null ? "" : "&status=" + status);
+
+        var result = await _apiClient.GetAsync<UserPageModel>(query, HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!result.Success)
+            ViewBag.ErrorMessage = "The users could not be loaded. Please refresh the page.";
+
+        ViewBag.Search = search;
+        ViewBag.Status = status;
+
+        // Remembered so saving, status changes and deletes come back to the same page.
+        HttpContext.Session.SetString(LastListKey, Request.QueryString.Value ?? string.Empty);
+
+        return View(result.Data ?? new UserPageModel { Page = 1, PageSize = pageSize });
     }
 
     [HttpGet]
@@ -240,7 +267,7 @@ public class UsersController : Controller
         }
 
         TempData["SuccessMessage"] = $"{model.User.FullName} was updated.";
-        return RedirectToAction(nameof(Index));
+        return BackToList();
     }
 
     /// <summary>Status pop-up on the Users list: activate or deactivate an account.</summary>
@@ -273,7 +300,7 @@ public class UsersController : Controller
                 ? "The status could not be changed."
                 : result.Message;
 
-        return RedirectToAction(nameof(Index));
+        return BackToList();
     }
 
     /// <summary>Permanent delete (the page asks first). Accounts with records must be deactivated instead.</summary>
@@ -299,7 +326,7 @@ public class UsersController : Controller
                 ? "The user could not be deleted."
                 : result.Message;
 
-        return RedirectToAction(nameof(Index));
+        return BackToList();
     }
 
     [HttpGet]

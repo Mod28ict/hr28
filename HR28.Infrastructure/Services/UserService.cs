@@ -172,6 +172,75 @@ public class UserService : IUserService
         return await QueryUsersAsync(_dbContext.Users);
     }
 
+    public async Task<UserPageDto> SearchUsersAsync(int page, int pageSize, string? search, string? status)
+    {
+        page = Math.Max(1, page);
+        pageSize = pageSize is 10 or 20 or 50 or 100 ? pageSize : 20;
+
+        var query = _dbContext.Users.AsNoTracking();
+
+        // Name, ID card, phone, email, designation, role or area.
+        var term = (search ?? string.Empty).Trim();
+        if (term.Length > 100)
+            term = term[..100];
+
+        if (term.Length > 0)
+        {
+            query = query.Where(u =>
+                u.FullName.Contains(term) ||
+                u.NationalId.Contains(term) ||
+                u.MobileNumber.Contains(term) ||
+                u.Email.Contains(term) ||
+                u.Designation.Contains(term) ||
+                u.UserRoles.Any(ur => ur.Role.Name.Contains(term)) ||
+                u.UserScopes.Any(s =>
+                    (s.Constituency != null && s.Constituency.Name.Contains(term)) ||
+                    (s.Island != null && s.Island.Name.Contains(term))));
+        }
+
+        if (string.Equals(status, "active", StringComparison.OrdinalIgnoreCase))
+            query = query.Where(u => u.IsActive);
+        else if (string.Equals(status, "inactive", StringComparison.OrdinalIgnoreCase))
+            query = query.Where(u => !u.IsActive);
+
+        var totalCount = await query.CountAsync();
+
+        var ids = await query
+            .OrderBy(u => u.FullName)
+            .ThenBy(u => u.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(u => u.Id)
+            .ToListAsync();
+
+        var items = (await QueryUsersAsync(_dbContext.Users.Where(u => ids.Contains(u.Id))))
+            .OrderBy(u => ids.IndexOf(u.Id))
+            .ToList();
+
+        // The cards above the list count every user, not just this page.
+        var totals = await _dbContext.Users
+            .GroupBy(_ => 1)
+            .Select(g => new
+            {
+                Total = g.Count(),
+                Active = g.Count(u => u.IsActive),
+                NoRole = g.Count(u => !u.UserRoles.Any())
+            })
+            .FirstOrDefaultAsync();
+
+        return new UserPageDto
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalUsers = totals?.Total ?? 0,
+            ActiveUsers = totals?.Active ?? 0,
+            InactiveUsers = (totals?.Total ?? 0) - (totals?.Active ?? 0),
+            NoRoleUsers = totals?.NoRole ?? 0
+        };
+    }
+
     public async Task<UserDto?> GetUserByIdAsync(Guid id)
     {
         return (await QueryUsersAsync(_dbContext.Users.Where(u => u.Id == id)))

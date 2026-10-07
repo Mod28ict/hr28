@@ -36,6 +36,17 @@ public class UsersController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>The Users list: one page, with search and status filter.</summary>
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchUsers(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? search = null,
+        [FromQuery] string? status = null)
+    {
+        return Ok(await _userService.SearchUsersAsync(page, pageSize, search, status));
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUser(Guid id)
     {

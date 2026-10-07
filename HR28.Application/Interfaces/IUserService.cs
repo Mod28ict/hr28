@@ -9,6 +9,9 @@ public interface IUserService
 
     Task<List<UserDto>> GetUsersAsync();
 
+    /// <summary>A page of users, filtered by search text and status ("active" / "inactive").</summary>
+    Task<UserPageDto> SearchUsersAsync(int page, int pageSize, string? search, string? status);
+
     Task<UserDto?> GetUserByIdAsync(
         Guid id);
     Task AssignRoleAsync(
