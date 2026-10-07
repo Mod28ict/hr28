@@ -80,3 +80,29 @@
         }
     });
 })();
+
+// Status pop-up (Shared/_StatusButton + _StatusDialog): click a voter's status to change it.
+(function () {
+    document.addEventListener("click", function (e) {
+        var btn = e.target.closest(".h28-status-btn");
+        var dialog = document.getElementById("h28StatusDialog");
+        if (!btn || !dialog) return;
+
+        // Don't open the row's voter profile.
+        e.preventDefault();
+        e.stopPropagation();
+
+        document.getElementById("h28StatusVoterId").value = btn.dataset.id;
+        document.getElementById("h28StatusVoterName").textContent = btn.dataset.name;
+        dialog.querySelectorAll('input[name="status"]').forEach(function (r) {
+            r.checked = r.value === btn.dataset.status;
+        });
+        dialog.showModal();
+    }, true);
+
+    document.addEventListener("click", function (e) {
+        if (e.target.id !== "h28StatusCancel") return;
+        var dialog = document.getElementById("h28StatusDialog");
+        if (dialog) dialog.close();
+    });
+})();

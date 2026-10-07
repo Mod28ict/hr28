@@ -17,9 +17,8 @@
 
     var userRole = Context.Session.GetString("UserRole");
     var isAdministrator = HR28.Web.Services.Hr28Roles.IsAdministrator(userRole);
-    // Rights (the API checks them again): adding voters, and "Change support status" from the list.
+    // Rights (the API checks them again): adding voters. Status: Shared/_StatusButton.
     var canAdd = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.VotersAdd);
-    var canWrite = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.VotersStatus);
 
     // Searches run only inside the user's areas; with no areas there is nothing to search.
     var areaText = HR28.Web.Services.Hr28Permissions.SearchAreaText(Context.Session);
@@ -420,22 +419,7 @@
                                 </td>
 
                                 <td>
-                                    @if (canWrite)
-                                    {
-                                        <button type="button"
-                                                class="ui-status-btn h28-status-btn"
-                                                title="Change status"
-                                                onclick="event.stopPropagation()"
-                                                data-id="@voter.Id"
-                                                data-name="@name"
-                                                data-status="@voter.SupportStatus">
-                                            <partial name="_StatusPill" model="voter.SupportStatus" />
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <partial name="_StatusPill" model="voter.SupportStatus" />
-                                    }
+                                    <partial name="_StatusButton" model="new HR28.Web.Models.StatusButtonModel(voter.Id, name, voter.SupportStatus)" />
                                 </td>
 
                                 <td class="is-right">
@@ -524,33 +508,7 @@
 
 </div>
 
-@if (canWrite)
-{
-    <dialog id="h28StatusDialog" class="ui-dialog" aria-labelledby="h28StatusTitle">
-        <form asp-action="SetStatus" method="post" class="ui-dialog-body">
-            <input type="hidden" name="id" id="h28StatusVoterId" />
-            <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
-
-            <h2 id="h28StatusTitle" class="ui-dialog-title">Change status</h2>
-            <p class="ui-muted" id="h28StatusVoterName"></p>
-
-            <div class="ui-status-choices" role="radiogroup" aria-labelledby="h28StatusTitle">
-                @foreach (var st in HR28.Web.Models.VoterListFilterModel.Statuses)
-                {
-                    <label class="ui-status-choice">
-                        <input type="radio" name="status" value="@st" required />
-                        <partial name="_StatusPill" model="st" />
-                    </label>
-                }
-            </div>
-
-            <div class="ui-form-actions">
-                <button type="submit" class="ui-btn ui-btn-primary">Save status</button>
-                <button type="button" class="ui-btn ui-btn-secondary" id="h28StatusCancel">Cancel</button>
-            </div>
-        </form>
-    </dialog>
-}
+<partial name="_StatusDialog" />
 
 @section Scripts
 {
@@ -599,24 +557,5 @@
                     .fail(function () { resetIslands("All islands", false); });
             });
         })(window.jQuery);
-
-        // Status pop-up: click a voter's status to change it.
-        (function () {
-            var dialog = document.getElementById("h28StatusDialog");
-            if (!dialog) return;
-
-            document.querySelectorAll(".h28-status-btn").forEach(function (btn) {
-                btn.addEventListener("click", function () {
-                    document.getElementById("h28StatusVoterId").value = btn.dataset.id;
-                    document.getElementById("h28StatusVoterName").textContent = btn.dataset.name;
-                    dialog.querySelectorAll('input[name="status"]').forEach(function (r) {
-                        r.checked = r.value === btn.dataset.status;
-                    });
-                    dialog.showModal();
-                });
-            });
-
-            document.getElementById("h28StatusCancel").addEventListener("click", function () { dialog.close(); });
-        })();
     </script>
 }

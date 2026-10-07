@@ -80,7 +80,10 @@
         </div>
 
         <div class="ui-head-actions">
-            <partial name="_StatusPill" model="voter?.SupportStatus" />
+            @if (voter != null)
+            {
+                <partial name="_StatusButton" model="new HR28.Web.Models.StatusButtonModel(voter.Id, name, voter.SupportStatus)" />
+            }
             @if (canAddEncounters && !showEncounters)
             {
                 @* Without the encounter history the main job here is adding one. *@
@@ -496,6 +499,7 @@
 </div>
 
 <partial name="_EncounterResponseDialog" />
+<partial name="_StatusDialog" />
 
 @section Scripts
 {

@@ -103,7 +103,7 @@
             <div class="ui-quick-details">
                 <div class="ui-quick-name">
                     <h2>@name</h2>
-                    <partial name="_StatusPill" model="voter.SupportStatus" />
+                    <partial name="_StatusButton" model="new HR28.Web.Models.StatusButtonModel(voter.Id, name, voter.SupportStatus)" />
                 </div>
 
                 <dl class="ui-details">
@@ -266,6 +266,8 @@
     }
 
 </div>
+
+<partial name="_StatusDialog" />
 
 @section Scripts
 {

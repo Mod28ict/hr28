@@ -1,0 +1,31 @@
+@*
+    The "Change status" pop-up for _StatusButton. Shown only with "Change support status";
+    after saving, the same page reloads with a message. Script: wwwroot/js/site.js.
+*@
+@if (HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.VotersStatus))
+{
+    <dialog id="h28StatusDialog" class="ui-dialog" aria-labelledby="h28StatusTitle">
+        <form asp-controller="Voters" asp-action="SetStatus" method="post" class="ui-dialog-body">
+            <input type="hidden" name="id" id="h28StatusVoterId" />
+            <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+
+            <h2 id="h28StatusTitle" class="ui-dialog-title">Change status</h2>
+            <p class="ui-muted" id="h28StatusVoterName"></p>
+
+            <div class="ui-status-choices" role="radiogroup" aria-labelledby="h28StatusTitle">
+                @foreach (var st in HR28.Web.Models.VoterListFilterModel.Statuses)
+                {
+                    <label class="ui-status-choice">
+                        <input type="radio" name="status" value="@st" required />
+                        <partial name="_StatusPill" model="st" />
+                    </label>
+                }
+            </div>
+
+            <div class="ui-form-actions">
+                <button type="submit" class="ui-btn ui-btn-primary">Save status</button>
+                <button type="button" class="ui-btn ui-btn-secondary" id="h28StatusCancel">Cancel</button>
+            </div>
+        </form>
+    </dialog>
+}

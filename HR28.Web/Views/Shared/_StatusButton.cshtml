@@ -1,0 +1,22 @@
+@model HR28.Web.Models.StatusButtonModel
+@*
+    A voter's support status. With "Change support status" (Voters.Status) it is a button
+    that opens the pop-up from _StatusDialog (put that once on the page); otherwise just
+    the pill. The API checks the right again. Script: wwwroot/js/site.js.
+*@
+@if (HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.VotersStatus))
+{
+    <button type="button"
+            class="ui-status-btn h28-status-btn"
+            title="Change status"
+            aria-label="Status: @(string.IsNullOrWhiteSpace(Model.Status) ? "not set" : Model.Status). Change status of @Model.VoterName"
+            data-id="@Model.VoterId"
+            data-name="@Model.VoterName"
+            data-status="@Model.Status">
+        <partial name="_StatusPill" model="Model.Status" />
+    </button>
+}
+else
+{
+    <partial name="_StatusPill" model="Model.Status" />
+}
