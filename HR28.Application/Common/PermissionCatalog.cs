@@ -14,6 +14,9 @@ public static class PermissionCatalog
     public const string VotersEdit = "Voters.Edit";
     public const string VotersDelete = "Voters.Delete";
 
+    /// <summary>Set or change a voter's support status (Supporter / Undecided / Opponent / Neutral).</summary>
+    public const string VotersStatus = "Voters.Status";
+
     public const string VotersPhotoView = "Voters.Photo.View";
     public const string VotersPhotoEdit = "Voters.Photo.Edit";
 
@@ -37,10 +40,10 @@ public static class PermissionCatalog
     public const string InfluencersDelete = "Influencers.Delete";
 
     /// <summary>Columns of the rights grid, in order.</summary>
-    public static readonly string[] Actions = { "View", "Add", "Edit", "Delete", "Link", "Response" };
+    public static readonly string[] Actions = { "View", "Add", "Edit", "Delete", "Link", "Response", "Status" };
 
     /// <param name="Group">The record type (a row of the rights grid).</param>
-    /// <param name="Action">View, Add, Edit, Delete, Link or Response (a column of the grid).</param>
+    /// <param name="Action">View, Add, Edit, Delete, Link, Response or Status (a column of the grid).</param>
     public record Entry(string Key, string Name, string Description, string Group, string Action);
 
     public static readonly IReadOnlyList<Entry> All = new[]
@@ -50,9 +53,11 @@ public static class PermissionCatalog
         new Entry(VotersAdd, "Add voters",
             "Add new voters.", "Voters", "Add"),
         new Entry(VotersEdit, "Edit voters",
-            "Change a voter's details, party and support status.", "Voters", "Edit"),
+            "Change a voter's details and party (the support status needs its own right).", "Voters", "Edit"),
         new Entry(VotersDelete, "Delete voters",
             "Permanently delete a voter with their encounters and pledges.", "Voters", "Delete"),
+        new Entry(VotersStatus, "Change support status",
+            "Set or change a voter's support status (Supporter, Undecided, Opponent, Neutral). Without it, new voters start as Undecided and the status stays as it is.", "Voters", "Status"),
 
         new Entry(VotersPhotoView, "View voter photos",
             "See a voter's photo on their profile.", "Voter photos", "View"),

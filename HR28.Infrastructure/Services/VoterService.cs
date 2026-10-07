@@ -94,7 +94,10 @@ public class VoterService : IVoterService
             Gender = gender,
             DateOfBirth = request.DateOfBirth,
             CreatedAt = DateTime.UtcNow,
-            SupportStatus = request.SupportStatus
+            // Only "Change support status" chooses it; everyone else adds voters as Undecided.
+            SupportStatus = scope.HasPermission(HR28.Application.Common.PermissionCatalog.VotersStatus)
+                ? CleanStatus(request.SupportStatus)
+                : DefaultStatus
         };
         _dbContext.Voters.Add(voter);
         await _dbContext.SaveChangesAsync();
@@ -368,6 +371,14 @@ public class VoterService : IVoterService
         if (voter.DateOfBirth != request.DateOfBirth)
             changes.Add("date of birth");
 
+        // Only "Change support status" changes it; without the right it stays as it is.
+        var status = scope.HasPermission(HR28.Application.Common.PermissionCatalog.VotersStatus)
+            ? CleanStatus(request.SupportStatus)
+            : voter.SupportStatus;
+
+        if (voter.SupportStatus != status)
+            changes.Add($"status {voter.SupportStatus} → {status}");
+
         if (changes.Count > 0)
             action += ": " + string.Join(", ", changes);
 
@@ -381,7 +392,7 @@ public class VoterService : IVoterService
         voter.ConstituencyId = request.ConstituencyId;
         voter.IslandId = request.IslandId;
         voter.PoliticalPartyId = request.PoliticalPartyId;
-        voter.SupportStatus = request.SupportStatus;
+        voter.SupportStatus = status;
         voter.Remarks = request.Remarks ?? string.Empty;
 
         await _dbContext.SaveChangesAsync();
@@ -759,6 +770,16 @@ public class VoterService : IVoterService
 
     public static readonly string[] SupportStatuses =
         { "Supporter", "Undecided", "Neutral", "Opponent" };
+
+    private const string DefaultStatus = "Undecided";
+
+    /// <summary>One of the allowed statuses (any capitalisation); otherwise a friendly error.</summary>
+    private static string CleanStatus(string? status) =>
+        string.IsNullOrWhiteSpace(status)
+            ? DefaultStatus
+            : SupportStatuses.FirstOrDefault(s => string.Equals(s, status.Trim(), StringComparison.OrdinalIgnoreCase))
+              ?? throw new HR28.Application.Common.BusinessRuleException(
+                  "Choose one of: " + string.Join(", ", SupportStatuses) + ".");
 
     /// <summary>Trims search text and caps its length so a huge value can't slow the query.</summary>
     private static string Limit(string value)

@@ -172,7 +172,7 @@ await _voterService.GetVoterByIdAsync(
 
     /// <summary>Changes only the support status (status pop-up). Audited.</summary>
     [HttpPut("{id:guid}/status")]
-    [RequirePermission(PermissionCatalog.VotersEdit)]
+    [RequirePermission(PermissionCatalog.VotersStatus)]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusRequest request)
     {
         var status = await _voterService.UpdateStatusAsync(id, request.Status);

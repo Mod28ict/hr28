@@ -232,7 +232,11 @@ public class ApiClient
 
             if (response.IsSuccessStatusCode)
             {
-                var hasBody = response.Content.Headers.ContentLength is null or > 0 &&
+                // Some endpoints answer with plain text ("Voter updated successfully."): that is
+                // still a success, there is just no data to read.
+                var isJson = response.Content.Headers.ContentType?.MediaType?.Contains("json", StringComparison.OrdinalIgnoreCase) == true;
+                var hasBody = isJson &&
+                              response.Content.Headers.ContentLength is null or > 0 &&
                               response.StatusCode != HttpStatusCode.NoContent;
 
                 return new ApiResult<T>

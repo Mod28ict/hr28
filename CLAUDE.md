@@ -166,7 +166,11 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   - Catalog: `PermissionCatalog` (Application/Common): `Voters.View/Add/Edit/Delete`,
     `Encounters.View/Add/Edit/Delete`, `Encounters.Response` (only this right sets or
     changes the green/yellow/red response; without it encounters are saved with no
-    response and edits keep it), `Pledges.View/Add/Edit/Delete`,
+    response and edits keep it), `Voters.Status` ("Change support status", owner
+    decision 2026-10-07: only this right sets or changes a voter's Supporter /
+    Undecided / Opponent / Neutral status — the list pop-up, the Add and Edit forms;
+    without it new voters are Undecided and edits keep the status; no role has it by
+    default, the Administrator always does), `Pledges.View/Add/Edit/Delete`,
     `Influencers.View/Add/Edit/Delete/Link`. Encounter edits audit changed fields
     (notes only as "notes"). Deletes of voters, encounters and pledges are permanent,
     area-checked and audited with a readable name. Add new rights there; the screens

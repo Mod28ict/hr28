@@ -1,6 +1,7 @@
 @model HR28.Web.Models.VoterCreateViewModel
 
 @{
+    var canStatus = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.VotersStatus);
     ViewData["Title"] = "Add Voter";
 
     var selectedIslandId = Model?.Voter?.IslandId?.ToString() ?? string.Empty;
@@ -160,6 +161,9 @@
                     <span asp-validation-for="Voter.PoliticalPartyId" class="ui-error"></span>
                 </div>
 
+                @* Only "Change support status" may choose it (the API checks this too). *@
+                @if (canStatus)
+                {
                 <div class="ui-field">
                     <span class="ui-label" id="h28StatusLabel">Support status</span>
 
@@ -180,6 +184,16 @@
 
                     <span asp-validation-for="Voter.SupportStatus" class="ui-error"></span>
                 </div>
+                }
+                else
+                {
+                <div class="ui-field">
+                    <span class="ui-label">Support status</span>
+                    <div><partial name="_StatusPill" model='"Undecided"' /></div>
+                    <input type="hidden" name="Voter.SupportStatus" value="Undecided" />
+                    <div class="ui-hint">New voters start as Undecided. Changing the status needs the "Change support status" right.</div>
+                </div>
+                }
 
                 <div class="ui-field">
                     <label asp-for="Voter.Remarks" class="ui-label">
