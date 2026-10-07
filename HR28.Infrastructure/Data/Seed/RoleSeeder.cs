@@ -69,13 +69,16 @@ public static class RoleSeeder
     private static readonly string[] AdminAndCollectorRights =
     {
         "Voters.View", "Voters.Add", "Voters.Edit",
+        // Given with "Edit voters" (migration GrantVoterStatusToEditors).
+        "Voters.Status",
         "Encounters.View", "Encounters.Add",
         "Pledges.View", "Pledges.Add", "Pledges.Edit",
         "Influencers.View", "Influencers.Add", "Influencers.Link"
     };
 
     /// <summary>
-    /// Built-in roles' rights on a new database: the same as migration AddRoleRights.
+    /// Built-in roles' rights on a new database: the same as migrations AddRoleRights
+    /// and GrantVoterStatusToEditors.
     /// The Super Administrator needs none (it always has every right).
     /// </summary>
     public static readonly IReadOnlyDictionary<string, string[]> DefaultRights =

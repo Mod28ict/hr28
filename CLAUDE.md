@@ -169,8 +169,10 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
     response and edits keep it), `Voters.Status` ("Change support status", owner
     decision 2026-10-07: only this right sets or changes a voter's Supporter /
     Undecided / Opponent / Neutral status — the list pop-up, the Add and Edit forms;
-    without it new voters are Undecided and edits keep the status; no role has it by
-    default, the Administrator always does), `Pledges.View/Add/Edit/Delete`,
+    without it new voters are Undecided and edits keep the status; every role with
+    "Edit voters" was given it — data migration `GrantVoterStatusToEditors`, rollback
+    `dotnet ef database update AddRoleStartPage`; `RoleSeeder` does the same for new
+    databases), `Pledges.View/Add/Edit/Delete`,
     `Influencers.View/Add/Edit/Delete/Link`. Encounter edits audit changed fields
     (notes only as "notes"). Deletes of voters, encounters and pledges are permanent,
     area-checked and audited with a readable name. Add new rights there; the screens

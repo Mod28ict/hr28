@@ -17,6 +17,21 @@ public class VoterStatusRightTests
 
     public VoterStatusRightTests(Hr28ApiFactory factory) => _factory = factory;
 
+    /// <summary>A custom role that may view and edit voters, but not change their status.</summary>
+    private async Task<string> EditorWithoutStatusRoleAsync()
+    {
+        var role = new Role { Id = Guid.NewGuid(), Name = $"Editor {Guid.NewGuid():N}"[..30], Description = "test" };
+
+        await using var db = _factory.NewDbContext();
+        db.Roles.Add(role);
+        db.RolePermissions.AddRange(
+            new RolePermission { RoleId = role.Id, Permission = "Voters.View" },
+            new RolePermission { RoleId = role.Id, Permission = "Voters.Edit" });
+        await db.SaveChangesAsync();
+
+        return role.Name;
+    }
+
     private async Task<string> StatusOfAsync(Guid voterId)
     {
         await using var db = _factory.NewDbContext();
@@ -43,7 +58,7 @@ public class VoterStatusRightTests
     {
         var constituency = await _factory.Data.ConstituencyAsync();
         var voter = await _factory.Data.VoterAsync(constituency);
-        var collector = await _factory.Data.UserAsync(["Collector"], [(constituency, null)]);
+        var collector = await _factory.Data.UserAsync([await EditorWithoutStatusRoleAsync()], [(constituency, null)]);
 
         var response = await (await _factory.ClientForAsync(collector))
             .PutAsJsonAsync($"api/Voters/{voter.Id}/status", new { status = "Supporter" });
@@ -88,7 +103,7 @@ public class VoterStatusRightTests
     {
         var constituency = await _factory.Data.ConstituencyAsync();
         var voter = await _factory.Data.VoterAsync(constituency);
-        var collector = await _factory.Data.UserAsync(["Collector"], [(constituency, null)]);
+        var collector = await _factory.Data.UserAsync([await EditorWithoutStatusRoleAsync()], [(constituency, null)]);
 
         var response = await (await _factory.ClientForAsync(collector))
             .PutAsJsonAsync($"api/Voters/{voter.Id}", UpdateBody(voter, "Opponent"));
@@ -109,6 +124,18 @@ public class VoterStatusRightTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("Opponent", await StatusOfAsync(voter.Id));
+    }
+
+    [Fact]
+    public async Task Built_in_roles_that_edit_voters_also_change_their_status()
+    {
+        await using var db = _factory.NewDbContext();
+
+        var editors = await db.RolePermissions.Where(rp => rp.Permission == "Voters.Edit").Select(rp => rp.RoleId).ToListAsync();
+        var statusers = await db.RolePermissions.Where(rp => rp.Permission == "Voters.Status").Select(rp => rp.RoleId).ToListAsync();
+
+        Assert.NotEmpty(editors);
+        Assert.All(editors.Where(id => db.Roles.Any(r => r.Id == id && !r.Name.StartsWith("Editor "))), id => Assert.Contains(id, statusers));
     }
 
     [Fact]
