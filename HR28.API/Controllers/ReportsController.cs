@@ -28,6 +28,7 @@ public class ReportsController : ControllerBase
     }
 
     [HttpGet("constituency-summary")]
+    [RequirePermission(PermissionCatalog.ReportsView)]
     public async Task<IActionResult>
         GetConstituencySummary()
     {
@@ -41,6 +42,7 @@ public class ReportsController : ControllerBase
     }
 
     [HttpGet("pledge-status-summary")]
+    [RequirePermission(PermissionCatalog.ReportsView)]
     public async Task<IActionResult>
         GetPledgeStatusSummary()
     {
@@ -54,6 +56,7 @@ public class ReportsController : ControllerBase
     }
 
     [HttpGet("top-influencers")]
+    [RequirePermission(PermissionCatalog.ReportsView)]
     public async Task<IActionResult>
         GetTopInfluencers([FromQuery] int top = 10)
     {
@@ -74,6 +77,7 @@ public class ReportsController : ControllerBase
     // --------------------------------------------------
 
     [HttpGet("constituency-summary/export")]
+    [RequirePermission(PermissionCatalog.ReportsDownload)]
     [EnableRateLimiting(RateLimitPolicies.Export)]
     public async Task<IActionResult> ExportConstituencySummary()
     {
@@ -112,6 +116,7 @@ public class ReportsController : ControllerBase
     }
 
     [HttpGet("pledge-status-summary/export")]
+    [RequirePermission(PermissionCatalog.ReportsDownload)]
     [EnableRateLimiting(RateLimitPolicies.Export)]
     public async Task<IActionResult> ExportPledgeStatusSummary()
     {
@@ -138,6 +143,7 @@ public class ReportsController : ControllerBase
     }
 
     [HttpGet("top-influencers/export")]
+    [RequirePermission(PermissionCatalog.ReportsDownload)]
     [EnableRateLimiting(RateLimitPolicies.Export)]
     public async Task<IActionResult> ExportTopInfluencers([FromQuery] int top = 50)
     {

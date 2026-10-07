@@ -173,7 +173,11 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
     "Edit voters" was given it — data migration `GrantVoterStatusToEditors`, rollback
     `dotnet ef database update AddRoleStartPage`; `RoleSeeder` does the same for new
     databases), `Pledges.View/Add/Edit/Delete`,
-    `Influencers.View/Add/Edit/Delete/Link`. Encounter edits audit changed fields
+    `Influencers.View/Add/Edit/Delete/Link`, `Reports.View` / `Reports.Download`
+    (owner decision 2026-10-07: Reports pages and their CSV download / print are rights;
+    every existing role except the Administrator got both — data migration
+    `GrantReportRights`, rollback `dotnet ef database update GrantVoterStatusToEditors`;
+    `RoleSeeder` gives them to new databases' built-in roles). Encounter edits audit changed fields
     (notes only as "notes"). Deletes of voters, encounters and pledges are permanent,
     area-checked and audited with a readable name. Add new rights there; the screens
     list them automatically. Mirror the keys in web `Hr28Permissions`.

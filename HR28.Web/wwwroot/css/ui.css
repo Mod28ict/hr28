@@ -1418,6 +1418,33 @@ a.ui-page-btn:hover {
         cursor: pointer;
     }
 
+    .ui-rights-help .ui-perm-legend {
+        margin-top: 6px;
+    }
+
+.ui-rights-rules {
+    display: grid;
+    gap: 4px;
+    margin: 12px 0 4px;
+    padding: 10px 14px 10px 30px;
+    border-radius: 10px;
+    background: var(--ui-subtle);
+    color: var(--ui-muted);
+}
+
+    .ui-rights-rules strong {
+        color: var(--ui-text);
+    }
+
+.ui-rights-group {
+    margin: 16px 0 0;
+    color: var(--ui-text);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+}
+
 /* ---------- Checkbox cards (roles) ---------- */
 
 .ui-check-list {

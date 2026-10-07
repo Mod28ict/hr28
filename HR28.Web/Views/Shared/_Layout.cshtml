@@ -309,11 +309,14 @@
                 </a>
             }
 
-            <a class="@NavClass(currentController == "Reports")"
-               asp-controller="Reports" asp-action="Index">
-                <partial name="_Icon" model='"chart"' />
-                <span>Reports</span>
-            </a>
+            @if (Can(HR28.Web.Services.Hr28Permissions.ReportsView))
+            {
+                <a class="@NavClass(currentController == "Reports")"
+                   asp-controller="Reports" asp-action="Index">
+                    <partial name="_Icon" model='"chart"' />
+                    <span>Reports</span>
+                </a>
+            }
 
             <a class="@NavClass(currentController == "Audit")"
                asp-controller="Audit" asp-action="Index">

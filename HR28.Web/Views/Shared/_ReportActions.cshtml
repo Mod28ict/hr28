@@ -3,7 +3,10 @@
     Download / print buttons for a report. Model = report key used by
     ReportsController.Download (constituencies | pledges | influencers).
     The "download" attribute stops the page loader from waiting on navigation.
+    Shown only with "Download and print reports" (the API checks downloads too).
 *@
+@if (HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.ReportsDownload))
+{
 <div class="ui-report-actions no-print">
     <a asp-controller="Reports"
        asp-action="Download"
@@ -19,3 +22,4 @@
         Print / PDF
     </button>
 </div>
+}

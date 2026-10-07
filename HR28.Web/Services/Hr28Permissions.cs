@@ -22,6 +22,9 @@ public static class Hr28Permissions
     public const string VotersAdd = "Voters.Add";
     public const string VotersEdit = "Voters.Edit";
     public const string VotersStatus = "Voters.Status";
+
+    public const string ReportsView = "Reports.View";
+    public const string ReportsDownload = "Reports.Download";
     public const string VotersDelete = "Voters.Delete";
 
     public const string VotersPhotoView = "Voters.Photo.View";

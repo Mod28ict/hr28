@@ -73,12 +73,14 @@ public static class RoleSeeder
         "Voters.Status",
         "Encounters.View", "Encounters.Add",
         "Pledges.View", "Pledges.Add", "Pledges.Edit",
-        "Influencers.View", "Influencers.Add", "Influencers.Link"
+        "Influencers.View", "Influencers.Add", "Influencers.Link",
+        // Migration GrantReportRights.
+        "Reports.View", "Reports.Download"
     };
 
     /// <summary>
-    /// Built-in roles' rights on a new database: the same as migrations AddRoleRights
-    /// and GrantVoterStatusToEditors.
+    /// Built-in roles' rights on a new database: the same as migrations AddRoleRights,
+    /// GrantVoterStatusToEditors and GrantReportRights.
     /// The Super Administrator needs none (it always has every right).
     /// </summary>
     public static readonly IReadOnlyDictionary<string, string[]> DefaultRights =
@@ -88,6 +90,6 @@ public static class RoleSeeder
             ["Constituency Administrator"] = AdminAndCollectorRights,
             ["Island Administrator"] = AdminAndCollectorRights,
             ["Collector"] = AdminAndCollectorRights,
-            ["Reporter"] = ["Encounters.View", "Pledges.View"]
+            ["Reporter"] = ["Encounters.View", "Pledges.View", "Reports.View", "Reports.Download"]
         };
 }

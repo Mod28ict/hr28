@@ -17,6 +17,26 @@ public class ReportsController : AppController
         _apiClient = apiClient;
     }
 
+    /// <summary>Reports need "View reports"; downloads also need "Download and print reports". The API checks both.</summary>
+    public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
+    {
+        var session = HttpContext.Session;
+        var download = string.Equals(context.ActionDescriptor.RouteValues["action"], nameof(Download), StringComparison.OrdinalIgnoreCase);
+
+        if (!string.IsNullOrEmpty(Token) &&
+            (!Hr28Permissions.Has(session, Hr28Permissions.ReportsView) ||
+             (download && !Hr28Permissions.Has(session, Hr28Permissions.ReportsDownload))))
+        {
+            TempData["FlashError"] = download
+                ? "Downloading reports needs the \"Download and print reports\" right. Ask your Administrator."
+                : "Reports need the \"View reports\" right. Ask your Administrator.";
+            context.Result = RedirectToAction("Index", "Dashboard");
+            return;
+        }
+
+        base.OnActionExecuting(context);
+    }
+
     public async Task<IActionResult> Index()
     {
         var summary = await _apiClient.GetAsync<List<ConstituencySummaryDto>>(

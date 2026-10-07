@@ -39,61 +39,72 @@ public static class PermissionCatalog
     public const string InfluencersEdit = "Influencers.Edit";
     public const string InfluencersDelete = "Influencers.Delete";
 
+    /// <summary>Open the Reports pages (limited to the user's areas).</summary>
+    public const string ReportsView = "Reports.View";
+
+    /// <summary>Download reports as CSV and print them (every download is audited).</summary>
+    public const string ReportsDownload = "Reports.Download";
+
     /// <summary>Columns of the rights grid, in order.</summary>
-    public static readonly string[] Actions = { "View", "Add", "Edit", "Delete", "Link", "Response", "Status" };
+    public static readonly string[] Actions = { "View", "Add", "Edit", "Delete", "Link", "Response", "Status", "Download" };
 
     /// <param name="Group">The record type (a row of the rights grid).</param>
-    /// <param name="Action">View, Add, Edit, Delete, Link, Response or Status (a column of the grid).</param>
+    /// <param name="Action">View, Add, Edit, Delete, Link, Response, Status or Download (a column of the grid).</param>
     public record Entry(string Key, string Name, string Description, string Group, string Action);
 
     public static readonly IReadOnlyList<Entry> All = new[]
     {
         new Entry(VotersView, "View voters",
-            "Search and open voters, including their profile.", "Voters", "View"),
+            "Search the Voters list, open a voter's profile and look a voter up by ID card on Quick entry.", "Voters", "View"),
         new Entry(VotersAdd, "Add voters",
             "Add new voters.", "Voters", "Add"),
         new Entry(VotersEdit, "Edit voters",
-            "Change a voter's details and party (the support status needs its own right).", "Voters", "Edit"),
+            "Change a voter's name, ID card, mobile, address, gender, date of birth, party and remarks. Moving a voter to another constituency or island is for administrators only.", "Voters", "Edit"),
         new Entry(VotersDelete, "Delete voters",
-            "Permanently delete a voter with their encounters and pledges.", "Voters", "Delete"),
+            "Permanently delete a voter with their encounters and pledges. This cannot be undone.", "Voters", "Delete"),
         new Entry(VotersStatus, "Change support status",
-            "Set or change a voter's support status (Supporter, Undecided, Opponent, Neutral). Without it, new voters start as Undecided and the status stays as it is.", "Voters", "Status"),
+            "Set or change a voter's support status (Supporter, Undecided, Opponent, Neutral): click the status on the Voters list, Quick entry or the profile, or choose it on the Add and Edit forms. Without it, new voters start as Undecided and the status stays as it is.", "Voters", "Status"),
 
         new Entry(VotersPhotoView, "View voter photos",
-            "See a voter's photo on their profile.", "Voter photos", "View"),
+            "See voters' photos on the Voters list, the profile and Quick entry.", "Voter photos", "View"),
         new Entry(VotersPhotoEdit, "Add or remove voter photos",
-            "Upload, replace or remove a voter's photo.", "Voter photos", "Edit"),
+            "Add a photo to a voter (JPG or PNG, up to 2 MB) or remove it.", "Voter photos", "Edit"),
 
         new Entry(EncountersView, "View encounters",
             "See the Encounters list and the encounter history on a voter's profile.", "Encounters", "View"),
         new Entry(EncountersAdd, "Add encounters",
-            "Record a new encounter with a voter.", "Encounters", "Add"),
+            "Record a new encounter (meet, call or request) with a voter, including on Quick entry.", "Encounters", "Add"),
         new Entry(EncountersEdit, "Edit encounters",
-            "Correct the date, type, outcome, response or notes of a recorded encounter.", "Encounters", "Edit"),
+            "Correct the date, type, outcome or notes of a recorded encounter.", "Encounters", "Edit"),
         new Entry(EncountersDelete, "Delete encounters",
             "Permanently delete a recorded encounter.", "Encounters", "Delete"),
         new Entry(EncountersResponse, "Set encounter response",
-            "Record or change whether the voter supports, is undecided or does not support (green / yellow / red).", "Encounters", "Response"),
+            "Record or change whether the voter supports, is undecided or does not support (green / yellow / red). Without it, encounters are saved without a response.", "Encounters", "Response"),
 
         new Entry(PledgesView, "View pledges",
             "See the Pledges list and the pledges on a voter's profile.", "Pledges", "View"),
         new Entry(PledgesAdd, "Add pledges",
-            "Record a new pledge for a voter.", "Pledges", "Add"),
+            "Record a new pledge for a voter, including on Quick entry.", "Pledges", "Add"),
         new Entry(PledgesEdit, "Edit pledges",
-            "Change a pledge's status (for example mark it fulfilled).", "Pledges", "Edit"),
+            "Change a pledge's status, for example mark it fulfilled.", "Pledges", "Edit"),
         new Entry(PledgesDelete, "Delete pledges",
             "Permanently delete a pledge.", "Pledges", "Delete"),
 
         new Entry(InfluencersView, "View influencers",
-            "See influencers and who they are linked to.", "Influencers", "View"),
+            "See the Influencers list and which voters each influencer is linked to (only voters in the person's areas are listed).", "Influencers", "View"),
         new Entry(InfluencersAdd, "Add influencers",
             "Add new influencers.", "Influencers", "Add"),
         new Entry(InfluencersEdit, "Edit influencers",
-            "Change any influencer's details, category and area (influencers are shared by everyone).", "Influencers", "Edit"),
+            "Change any influencer's details, category and area. Influencers are shared by everyone.", "Influencers", "Edit"),
         new Entry(InfluencersDelete, "Delete influencers",
             "Permanently delete any influencer and all their links to voters.", "Influencers", "Delete"),
         new Entry(InfluencersLink, "Link influencers to voters",
-            "Link an influencer to a voter and change the relationship.", "Influencers", "Link")
+            "Link an influencer to a voter and change the relationship, including on Quick entry.", "Influencers", "Link"),
+
+        new Entry(ReportsView, "View reports",
+            "Open the Reports pages: constituency summary, pledges and top influencers. Figures cover only the person's areas.", "Reports", "View"),
+        new Entry(ReportsDownload, "Download and print reports",
+            "Download reports as CSV files and print them. Every download is recorded in the audit trail.", "Reports", "Download")
     };
 
     public static bool IsKnown(string key) => All.Any(p => p.Key == key);

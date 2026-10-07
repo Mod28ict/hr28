@@ -14,6 +14,7 @@
     bool Can(string right) => HR28.Web.Services.Hr28Permissions.Has(Context.Session, right);
     var canViewVoters = Can(HR28.Web.Services.Hr28Permissions.VotersView);
     var canAddVoters = Can(HR28.Web.Services.Hr28Permissions.VotersAdd);
+    var canReports = Can(HR28.Web.Services.Hr28Permissions.ReportsView);
     var isSuperAdmin = HR28.Web.Services.Hr28Roles.IsSuperAdministrator(role);
 
     // The API decides scope; administrators get national figures.
@@ -359,7 +360,10 @@
         <div class="hd-card">
             <div class="hd-card-head">
                 <h2>Constituency Performance</h2>
-                <a class="hd-link" asp-controller="Reports" asp-action="ConstituencySummary">View all</a>
+                @if (canReports)
+                {
+                    <a class="hd-link" asp-controller="Reports" asp-action="ConstituencySummary">View all</a>
+                }
             </div>
 
             @if (!topConstituencies.Any())
@@ -561,11 +565,14 @@
                         <span>Audit Trail</span>
                     </a>
                 }
+                @if (canReports)
+                {
                 <a class="hd-action is-green" asp-controller="Reports" asp-action="Index">
                     <partial name="_Icon" model='"chart"' />
                     <span>Reports</span>
                 </a>
-                @if (!canAddVoters)
+                }
+                @if (!canAddVoters && canReports)
                 {
                     <a class="hd-action is-amber" asp-controller="Reports" asp-action="Pledges">
                         <partial name="_Icon" model='"file"' />

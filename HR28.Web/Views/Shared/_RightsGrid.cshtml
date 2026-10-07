@@ -1,11 +1,11 @@
 @model HR28.Web.Models.RightsGridModel
 @*
     Rights as a grid: one row per record type, one column per action (View, Add,
-    Edit, Delete, Link). Each ticked box posts its key under Model.InputName.
+    Edit, Delete, Link, Response, Status, Download). Each ticked box posts its key under Model.InputName.
     Used for a role (Settings → Roles & rights) and for one person's extra rights.
 *@
 @{
-    var actions = new[] { "View", "Add", "Edit", "Delete", "Link", "Response", "Status" }
+    var actions = new[] { "View", "Add", "Edit", "Delete", "Link", "Response", "Status", "Download" }
         .Where(a => Model.Permissions.Any(p => p.Action == a))
         .ToArray();
 
@@ -74,10 +74,22 @@
 
 <details class="ui-rights-help">
     <summary>What each right allows</summary>
-    <ul class="ui-perm-legend">
-        @foreach (var p in Model.Permissions)
-        {
-            <li><strong>@p.Name</strong> — @p.Description</li>
-        }
+
+    <ul class="ui-rights-rules">
+        <li>Rights work only inside the person's <strong>areas</strong> (constituencies or islands). Influencers are the exception: everyone shares them.</li>
+        <li>A person gets the rights of <strong>all their roles</strong>, plus any extra rights given to them on the Users page.</li>
+        <li>The <strong>Administrator</strong> always has every right.</li>
+        <li>Changes apply within about a minute; nobody has to sign in again.</li>
     </ul>
+
+    @foreach (var g in groups)
+    {
+        <h4 class="ui-rights-group">@g</h4>
+        <ul class="ui-perm-legend">
+            @foreach (var p in Model.Permissions.Where(x => x.Group == g))
+            {
+                <li><strong>@p.Name</strong> — @p.Description</li>
+            }
+        </ul>
+    }
 </details>
