@@ -512,8 +512,10 @@ public class VotersController : Controller
     /// <summary>Adds or replaces the photo (JPG/PNG up to 2 MB). Needs "Add or remove voter photos".</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [RequestSizeLimit(2 * 1024 * 1024 + 64 * 1024)]
-    [RequestFormLimits(MultipartBodyLengthLimit = 2 * 1024 * 1024 + 64 * 1024)]
+    // Larger than the 2 MB photo limit on purpose: a phone photo of a few MB reaches the
+    // action and gets a plain "too large" message instead of an empty error page.
+    [RequestSizeLimit(PhotoUploadReadLimit)]
+    [RequestFormLimits(MultipartBodyLengthLimit = PhotoUploadReadLimit)]
     public async Task<IActionResult> UploadPhoto(Guid id, IFormFile? photo)
     {
         if (photo == null || photo.Length == 0)
@@ -524,7 +526,7 @@ public class VotersController : Controller
 
         if (photo.Length > 2 * 1024 * 1024)
         {
-            TempData["FlashError"] = "The photo is too large. Please choose one under 2 MB.";
+            TempData["FlashError"] = $"The photo is too large ({photo.Length / (1024.0 * 1024.0):0.#} MB). Please choose one under 2 MB.";
             return RedirectToAction(nameof(Profile), new { id });
         }
 
@@ -545,6 +547,8 @@ public class VotersController : Controller
 
         return RedirectToAction(nameof(Profile), new { id });
     }
+
+    private const long PhotoUploadReadLimit = 20 * 1024 * 1024;
 
     /// <summary>Removes the photo (the page asks first).</summary>
     [HttpPost]

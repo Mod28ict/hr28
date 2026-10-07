@@ -53,3 +53,30 @@
         }, 1500);
     }, true);
 })();
+
+// File boxes with data-max-bytes: say at once when a file is too large, before uploading.
+// The server checks again.
+(function () {
+    document.addEventListener("change", function (e) {
+        var input = e.target;
+        if (!(input instanceof HTMLInputElement) || input.type !== "file" || !input.dataset.maxBytes) return;
+
+        var max = parseInt(input.dataset.maxBytes, 10);
+        var file = input.files && input.files[0];
+        var error = document.getElementById(input.getAttribute("aria-describedby") || "");
+
+        if (file && file.size > max) {
+            var mb = function (bytes) { return (bytes / (1024 * 1024)).toFixed(1).replace(/\.0$/, ""); };
+            if (error) {
+                error.textContent = "This photo is " + mb(file.size) + " MB. Please choose one under " + mb(max) + " MB.";
+                error.hidden = false;
+            }
+            input.value = "";
+            input.setAttribute("aria-invalid", "true");
+        } else if (error) {
+            error.hidden = true;
+            error.textContent = "";
+            input.removeAttribute("aria-invalid");
+        }
+    });
+})();
