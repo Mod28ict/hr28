@@ -6,6 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews(options =>
 {
+    // Keeps a working person signed in: refreshes the 1-hour sign-in token before it runs out.
+    options.Filters.Add<HR28.Web.Filters.SessionTokenRefreshFilter>();
+
     // Re-checks the signed-in user's role with the API about once a minute.
     options.Filters.Add<HR28.Web.Filters.SessionRoleRefreshFilter>();
 
@@ -23,10 +26,13 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ApiClient>();
+builder.Services.AddScoped<SessionKeeper>();
 builder.Services.AddDistributedMemoryCache();
 
 // Session holds the API token: HTTPS-only, hidden from scripts, not sent cross-site,
-// and ended after 20 minutes without activity.
+// and ended after an hour without activity. The page asks "Stay signed in?" a minute
+// before and signs out itself (site.js); the server keeps it 2 minutes longer so the
+// page always decides first.
 builder.Services.AddSession(options =>
 {
     options.Cookie.Name = "HR28.Session";
@@ -34,7 +40,7 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.IsEssential = true;
-    options.IdleTimeout = TimeSpan.FromMinutes(20);
+    options.IdleTimeout = SessionKeeper.IdleLimit + TimeSpan.FromMinutes(2);
 });
 
 builder.Services.AddAntiforgery(options =>

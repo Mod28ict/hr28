@@ -14,10 +14,32 @@ public class AuthController : Controller
     public const string DeviceCookie = "HR28.Device";
 
     private readonly AuthService _authService;
+    private readonly SessionKeeper _sessionKeeper;
 
-    public AuthController(AuthService authService)
+    public AuthController(AuthService authService, SessionKeeper sessionKeeper)
     {
         _authService = authService;
+        _sessionKeeper = sessionKeeper;
+    }
+
+    /// <summary>The session cookie's name (Program.cs).</summary>
+    private const string SessionCookie = "HR28.Session";
+
+    /// <summary>
+    /// "Stay signed in" on the session warning, and the quiet refresh while someone is
+    /// working (site.js): restarts the hour and gets a fresh sign-in token.
+    /// 401 means the session has already ended.
+    /// </summary>
+    [HttpPost]
+    public async Task<IActionResult> KeepAlive()
+    {
+        if (!await _sessionKeeper.RefreshAsync(HttpContext.Session, force: true))
+        {
+            HttpContext.Session.Clear();
+            return Unauthorized(new { message = SessionKeeper.EndedMessage });
+        }
+
+        return Ok(new { idleSeconds = (int)SessionKeeper.IdleLimit.TotalSeconds });
     }
 
     private string? DeviceToken => Request.Cookies[DeviceCookie];
@@ -43,6 +65,21 @@ public class AuthController : Controller
 
         if (TempData["LoginError"] is string error)
             ViewBag.Error = error;
+
+        // Why the person is here: signed out after no activity, or a session that ended
+        // (a session cookie without a signed-in session). Shown once.
+        if (TempData["SessionExpired"] is string notice)
+        {
+            ViewBag.Notice = notice;
+        }
+        else if (Request.Cookies.ContainsKey(SessionCookie) &&
+                 string.IsNullOrEmpty(HttpContext.Session.GetString("JwtToken")))
+        {
+            ViewBag.Notice = SessionKeeper.EndedMessage;
+        }
+
+        if (ViewBag.Notice != null)
+            Response.Cookies.Delete(SessionCookie);
 
         var token = DeviceToken;
 
@@ -82,10 +119,14 @@ public class AuthController : Controller
     /// device stays remembered (that is its purpose); "Not you?" on the sign-in page forgets it.
     /// </summary>
     [HttpPost]
-    public IActionResult Logout()
+    public IActionResult Logout(string? reason = null)
     {
         HttpContext.Session.Clear();
-        Response.Cookies.Delete("HR28.Session");
+        Response.Cookies.Delete(SessionCookie);
+
+        // The "Stay signed in?" question went unanswered (site.js).
+        if (reason == "idle")
+            TempData["SessionExpired"] = SessionKeeper.IdleSignOutMessage;
 
         return RedirectToAction(
             "Login",

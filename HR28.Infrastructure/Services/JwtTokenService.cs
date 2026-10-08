@@ -23,7 +23,7 @@ public class JwtTokenService : ITokenService
         _dbContext = dbContext;
     }
 
-    public async Task<string> GenerateTokenAsync(User user)
+    public async Task<string> GenerateTokenAsync(User user, DateTime? signedInAtUtc = null)
     {
         var roles = await _dbContext.UserRoles
             .Where(ur => ur.UserId == user.Id)
@@ -36,6 +36,10 @@ public class JwtTokenService : ITokenService
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.FullName),
             new("nationalId", user.NationalId),
+            new(ITokenService.SignedInAtClaim,
+                new DateTimeOffset(DateTime.SpecifyKind(signedInAtUtc ?? DateTime.UtcNow, DateTimeKind.Utc))
+                    .ToUnixTimeSeconds().ToString(),
+                ClaimValueTypes.Integer64),
         };
 
         foreach (var role in roles)

@@ -71,6 +71,43 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Longest a sign-in lasts, even with constant use; after this a fresh sign-in
+    /// (with the SMS code) is needed.
+    /// </summary>
+    public static readonly TimeSpan MaxSessionLength = TimeSpan.FromHours(12);
+
+    /// <summary>
+    /// A new 1-hour token for an active, signed-in user (the web app calls this while the
+    /// person is working, and when they choose "Stay signed in"). Deactivated accounts
+    /// are refused by the default policy; sessions older than 12 hours must sign in again.
+    /// </summary>
+    [HttpPost("refresh")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public async Task<IActionResult> Refresh(
+        [FromServices] ITokenService tokenService,
+        [FromServices] HR28.Infrastructure.Data.HR28DbContext dbContext)
+    {
+        var userId = User.GetUserId();
+
+        if (userId == null ||
+            !long.TryParse(User.FindFirst(ITokenService.SignedInAtClaim)?.Value, out var signedInUnix))
+            return Unauthorized(new { message = "Please sign in again." });
+
+        var signedInAt = DateTimeOffset.FromUnixTimeSeconds(signedInUnix).UtcDateTime;
+
+        if (DateTime.UtcNow - signedInAt > MaxSessionLength)
+            return Unauthorized(new { message = "For your security, please sign in again." });
+
+        var user = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
+            .FirstOrDefaultAsync(dbContext.Users, u => u.Id == userId.Value && u.IsActive);
+
+        if (user == null)
+            return Unauthorized(new { message = "Please sign in again." });
+
+        return Ok(new { token = await tokenService.GenerateTokenAsync(user, signedInAt) });
+    }
+
     [HttpPost("verify-otp")]
     [EnableRateLimiting(RateLimitPolicies.OtpVerify)]
     public async Task<IActionResult> VerifyOtp(

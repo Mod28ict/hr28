@@ -268,8 +268,16 @@ strong despite that:
   exports, role/scope changes, user management, phone number changes – even within
   a logged-in session.
 - **Login alerts**: SMS the user when someone signs in from a new device.
-- **Sessions**: idle timeout, absolute timeout, real server-side logout, and admins
-  can end any user's sessions.
+- **Sessions** — idle and absolute timeouts implemented (owner, 2026-10-08):
+  1 hour without activity ends the session; at 59 minutes the page asks "Are you still
+  there?" with a 60-second countdown (Stay signed in / Sign out) and, unanswered, signs
+  out to the sign-in page with a plain message (`_SessionTimeout`, `site.js`; activity in
+  any tab counts). While someone works the 1-hour API token is quietly refreshed
+  (`SessionKeeper`, `SessionTokenRefreshFilter`, web `Auth/KeepAlive`, API
+  `POST api/auth/refresh`, keeps the `auth_time` claim) — never past 12 hours from
+  sign-in, never for a deactivated account. Any other ended session lands on the
+  sign-in page with "Your session has ended". Still to do: admins ending any user's
+  sessions (needs server-side token revocation).
 - **Stronger sign-in for high-risk accounts — deferred (owner, 2026-10-02):**
   Administrators should later use passkeys (fingerprint/face unlock via WebAuthn) or
   another phishing-resistant method; optional for everyone else. Not now. (The Owner

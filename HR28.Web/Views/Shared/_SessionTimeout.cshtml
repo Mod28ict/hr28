@@ -1,0 +1,31 @@
+@*
+    "Are you still there?" — after an hour with no activity the page asks for a minute,
+    then signs out with a message. Activity (typing, clicking, scrolling) in any tab keeps
+    the session going and quietly refreshes it. Script: wwwroot/js/site.js. Times:
+    Services/SessionKeeper.
+*@
+@if (!string.IsNullOrEmpty(Context.Session.GetString("JwtToken")))
+{
+    <div id="h28SessionConfig"
+         hidden
+         data-idle-seconds="@((int)HR28.Web.Services.SessionKeeper.IdleLimit.TotalSeconds)"
+         data-warn-seconds="@((int)HR28.Web.Services.SessionKeeper.WarningTime.TotalSeconds)"
+         data-keepalive-url="@Url.Action("KeepAlive", "Auth")"
+         data-logout-url="@Url.Action("Logout", "Auth")"
+         data-login-url="@Url.Action("Login", "Auth")"></div>
+
+    <dialog id="h28SessionDialog" class="ui-dialog" aria-labelledby="h28SessionTitle" aria-describedby="h28SessionText">
+        <div class="ui-dialog-body">
+            <h2 id="h28SessionTitle" class="ui-dialog-title">Are you still there?</h2>
+            <p id="h28SessionText" class="ui-muted">
+                There has been no activity for an hour. For your security you will be signed out in
+                <strong id="h28SessionCountdown" aria-live="polite">60 seconds</strong>.
+            </p>
+
+            <div class="ui-form-actions">
+                <button type="button" class="ui-btn ui-btn-primary" id="h28SessionStay">Stay signed in</button>
+                <button type="button" class="ui-btn ui-btn-secondary" id="h28SessionLeave">Sign out</button>
+            </div>
+        </div>
+    </dialog>
+}

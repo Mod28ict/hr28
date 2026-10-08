@@ -692,12 +692,6 @@
 </head>
 
 <body>
-@if (TempData["SessionExpired"] != null)
-{
-    <div class="alert alert-warning">
-        @TempData["SessionExpired"]
-    </div>
-}
     <main class="auth-page">
 
         <section class="hero-panel">
@@ -861,6 +855,22 @@
                         </div>
                     </div>
                 </div>
+
+                @if (ViewBag.Notice != null)
+                {
+                    <div class="alert-notice" role="status">
+                        <svg viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M12 6v6l4 2" />
+                        </svg>
+
+                        <span>@ViewBag.Notice</span>
+                    </div>
+                }
 
                 @if (ViewBag.Error != null)
                 {
