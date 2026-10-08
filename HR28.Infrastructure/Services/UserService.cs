@@ -179,6 +179,26 @@ public class UserService : IUserService
         return code;
     }
 
+    /// <summary>
+    /// Administrator: ends every current sign-in of the user (all browsers and devices);
+    /// they must sign in again with the SMS code. False if the user doesn't exist.
+    /// </summary>
+    public async Task<bool> EndSessionsAsync(Guid userId)
+    {
+        var updated = await _dbContext.Users
+            .Where(u => u.Id == userId)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.SessionsEndedAt, DateTime.UtcNow));
+
+        if (updated == 0)
+            return false;
+
+        _accessScopeService.Invalidate(userId);
+
+        await _auditService.LogAsync(GetCurrentUserId(), "Ended all sessions", "User", userId.ToString());
+
+        return true;
+    }
+
     /// <summary>Administrator: forgets all of a user's remembered devices. Returns how many.</summary>
     public async Task<int> ForgetDevicesAsync(Guid userId)
     {

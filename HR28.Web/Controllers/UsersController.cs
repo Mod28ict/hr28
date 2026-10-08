@@ -212,6 +212,7 @@ public class UsersController : Controller
             EditId = id,
             IsActive = user.Data.IsActive,
             RememberedDevices = user.Data.RememberedDevices,
+            LastLoginAt = user.Data.LastLoginAt,
             User = new CreateUserDto
             {
                 NationalId = user.Data.NationalId,
@@ -223,6 +224,32 @@ public class UsersController : Controller
                 Remarks = user.Data.Remarks
             }
         });
+    }
+
+    /// <summary>Ends every current sign-in of the user: their next click goes to the sign-in page.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EndSessions(Guid id, string? name)
+    {
+        if (!IsSuperAdmin())
+            return RedirectToAction("Index", "Dashboard");
+
+        var result = await _apiClient.PostAsync<object>($"Users/{id}/end-sessions", new { }, HttpContext.Session.GetString("JwtToken"));
+
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (result.Success)
+            TempData["SuccessMessage"] = $"{(string.IsNullOrWhiteSpace(name) ? "This person" : name)} has been signed out everywhere. They can sign in again with their code and the SMS code.";
+        else
+            TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
+                ? "The sessions could not be ended. Please try again."
+                : result.Message;
+
+        return RedirectToAction(nameof(Edit), new { id });
     }
 
     /// <summary>Forgets every device the user ticked "Remember me" on (they need their code there again).</summary>

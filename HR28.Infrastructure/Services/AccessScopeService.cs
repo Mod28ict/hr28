@@ -56,12 +56,16 @@ public class AccessScopeService : IAccessScopeService
 
     private async Task<AccessScope> LoadAsync(Guid userId)
     {
-        var isActive = await _dbContext.Users
-            .AnyAsync(u => u.Id == userId && u.IsActive);
+        var account = await _dbContext.Users
+            .Where(u => u.Id == userId && u.IsActive)
+            .Select(u => new { u.SessionsEndedAt })
+            .FirstOrDefaultAsync();
 
         // A deactivated or deleted account gets no roles and no records.
-        if (!isActive)
+        if (account == null)
             return new AccessScope { UserId = userId, IsActive = false };
+
+        var sessionsEndedAt = account.SessionsEndedAt;
 
         var roleRows = await _dbContext.UserRoles
             .Where(ur => ur.UserId == userId)
@@ -135,6 +139,7 @@ public class AccessScopeService : IAccessScopeService
             {
                 UserId = userId,
                 IsActive = true,
+                SessionsEndedAt = sessionsEndedAt,
                 Roles = roles,
                 IsAdministrator = true,
                 IsSuperAdministrator = roles.Contains(SuperAdministratorRole),
@@ -151,6 +156,7 @@ public class AccessScopeService : IAccessScopeService
         {
             UserId = userId,
             IsActive = true,
+            SessionsEndedAt = sessionsEndedAt,
             Roles = roles,
             IsAdministrator = false,
             Permissions = permissions,

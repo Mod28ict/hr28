@@ -276,8 +276,14 @@ strong despite that:
   (`SessionKeeper`, `SessionTokenRefreshFilter`, web `Auth/KeepAlive`, API
   `POST api/auth/refresh`, keeps the `auth_time` claim) — never past 12 hours from
   sign-in, never for a deactivated account. Any other ended session lands on the
-  sign-in page with "Your session has ended". Still to do: admins ending any user's
-  sessions (needs server-side token revocation).
+  sign-in page with "Your session has ended". **Administrators end a user's sessions**
+  (owner, 2026-10-08): Users → Edit → "End all sessions" (API
+  `POST api/users/{id}/end-sessions`, Administrator only, not your own account, audited)
+  sets `Users.SessionsEndedAt`; the API's JWT `OnTokenValidated` refuses every token
+  whose `auth_time` is at or before it (401 on the next request, refresh refused too),
+  so the person is signed out everywhere. Remembered devices are not forgotten by this
+  (separate button). Migration `AddUserSessionsEndedAt`; rollback
+  `dotnet ef database update AddTrustedDevices`.
 - **Stronger sign-in for high-risk accounts — deferred (owner, 2026-10-02):**
   Administrators should later use passkeys (fingerprint/face unlock via WebAuthn) or
   another phishing-resistant method; optional for everyone else. Not now. (The Owner

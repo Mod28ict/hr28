@@ -117,6 +117,21 @@ public class UsersController : ControllerBase
         return Ok(new { authorizationCode = code });
     }
 
+    /// <summary>
+    /// Ends every current sign-in of the user, in all browsers and devices: their next click
+    /// goes to the sign-in page. Not for your own account (use Sign out).
+    /// </summary>
+    [HttpPost("{userId}/end-sessions")]
+    public async Task<IActionResult> EndSessions(Guid userId)
+    {
+        if (User.GetUserId() == userId)
+            return BadRequest(new { message = "To end your own session, use Sign out." });
+
+        return await _userService.EndSessionsAsync(userId)
+            ? NoContent()
+            : NotFound(new { message = "That user could not be found." });
+    }
+
     /// <summary>Forgets every device the user ticked "Remember me" on; they need their code again there.</summary>
     [HttpDelete("{userId}/devices")]
     public async Task<IActionResult> ForgetDevices(Guid userId)

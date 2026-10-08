@@ -18,4 +18,7 @@ public class UserCreateViewModel
 
     /// <summary>Editing only: browsers remembered with "Remember me on this device".</summary>
     public int RememberedDevices { get; set; }
+
+    /// <summary>Editing only: last successful sign-in (UTC).</summary>
+    public DateTime? LastLoginAt { get; set; }
 }

@@ -37,6 +37,9 @@ public interface IUserService
     /// </summary>
     Task<string?> ResetAuthorizationCodeAsync(Guid userId);
 
+    /// <summary>Ends every current sign-in of the user; false if the user doesn't exist.</summary>
+    Task<bool> EndSessionsAsync(Guid userId);
+
     /// <summary>Forgets all of a user's remembered devices; returns how many.</summary>
     Task<int> ForgetDevicesAsync(Guid userId);
 

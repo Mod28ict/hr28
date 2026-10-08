@@ -41,6 +41,12 @@ public class User
 
     public DateTime? LastLoginAt { get; set; }
 
+    /// <summary>
+    /// "End all sessions" (administrator): sign-ins made at or before this time (UTC) are
+    /// refused, so the person must sign in again everywhere.
+    /// </summary>
+    public DateTime? SessionsEndedAt { get; set; }
+
     public ICollection<UserRole> UserRoles { get; set; }
         = new List<UserRole>();
     public ICollection<UserScope> UserScopes { get; set; }

@@ -11,6 +11,9 @@ public class AccessScope
     /// <summary>False if the account is missing or deactivated: no access at all.</summary>
     public bool IsActive { get; init; }
 
+    /// <summary>Sign-ins made at or before this time (UTC) were ended by an administrator.</summary>
+    public DateTime? SessionsEndedAt { get; init; }
+
     /// <summary>The user's current roles, read from the database (not the login token).</summary>
     public IReadOnlyList<string> Roles { get; init; } = Array.Empty<string>();
 

@@ -109,6 +109,31 @@ builder.Services
 
                 ClockSkew = TimeSpan.Zero
             };
+
+        // "End all sessions": a sign-in made at or before that moment is refused on its
+        // next request (401), whatever the endpoint. Uses the cached access scope, which
+        // is cleared when sessions are ended.
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                if (context.Principal?.GetUserId() is not Guid userId)
+                    return;
+
+                var scopes = context.HttpContext.RequestServices
+                    .GetRequiredService<HR28.Application.Interfaces.IAccessScopeService>();
+
+                if ((await scopes.GetAsync(userId)).SessionsEndedAt is not { } endedAt)
+                    return;
+
+                var signedIn = long.TryParse(
+                    context.Principal.FindFirst(HR28.Application.Interfaces.ITokenService.SignedInAtClaim)?.Value,
+                    out var unix) ? unix : long.MinValue;
+
+                if (signedIn <= new DateTimeOffset(DateTime.SpecifyKind(endedAt, DateTimeKind.Utc)).ToUnixTimeSeconds())
+                    context.Fail("This session was ended by an administrator.");
+            }
+        };
     });
 
 

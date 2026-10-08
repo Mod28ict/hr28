@@ -208,6 +208,40 @@
 
     @if (Model.IsEdit)
     {
+        var isMe = string.Equals(Model.EditId?.ToString(), Context.Session.GetString("UserId"), StringComparison.OrdinalIgnoreCase);
+        var lastSignIn = HR28.Web.Services.Hr28Time.FromUtc(Model.LastLoginAt);
+
+        <section class="ui-card" aria-labelledby="h28SessionsTitle">
+            <div class="ui-card-head">
+                <h2 id="h28SessionsTitle">Sign-in</h2>
+            </div>
+
+            <p class="ui-muted" style="margin: 0 0 12px;">
+                Last signed in: <strong>@(lastSignIn.HasValue ? lastSignIn.Value.ToString("dd MMM yyyy, HH:mm") : "never")</strong>.
+                @if (!isMe)
+                {
+                    @:End their sessions if a phone or computer is lost, shared or left signed in. They are signed
+                    @:out everywhere on their next click and need their code and the SMS code to sign in again.
+                }
+            </p>
+
+            @if (isMe)
+            {
+                <p class="ui-muted" style="margin: 0;">This is your own account. To end your session, use Sign out.</p>
+            }
+            else
+            {
+                <form asp-action="EndSessions" asp-route-id="@Model.EditId" method="post" class="h28-confirm"
+                      data-confirm="Sign @Model.User.FullName out everywhere now? They will need to sign in again.">
+                    <input type="hidden" name="name" value="@Model.User.FullName" />
+                    <button type="submit" class="ui-btn ui-btn-secondary">
+                        <partial name="_Icon" model='"logout"' />
+                        End all sessions
+                    </button>
+                </form>
+            }
+        </section>
+
         <section class="ui-card" aria-labelledby="h28DevicesTitle">
             <div class="ui-card-head">
                 <h2 id="h28DevicesTitle">Remembered devices</h2>
