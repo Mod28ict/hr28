@@ -71,7 +71,8 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   and report CSV titles / file names. A new deployment starts neutral ("Campaign
   Intelligence" / "CI"). Internal names (code namespaces, cookie names, JWT issuer,
   Swagger) are not shown to users and stay. The footer keeps "Designed and Developed by:
-  Ahmed Rasheed" (owner's credit). Migration `AddBrandLogo`; rollback
+  Ahmed Rasheed" for every client (owner decision, 2026-10-08: the developer's credit,
+  not a client brand). Migration `AddBrandLogo`; rollback
   `dotnet ef database update AddUserSessionsEndedAt`.
 - **Owner and Administrator are unrelated** (owner decision, 2026-10-02):
   - **Owner** = the platform owner. Works in **Azure only** (module switches, settings,
