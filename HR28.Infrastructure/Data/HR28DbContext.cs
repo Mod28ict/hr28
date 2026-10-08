@@ -38,6 +38,13 @@ public class HR28DbContext : DbContext
             .HasMaxLength(20)
             .HasDefaultValue("Dashboard");
 
+        // The client's logo: a single row, Id = 1.
+        modelBuilder.Entity<BrandLogo>(e =>
+        {
+            e.Property(l => l.Id).ValueGeneratedNever();
+            e.Property(l => l.ContentType).HasMaxLength(20);
+        });
+
         // "Remember me on this device": only a keyed hash of the device key is stored.
         modelBuilder.Entity<TrustedDevice>(e =>
         {
@@ -374,6 +381,9 @@ public class HR28DbContext : DbContext
 
     public DbSet<TrustedDevice> TrustedDevices =>
         Set<TrustedDevice>();
+
+    public DbSet<BrandLogo> BrandLogos =>
+        Set<BrandLogo>();
 
     public DbSet<AuthorizationCodeHistory>
         AuthorizationCodeHistories =>

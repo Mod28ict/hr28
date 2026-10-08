@@ -59,6 +59,20 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   its own web app, API and database, all running the **same codebase and version**.
   Never add client-specific code branches; differences come from configuration only.
 - There is no shared multi-tenant database. Do not add tenant IDs to tables.
+- **Each client sees only their own branding** (owner decision, 2026-10-08; "HR28" /
+  "Hithaai Roohun 2028" is the first client's campaign slogan, not the product name).
+  Never type a client's name, slogan or logo into the code. Settings → System →
+  Branding (Administrator): campaign name, short name (≤ 8 letters/digits; empty =
+  initials of the campaign name, "Hithaai Roohun 2028" → "HR28"), tagline, and a logo
+  (`BrandLogos`, PNG/JPG ≤ 1 MB, cleaned by `PhotoSanitizer`). Public API
+  `GET api/settings/branding` and `api/settings/logo` (the sign-in pages show them);
+  web `BrandingService` (cached 1 min) and `Brand/Logo`. Used by the sign-in and code
+  pages, sidebar, page titles, loader, Dashboard, the sign-in SMS, the phone-change SMS,
+  and report CSV titles / file names. A new deployment starts neutral ("Campaign
+  Intelligence" / "CI"). Internal names (code namespaces, cookie names, JWT issuer,
+  Swagger) are not shown to users and stay. The footer keeps "Designed and Developed by:
+  Ahmed Rasheed" (owner's credit). Migration `AddBrandLogo`; rollback
+  `dotnet ef database update AddUserSessionsEndedAt`.
 - **Owner and Administrator are unrelated** (owner decision, 2026-10-02):
   - **Owner** = the platform owner. Works in **Azure only** (module switches, settings,
     deployments). There is **no Owner role or account inside the app**, so no screen

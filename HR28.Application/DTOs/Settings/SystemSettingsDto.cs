@@ -2,8 +2,15 @@ namespace HR28.Application.DTOs.Settings;
 
 public class SystemSettingsDto
 {
-    /// <summary>Shown in the sidebar under the HR28 brand.</summary>
+    /// <summary>The client's campaign name, e.g. "Hithaai Roohun 2028" (sidebar, sign-in pages).</summary>
     public string CampaignName { get; set; } = string.Empty;
+
+    /// <summary>Short name / initials, e.g. "HR28" (logo mark, page titles, SMS, report files).
+    /// Empty = made from the campaign name.</summary>
+    public string? ShortName { get; set; }
+
+    /// <summary>Line under the name on the sign-in pages and in the sidebar.</summary>
+    public string? Tagline { get; set; }
 
     /// <summary>How long a login OTP stays valid.</summary>
     public int OtpExpiryMinutes { get; set; }

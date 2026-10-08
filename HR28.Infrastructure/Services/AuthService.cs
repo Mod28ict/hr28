@@ -243,8 +243,8 @@ public class AuthService : IAuthService
 
         var sent = await _smsSender.SendAsync(
             user.MobileNumber,
-            $"HR28 code: {otp}. It expires in {settings.OtpExpiryMinutes} minutes. " +
-            "Never share this code. HR28 staff will never ask for it.");
+            $"{(await _settingsService.GetBrandingAsync()).ShortName} code: {otp}. It expires in {settings.OtpExpiryMinutes} minutes. " +
+            "Never share this code. Campaign staff will never ask for it.");
 
         if (!sent)
         {

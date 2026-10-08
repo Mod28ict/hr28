@@ -18,6 +18,7 @@ public class UserService : IUserService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAccessScopeService _accessScopeService;
     private readonly ISmsSender _smsSender;
+    private readonly ISystemSettingsService _settingsService;
 
     public UserService(
         HR28DbContext dbContext,
@@ -25,8 +26,10 @@ public class UserService : IUserService
         IAuditService auditService,
         IHttpContextAccessor httpContextAccessor,
         IAccessScopeService accessScopeService,
-        ISmsSender smsSender)
+        ISmsSender smsSender,
+        ISystemSettingsService settingsService)
     {
+        _settingsService = settingsService;
         _dbContext = dbContext;
         _codeHasher = codeHasher;
         _auditService = auditService;
@@ -433,8 +436,8 @@ public class UserService : IUserService
         if (oldMobile != mobile && !string.IsNullOrWhiteSpace(oldMobile))
         {
             await _smsSender.SendAsync(oldMobile,
-                "HR28: the mobile number on your account was changed by an administrator. " +
-                "If you did not ask for this, contact your HR28 administrator.");
+                $"{(await _settingsService.GetBrandingAsync()).ShortName}: the mobile number on your account was changed by an administrator. " +
+                "If you did not ask for this, contact your administrator.");
         }
     }
 

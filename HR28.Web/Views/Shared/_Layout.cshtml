@@ -1,3 +1,8 @@
+@inject HR28.Web.Services.BrandingService BrandingService
+@{
+    // The client's own name, short name, tagline and logo (Settings → System → Branding).
+    var brand = await BrandingService.GetAsync();
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +12,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0" />
 
-    <title>@ViewData["Title"] | HR28</title>
+    <title>@ViewData["Title"] | @brand.ShortName</title>
 
     <script>
         // Apply the saved theme before the page paints (no light flash in dark mode).
@@ -191,7 +196,7 @@
 <body class="shell-body">
 <div class="h28-loader" id="h28Loader">
     <div class="h28-loader-ring">
-        <div class="h28-loader-mark">H28</div>
+        <div class="h28-loader-mark">@brand.ShortName</div>
     </div>
     <div class="h28-loader-text">Loading campaign data…</div>
     <div class="h28-loader-sub">This may take a few seconds</div>
@@ -223,7 +228,7 @@
     var skipDashboard = HR28.Web.Services.Hr28Permissions.StartsOnQuickEntry(Context.Session);
     var isSuperAdmin = HR28.Web.Services.Hr28Roles.IsSuperAdministrator(role);
 
-    var campaignName = Context.Session.GetString("CampaignName");
+    var campaignName = brand.CampaignName;
 
     var flashError = TempData["FlashError"] as string;
 
@@ -244,12 +249,19 @@
     <aside class="shell-sidebar" id="shellSidebar" aria-label="Main navigation">
 
         <a class="shell-brand" asp-controller="@(skipDashboard ? "QuickEntry" : "Dashboard")" asp-action="Index">
-            <span class="shell-brand-mark" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5zm0 2.3 6.8 3.8L12 11.9 5.2 8.1 12 4.3zM5 9.8l6 3.4v6.6l-6-3.4V9.8zm8 10v-6.6l6-3.4v6.6l-6 3.4z" /></svg>
+            <span class="shell-brand-mark @(brand.HasLogo ? "has-logo" : "")" aria-hidden="true">
+                @if (brand.HasLogo)
+                {
+                    <img src="@Url.Action("Logo", "Brand", new { v = brand.LogoVersion })" alt="" />
+                }
+                else
+                {
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5zm0 2.3 6.8 3.8L12 11.9 5.2 8.1 12 4.3zM5 9.8l6 3.4v6.6l-6-3.4V9.8zm8 10v-6.6l6-3.4v6.6l-6 3.4z" /></svg>
+                }
             </span>
             <span class="shell-brand-text">
-                <span>HR28</span>
-                <small>Campaign Intelligence</small>
+                <span>@brand.ShortName</span>
+                <small>@brand.Tagline</small>
             </span>
         </a>
 
@@ -459,7 +471,7 @@
         </main>
 
         <footer class="shell-footer">
-            &copy; @HR28.Web.Services.Hr28Time.Now.Year HR28 &middot; Campaign Intelligence Platform | Designed and Developed by: Ahmed Rasheed
+            &copy; @HR28.Web.Services.Hr28Time.Now.Year @brand.CampaignName &middot; @brand.Tagline | Designed and Developed by: Ahmed Rasheed
         </footer>
 
     </div>

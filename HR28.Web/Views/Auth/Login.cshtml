@@ -1,4 +1,5 @@
 ﻿@model HR28.Web.Models.Auth.GenerateOtpRequest
+@inject HR28.Web.Services.BrandingService BrandingService
 
 @{
     Layout = null;
@@ -7,6 +8,9 @@
     // device, the "Welcome back" details. AuthController.Login prepares both.
     var remembered = ViewBag.RememberedDevice as HR28.Web.Models.Auth.RememberedDevice;
     var rememberDays = ViewBag.RememberDeviceDays as int? ?? 0;
+
+    // The client's own name, short name, tagline and logo (Settings → System → Branding).
+    var brand = await BrandingService.GetAsync();
 }
 
 <!DOCTYPE html>
@@ -16,7 +20,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0" />
 
-    <title>HR28 | Secure Login</title>
+    <title>@brand.ShortName | Secure Login</title>
 
     <style>
 
@@ -696,12 +700,21 @@
 
         <section class="hero-panel">
             <header class="brand">
-                <div class="brand-mark">H28</div>
+                <div class="brand-mark @brand.MarkSizeClass">
+                    @if (brand.HasLogo)
+                    {
+                        <img src="@Url.Action("Logo", "Brand", new { v = brand.LogoVersion })" alt="" />
+                    }
+                    else
+                    {
+                        @brand.ShortName
+                    }
+                </div>
 
                 <div>
-                    <div class="brand-name">Hithaai Roohun 2028</div>
+                    <div class="brand-name">@brand.CampaignName</div>
                     <div class="brand-caption">
-                        Campaign Intelligence Platform
+                        @brand.Tagline
                     </div>
                 </div>
             </header>
@@ -796,15 +809,24 @@
             <div class="login-wrapper">
 
                 <div class="mobile-brand">
-                    <div class="brand-mark">H28</div>
+                    <div class="brand-mark @brand.MarkSizeClass">
+                        @if (brand.HasLogo)
+                        {
+                            <img src="@Url.Action("Logo", "Brand", new { v = brand.LogoVersion })" alt="" />
+                        }
+                        else
+                        {
+                            @brand.ShortName
+                        }
+                    </div>
 
                     <div>
                         <div class="brand-name" style="color: #0f172a;">
-                            HR28
+                            @brand.CampaignName
                         </div>
 
                         <div class="brand-caption" style="color: #64748b;">
-                            Campaign Intelligence Platform
+                            @brand.Tagline
                         </div>
                     </div>
                 </div>
@@ -1012,7 +1034,7 @@
 
                 <div class="login-footer">
                     Protected by secure OTP verification<br />
-                    <strong>HR28 Secure Access Portal</strong>
+                    <strong>@brand.CampaignName &middot; Secure Access Portal</strong>
                 </div>
             </div>
         </section>

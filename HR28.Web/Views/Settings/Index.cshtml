@@ -1,3 +1,4 @@
+@inject HR28.Web.Services.BrandingService BrandingService
 @model HR28.Web.Models.SettingsViewModel
 
 @{
@@ -50,7 +51,7 @@
             <span class="ui-head-icon is-muted" style="background: #64748b;"><partial name="_Icon" model='"key"' /></span>
             <div>
                 <h1 class="ui-title">Settings</h1>
-                <p class="ui-sub">Personalise HR28 and @(Model.IsAdministrator ? "manage platform-wide options." : "review your account.")</p>
+                <p class="ui-sub">Personalise the app and @(Model.IsAdministrator ? "manage platform-wide options." : "review your account.")</p>
             </div>
         </div>
     </header>
@@ -203,14 +204,27 @@
                     <div class="ui-section-head">
                         <span class="ui-step">1</span>
                         <div>
-                            <div class="ui-section-title">Campaign</div>
-                            <div class="ui-section-sub">Shown under the HR28 logo in the sidebar for everyone</div>
+                            <div class="ui-section-title">Branding</div>
+                            <div class="ui-section-sub">Your campaign's own name, shown on the sign-in pages, in the sidebar, page titles, sign-in SMS and report files</div>
                         </div>
                     </div>
 
                     <div class="ui-field">
                         <label for="CampaignName" class="ui-label">Campaign name</label>
                         <input id="CampaignName" name="CampaignName" class="ui-input" value="@s.CampaignName" required minlength="2" maxlength="80" />
+                        <div class="ui-hint">Your campaign's name or slogan, for example "Forward Together 2028".</div>
+                    </div>
+                    <div class="ui-grid-2">
+                        <div class="ui-field">
+                            <label for="ShortName" class="ui-label">Short name <span class="ui-optional">(optional)</span></label>
+                            <input id="ShortName" name="ShortName" class="ui-input" value="@s.ShortName" maxlength="8" placeholder="@HR28.Web.Services.Branding.InitialsOf(s.CampaignName)" />
+                            <div class="ui-hint">Up to 8 letters or numbers, e.g. FT28. Shown in the logo square, page titles and the SMS. Empty: the campaign name's initials.</div>
+                        </div>
+                        <div class="ui-field">
+                            <label for="Tagline" class="ui-label">Tagline <span class="ui-optional">(optional)</span></label>
+                            <input id="Tagline" name="Tagline" class="ui-input" value="@s.Tagline" maxlength="80" placeholder="Campaign Intelligence Platform" />
+                            <div class="ui-hint">The line under the name on the sign-in pages and in the sidebar.</div>
+                        </div>
                     </div>
                 </div>
 
@@ -258,6 +272,57 @@
                     }
                 </div>
             </form>
+        </section>
+
+        var logoBrand = await BrandingService.GetAsync();
+
+        <section class="ui-card" aria-labelledby="h28LogoTitle">
+            <div class="ui-card-head">
+                <h2 id="h28LogoTitle">Logo</h2>
+            </div>
+
+            <div class="ui-logo-row">
+                <span class="ui-logo-preview" aria-hidden="true">
+                    @if (logoBrand.HasLogo)
+                    {
+                        <img src="@Url.Action("Logo", "Brand", new { v = logoBrand.LogoVersion })" alt="" />
+                    }
+                    else
+                    {
+                        @logoBrand.ShortName
+                    }
+                </span>
+
+                <div style="flex: 1;">
+                    <p class="ui-muted" style="margin: 0 0 10px;">
+                        @(logoBrand.HasLogo
+                            ? "Your logo is shown on the sign-in pages and in the sidebar."
+                            : "No logo yet: your short name is shown in a square instead. A logo is shown on the sign-in pages and in the sidebar.")
+                    </p>
+
+                    <form asp-action="UploadLogo" method="post" enctype="multipart/form-data" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <label for="h28Logo" class="visually-hidden">Logo file</label>
+                        <input id="h28Logo" name="logo" type="file" accept="image/png,image/jpeg" class="ui-input" style="max-width: 320px;" required
+                               data-max-bytes="1048576" aria-describedby="h28LogoError" />
+                        <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm">
+                            <partial name="_Icon" model='"upload"' />
+                            @(logoBrand.HasLogo ? "Replace logo" : "Upload logo")
+                        </button>
+                    </form>
+                    <div id="h28LogoError" class="ui-error" role="alert" hidden></div>
+                    <div class="ui-hint">PNG or JPG, up to 1 MB. A square image works best.</div>
+
+                    @if (logoBrand.HasLogo)
+                    {
+                        <form asp-action="RemoveLogo" method="post" style="margin-top: 10px;">
+                            <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm ui-btn-danger">
+                                <partial name="_Icon" model='"trash"' />
+                                Remove logo
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
         </section>
     }
 

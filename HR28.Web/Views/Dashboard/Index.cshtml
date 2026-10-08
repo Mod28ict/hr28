@@ -1,5 +1,6 @@
 @model HR28.Web.Models.DashboardViewModel
 @using Microsoft.AspNetCore.Http
+@inject HR28.Web.Services.BrandingService BrandingService
 
 @{
     ViewData["Title"] = "Dashboard";
@@ -184,7 +185,7 @@
 
             <blockquote class="hd-quote">
                 <p>“Better insights.<br />Stronger connections.”</p>
-                <cite>— HR28</cite>
+                <cite>— @((await BrandingService.GetAsync()).ShortName)</cite>
             </blockquote>
         </div>
     </section>

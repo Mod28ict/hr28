@@ -17,10 +17,12 @@ public class SettingsController : AppController
     private bool IsSuperAdministrator => Hr28Roles.IsSuperAdministrator(Role);
 
     private readonly ApiClient _apiClient;
+    private readonly BrandingService _branding;
 
-    public SettingsController(ApiClient apiClient)
+    public SettingsController(ApiClient apiClient, BrandingService branding)
     {
         _apiClient = apiClient;
+        _branding = branding;
     }
 
     public async Task<IActionResult> Index(
@@ -151,6 +153,58 @@ public class SettingsController : AppController
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [RequestSizeLimit(20 * 1024 * 1024)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 20 * 1024 * 1024)]
+    public async Task<IActionResult> UploadLogo(IFormFile? logo)
+    {
+        if (!IsAdministrator)
+            return RedirectToAction(nameof(Index));
+
+        if (logo == null || logo.Length == 0)
+            TempData["ErrorMessage"] = "Please choose a logo first.";
+        else if (logo.Length > 1024 * 1024)
+            TempData["ErrorMessage"] = $"The logo is too large ({logo.Length / (1024.0 * 1024.0):0.#} MB). Please choose one under 1 MB.";
+        else
+        {
+            var result = await _apiClient.PostFileAsync<object>("Settings/logo", logo, Token);
+
+            if (HandleApiFailure(result) is { } redirect)
+                return redirect;
+
+            if (result.Success)
+            {
+                _branding.Forget();
+                TempData["SuccessMessage"] = "Logo saved.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = string.IsNullOrWhiteSpace(result.Message) ? "The logo could not be saved." : result.Message;
+            }
+        }
+
+        return RedirectToAction(nameof(Index), new { tab = "system" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveLogo()
+    {
+        if (!IsAdministrator)
+            return RedirectToAction(nameof(Index));
+
+        var result = await _apiClient.DeleteAsync("Settings/logo", Token);
+
+        if (HandleApiFailure(result) is { } redirect)
+            return redirect;
+
+        _branding.Forget();
+        TempData[result.Success ? "SuccessMessage" : "ErrorMessage"] = result.Success ? "Logo removed." : "The logo could not be removed.";
+
+        return RedirectToAction(nameof(Index), new { tab = "system" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SaveSystem(SystemSettingsDto settings)
     {
         if (!IsAdministrator)
@@ -170,6 +224,7 @@ public class SettingsController : AppController
         if (result.Success)
         {
             HttpContext.Session.SetString("CampaignName", result.Data?.CampaignName ?? settings.CampaignName);
+            _branding.Forget();
             TempData["SuccessMessage"] = "System settings saved.";
         }
         else

@@ -1,4 +1,5 @@
 ﻿@model HR28.Web.Models.Auth.VerifyOtpRequest
+@inject HR28.Web.Services.BrandingService BrandingService
 
 @{
     Layout = null;
@@ -7,6 +8,9 @@
         Model?.AuthorizationCode
         ?? TempData["AuthorizationCode"]?.ToString()
         ?? string.Empty;
+
+    // The client's own name, short name, tagline and logo (Settings → System → Branding).
+    var brand = await BrandingService.GetAsync();
 
     // Signing in on a remembered device (no authorization code), and "Remember me".
     var useDevice = Model?.UseDevice == true || TempData.Peek("UseDevice")?.ToString() == "1";
@@ -33,7 +37,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0" />
 
-    <title>Verify Identity | Hithaai Roohun 2028</title>
+    <title>Verify Identity | @brand.CampaignName</title>
 
     <style>
         :root {
@@ -869,15 +873,24 @@
         <section class="hero-panel">
 
             <header class="brand">
-                <div class="brand-mark">H28</div>
+                <div class="brand-mark @brand.MarkSizeClass">
+                    @if (brand.HasLogo)
+                    {
+                        <img src="@Url.Action("Logo", "Brand", new { v = brand.LogoVersion })" alt="" />
+                    }
+                    else
+                    {
+                        @brand.ShortName
+                    }
+                </div>
 
                 <div>
                     <div class="brand-name">
-                        Hithaai Roohun 2028
+                        @brand.CampaignName
                     </div>
 
                     <div class="brand-caption">
-                        Campaign Intelligence Platform
+                        @brand.Tagline
                     </div>
                 </div>
             </header>
@@ -976,17 +989,26 @@
             <div class="verification-wrapper">
 
                 <div class="mobile-brand">
-                    <div class="brand-mark">H28</div>
+                    <div class="brand-mark @brand.MarkSizeClass">
+                        @if (brand.HasLogo)
+                        {
+                            <img src="@Url.Action("Logo", "Brand", new { v = brand.LogoVersion })" alt="" />
+                        }
+                        else
+                        {
+                            @brand.ShortName
+                        }
+                    </div>
 
                     <div>
                         <div class="brand-name"
                              style="color: #0f172a;">
-                            Hithaai Roohun 2028
+                            @brand.CampaignName
                         </div>
 
                         <div class="brand-caption"
                              style="color: #64748b;">
-                            Campaign Intelligence Platform
+                            @brand.Tagline
                         </div>
                     </div>
                 </div>
@@ -1233,7 +1255,7 @@
 
                 <div class="verification-footer">
                     Protected by secure OTP verification<br />
-                    <strong>HR28 Secure Access Portal</strong>
+                    <strong>@brand.CampaignName &middot; Secure Access Portal</strong>
                 </div>
 
             </div>

@@ -27,6 +27,8 @@ builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ApiClient>();
 builder.Services.AddScoped<SessionKeeper>();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<BrandingService>();
 builder.Services.AddDistributedMemoryCache();
 
 // Session holds the API token: HTTPS-only, hidden from scripts, not sent cross-site,

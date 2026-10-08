@@ -94,6 +94,19 @@
         height: 100%;
     }
 
+    /* The client's own logo (Settings → System → Branding) */
+    .shell-brand-mark.has-logo {
+        overflow: hidden;
+        border-radius: 8px;
+        background: #ffffff;
+    }
+
+    .shell-brand-mark img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
 .shell-nav {
     display: flex;
     flex-direction: column;

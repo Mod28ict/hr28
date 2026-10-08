@@ -16,12 +16,15 @@ public class ReportsController : ControllerBase
     private readonly IReportingService _reportService;
     private readonly IAccessScopeService _accessScopeService;
     private readonly IAuditService _auditService;
+    private readonly ISystemSettingsService _settingsService;
 
     public ReportsController(
         IReportingService reportService,
         IAccessScopeService accessScopeService,
-        IAuditService auditService)
+        IAuditService auditService,
+        ISystemSettingsService settingsService)
     {
+        _settingsService = settingsService;
         _reportService = reportService;
         _accessScopeService = accessScopeService;
         _auditService = auditService;
@@ -171,7 +174,7 @@ public class ReportsController : ControllerBase
         var scope = await _accessScopeService.GetAsync(userId);
 
         return new CsvBuilder()
-            .Row($"HR28 — {title}")
+            .Row($"{(await _settingsService.GetBrandingAsync()).CampaignName} — {title}")
             .Row("Scope", scope.IsAdministrator ? "All constituencies" : "Assigned area only")
             .Row("Generated (Maldives time)", MaldivesTime.Now.ToString("dd MMM yyyy HH:mm"))
             .Blank();
@@ -181,7 +184,11 @@ public class ReportsController : ControllerBase
     {
         await _auditService.LogAsync(userId, "Export CSV", "Report", title);
 
-        var fileName = $"hr28-{slug}-{MaldivesTime.Now:yyyy-MM-dd}.csv";
+        // The client's short name, as letters and digits only, e.g. "hr28-pledges-2026-10-08.csv".
+        var prefix = new string((await _settingsService.GetBrandingAsync()).ShortName
+            .ToLowerInvariant().Where(char.IsAsciiLetterOrDigit).ToArray());
+
+        var fileName = $"{(prefix.Length > 0 ? prefix : "report")}-{slug}-{MaldivesTime.Now:yyyy-MM-dd}.csv";
 
         return File(csv.ToBytes(), "text/csv; charset=utf-8", fileName);
     }

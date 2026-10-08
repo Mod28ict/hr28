@@ -13,6 +13,30 @@ public class SystemSettingsService : ISystemSettingsService
     public const string OtpExpiryMinutesKey = "OtpExpiryMinutes";
     public const string OtpMaxAttemptsKey = "OtpMaxAttempts";
     public const string RememberDeviceDaysKey = "RememberDeviceDays";
+    public const string ShortNameKey = "ShortName";
+    public const string TaglineKey = "Tagline";
+
+    public const string DefaultTagline = "Campaign Intelligence Platform";
+
+    /// <summary>Largest logo accepted.</summary>
+    public const int MaxLogoBytes = 1024 * 1024;
+
+    /// <summary>
+    /// Initials made from the campaign name when no short name was saved: the first
+    /// letter of each word, and the last two digits of a number ("Hithaai Roohun 2028" →
+    /// "HR28", "Campaign Intelligence" → "CI").
+    /// </summary>
+    public static string InitialsOf(string campaignName)
+    {
+        var parts = (campaignName ?? string.Empty)
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(w => w.All(char.IsDigit) ? (w.Length > 2 ? w[^2..] : w) : char.ToUpperInvariant(w[0]).ToString())
+            .Where(p => p.Length > 0 && p.All(char.IsLetterOrDigit))
+            .Take(4);
+
+        var initials = string.Concat(parts);
+        return initials.Length > 0 ? initials : "HQ";
+    }
 
     // Defaults apply until an administrator saves a value.
     public const string DefaultCampaignName = "Campaign Intelligence";
@@ -68,6 +92,8 @@ public class SystemSettingsService : ISystemSettingsService
             OtpExpiryMinutes = Number(OtpExpiryMinutesKey, DefaultOtpExpiryMinutes),
             OtpMaxAttempts = Number(OtpMaxAttemptsKey, DefaultOtpMaxAttempts),
             RememberDeviceDays = Number(RememberDeviceDaysKey, DefaultRememberDeviceDays),
+            ShortName = stored.FirstOrDefault(x => x.Key == ShortNameKey)?.Value ?? string.Empty,
+            Tagline = stored.FirstOrDefault(x => x.Key == TaglineKey)?.Value ?? string.Empty,
             UpdatedAt = latest?.UpdatedAt,
             UpdatedByName = updatedByName
         };
@@ -86,6 +112,16 @@ public class SystemSettingsService : ISystemSettingsService
         if (settings.OtpMaxAttempts is < 3 or > 10)
             throw new BusinessRuleException("Maximum OTP attempts must be between 3 and 10.");
 
+        var shortName = (settings.ShortName ?? string.Empty).Trim();
+
+        if (shortName.Length > 8 || !shortName.All(c => char.IsLetterOrDigit(c) || c == ' ' || c == '-'))
+            throw new BusinessRuleException("Short name can have up to 8 letters, numbers, spaces or dashes (e.g. FT28). Leave it empty to use the campaign name's initials.");
+
+        var tagline = (settings.Tagline ?? string.Empty).Trim();
+
+        if (tagline.Length > 80)
+            throw new BusinessRuleException("Tagline can be up to 80 characters.");
+
         if (settings.RememberDeviceDays is < 0 or > 90)
             throw new BusinessRuleException("Remember devices for must be between 0 (off) and 90 days.");
 
@@ -101,10 +137,90 @@ public class SystemSettingsService : ISystemSettingsService
         await SaveIfChangedAsync(OtpMaxAttemptsKey, "Maximum OTP attempts",
             current.OtpMaxAttempts.ToString(), settings.OtpMaxAttempts.ToString(), userId);
 
+        await SaveIfChangedAsync(ShortNameKey, "Short name",
+            current.ShortName ?? string.Empty, shortName, userId);
+
+        await SaveIfChangedAsync(TaglineKey, "Tagline",
+            current.Tagline ?? string.Empty, tagline, userId);
+
         await SaveIfChangedAsync(RememberDeviceDaysKey, "Remember devices for (days)",
             current.RememberDeviceDays.ToString(), settings.RememberDeviceDays.ToString(), userId);
 
         return await GetAsync();
+    }
+
+    public async Task<BrandingDto> GetBrandingAsync()
+    {
+        var settings = await GetAsync();
+
+        var logo = await _dbContext.BrandLogos
+            .AsNoTracking()
+            .Select(l => new { l.UpdatedAt })
+            .FirstOrDefaultAsync();
+
+        return new BrandingDto
+        {
+            CampaignName = settings.CampaignName,
+            ShortName = string.IsNullOrWhiteSpace(settings.ShortName) ? InitialsOf(settings.CampaignName) : settings.ShortName,
+            Tagline = string.IsNullOrWhiteSpace(settings.Tagline) ? DefaultTagline : settings.Tagline,
+            HasLogo = logo != null,
+            LogoVersion = logo?.UpdatedAt.Ticks.ToString() ?? string.Empty
+        };
+    }
+
+    public async Task<(byte[] Content, string ContentType)?> GetLogoAsync()
+    {
+        var logo = await _dbContext.BrandLogos.AsNoTracking().FirstOrDefaultAsync();
+
+        return logo == null ? null : (logo.Content, logo.ContentType);
+    }
+
+    public async Task<string?> SaveLogoAsync(byte[] data, Guid userId)
+    {
+        if (data.Length == 0)
+            return "Please choose a logo first.";
+
+        if (data.Length > MaxLogoBytes)
+            return "The logo is too large. Please choose one under 1 MB.";
+
+        // Same checks as voter photos: really a JPEG/PNG, rebuilt without hidden data.
+        var (content, contentType, error) = HR28.Infrastructure.Helpers.PhotoSanitizer.Clean(data);
+
+        if (error != null || content == null || contentType == null)
+            return (error ?? "That logo could not be read.").Replace("photo", "logo");
+
+        var logo = await _dbContext.BrandLogos.FindAsync(1);
+        var replacing = logo != null;
+
+        if (logo == null)
+        {
+            logo = new BrandLogo { Id = 1 };
+            _dbContext.BrandLogos.Add(logo);
+        }
+
+        logo.Content = content;
+        logo.ContentType = contentType;
+        logo.UpdatedAt = DateTime.UtcNow;
+        logo.UpdatedByUserId = userId;
+
+        await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(userId, replacing ? "Logo replaced" : "Logo added", "SystemSetting", "Logo");
+
+        return null;
+    }
+
+    public async Task RemoveLogoAsync(Guid userId)
+    {
+        var logo = await _dbContext.BrandLogos.FindAsync(1);
+
+        if (logo == null)
+            return;
+
+        _dbContext.BrandLogos.Remove(logo);
+        await _dbContext.SaveChangesAsync();
+
+        await _auditService.LogAsync(userId, "Logo removed", "SystemSetting", "Logo");
     }
 
     private async Task SaveIfChangedAsync(

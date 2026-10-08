@@ -119,7 +119,7 @@ public class ApiClient
                     ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream",
                     FileName = response.Content.Headers.ContentDisposition?.FileNameStar
                                ?? response.Content.Headers.ContentDisposition?.FileName?.Trim('"')
-                               ?? "hr28-report"
+                               ?? "report"
                 }
             };
         }

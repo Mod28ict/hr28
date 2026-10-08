@@ -128,6 +128,25 @@ body {
     color: #64748b;
 }
 
+/* The client's logo mark: their initials, or their logo when one is uploaded */
+.brand-mark.is-small {
+    font-size: 14px;
+    letter-spacing: -.5px;
+}
+
+.brand-mark.is-tiny {
+    font-size: 11px;
+    letter-spacing: 0;
+}
+
+.brand-mark img {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: contain;
+    background: #ffffff;
+}
+
 /* "Your session has ended" on the sign-in page */
 .alert-notice {
     display: flex;

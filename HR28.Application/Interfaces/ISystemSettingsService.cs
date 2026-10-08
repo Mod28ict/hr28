@@ -11,4 +11,15 @@ public interface ISystemSettingsService
     Task<SystemSettingsDto> UpdateAsync(SystemSettingsDto settings, Guid userId);
 
     Task<MyAccountDto?> GetMyAccountAsync(Guid userId);
+
+    /// <summary>The client's name, short name, tagline and whether there is a logo.</summary>
+    Task<BrandingDto> GetBrandingAsync();
+
+    /// <summary>The logo image, or null when none was uploaded.</summary>
+    Task<(byte[] Content, string ContentType)?> GetLogoAsync();
+
+    /// <summary>Checks, cleans, saves and audits a new logo; returns a plain-language error or null.</summary>
+    Task<string?> SaveLogoAsync(byte[] data, Guid userId);
+
+    Task RemoveLogoAsync(Guid userId);
 }
