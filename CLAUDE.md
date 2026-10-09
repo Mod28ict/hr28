@@ -359,7 +359,10 @@ strong despite that:
   `Voters.Photo.View`, adding/replacing/removing needs `Voters.Photo.Edit` (granted
   rights, no role has them by default), always within the user's areas. API
   `GET/POST/DELETE api/voters/{id}/photo` (view rate-limited like search, never
-  cached; changes 60/hour per user); every change audited. Migration
+  cached; changes 60/hour per user); every change audited. Quick entry also offers
+  "Add photo" (camera button: phones offer the camera or a picture) / "Remove photo" by
+  the same rights (2026-10-09); `site.js` (`data-photo-upload`) shrinks the picture on
+  the device to 1280 px JPEG before upload, so phone photos fit the 2 MB limit. Migration
   `AddVoterPhotos`; rollback `dotnet ef database update AddRoleRights` (photos lost).
 - Data exports are restricted by role and scope, require step-up verification, and
   are audited. (Today: report CSVs are scoped, rate-limited and audited; step-up

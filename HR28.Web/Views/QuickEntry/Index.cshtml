@@ -9,6 +9,11 @@
     var canLink = Can(HR28.Web.Services.Hr28Permissions.InfluencersLink);
     var canResponse = Can(HR28.Web.Services.Hr28Permissions.EncountersResponse);
 
+    // Photos: viewing and changing are separate rights (the API checks both again).
+    var canViewPhoto = Can(HR28.Web.Services.Hr28Permissions.VotersPhotoView);
+    var canEditPhoto = Can(HR28.Web.Services.Hr28Permissions.VotersPhotoEdit);
+    var hereUrl = Context.Request.Path + Context.Request.QueryString;
+
     var voter = Model.Voter;
     var name = voter == null ? "" : (string.IsNullOrWhiteSpace(voter.FullName) ? "Unnamed voter" : voter.FullName);
     var initials = string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => char.ToUpperInvariant(p[0])));
@@ -90,13 +95,41 @@
         <!-- 2. THE VOTER -->
         <section class="ui-card ui-quick-voter" aria-label="Voter">
             <div class="ui-quick-photo">
-                @if (voter.HasPhoto)
+                @if (voter.HasPhoto && canViewPhoto)
                 {
                     <img src="@Url.Action("Photo", "Voters", new { id = voter.Id })" alt="Photo of @name" />
                 }
                 else
                 {
                     <span class="ui-avatar ui-avatar-lg" aria-hidden="true">@initials</span>
+                }
+
+                @if (canEditPhoto && !voter.HasPhoto)
+                {
+                    @* One button: phones offer "Take photo" or an existing picture; computers open the file picker.
+                       The photo is made smaller on the device before upload (site.js), so phone photos fit 2 MB. *@
+                    <form asp-controller="Voters" asp-action="UploadPhoto" asp-route-id="@voter.Id" method="post"
+                          enctype="multipart/form-data" class="ui-quick-photo-form" id="h28QuickPhotoForm">
+                        <input type="hidden" name="returnUrl" value="@hereUrl" />
+                        <label class="ui-btn ui-btn-secondary ui-btn-sm ui-photo-pick" for="h28QuickPhoto">
+                            <partial name="_Icon" model='"camera"' />
+                            <span>Add photo</span>
+                        </label>
+                        <input id="h28QuickPhoto" name="photo" type="file" accept="image/*" class="visually-hidden"
+                               data-photo-upload aria-describedby="h28QuickPhotoNote" />
+                        <span id="h28QuickPhotoNote" class="ui-hint" role="status">Take one or choose a picture.</span>
+                    </form>
+                }
+                else if (canEditPhoto && voter.HasPhoto)
+                {
+                    <form asp-controller="Voters" asp-action="RemovePhoto" asp-route-id="@voter.Id" method="post"
+                          class="ui-quick-photo-form h28-confirm" data-confirm="Remove the photo of @name?">
+                        <input type="hidden" name="returnUrl" value="@hereUrl" />
+                        <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm ui-btn-danger">
+                            <partial name="_Icon" model='"trash"' />
+                            Remove photo
+                        </button>
+                    </form>
                 }
             </div>
 
@@ -287,6 +320,13 @@
             if ($ && typeof $.fn.select2 === "function" && $("#qlInfluencer").length) {
                 $("#qlInfluencer").select2({ width: "100%", placeholder: "Choose…" });
             }
+
+            // Removing a photo asks first (the text comes from data-confirm).
+            document.querySelectorAll("form.h28-confirm").forEach(function (form) {
+                form.addEventListener("submit", function (e) {
+                    if (!window.confirm(form.dataset.confirm)) e.preventDefault();
+                });
+            });
 
             // Stop double-clicks from saving twice.
             document.querySelectorAll(".ui-quick-form").forEach(function (form) {

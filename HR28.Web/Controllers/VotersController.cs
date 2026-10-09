@@ -520,18 +520,18 @@ public class VotersController : Controller
     // action and gets a plain "too large" message instead of an empty error page.
     [RequestSizeLimit(PhotoUploadReadLimit)]
     [RequestFormLimits(MultipartBodyLengthLimit = PhotoUploadReadLimit)]
-    public async Task<IActionResult> UploadPhoto(Guid id, IFormFile? photo)
+    public async Task<IActionResult> UploadPhoto(Guid id, IFormFile? photo, string? returnUrl)
     {
         if (photo == null || photo.Length == 0)
         {
             TempData["FlashError"] = "Please choose a photo first.";
-            return RedirectToAction(nameof(Profile), new { id });
+            return BackFromPhoto(id, returnUrl);
         }
 
         if (photo.Length > 2 * 1024 * 1024)
         {
             TempData["FlashError"] = $"The photo is too large ({photo.Length / (1024.0 * 1024.0):0.#} MB). Please choose one under 2 MB.";
-            return RedirectToAction(nameof(Profile), new { id });
+            return BackFromPhoto(id, returnUrl);
         }
 
         var result = await _apiClient.PostFileAsync<object>($"Voters/{id}/photo", photo, HttpContext.Session.GetString("JwtToken"));
@@ -549,15 +549,19 @@ public class VotersController : Controller
                 ? "The photo could not be saved. Please try again."
                 : result.Message;
 
-        return RedirectToAction(nameof(Profile), new { id });
+        return BackFromPhoto(id, returnUrl);
     }
 
     private const long PhotoUploadReadLimit = 20 * 1024 * 1024;
 
+    /// <summary>After a photo change: back to the page it was made on (e.g. Quick entry), else the profile.</summary>
+    private IActionResult BackFromPhoto(Guid id, string? returnUrl) =>
+        Url.IsLocalUrl(returnUrl) ? LocalRedirect(returnUrl!) : RedirectToAction(nameof(Profile), new { id });
+
     /// <summary>Removes the photo (the page asks first).</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RemovePhoto(Guid id)
+    public async Task<IActionResult> RemovePhoto(Guid id, string? returnUrl)
     {
         var result = await _apiClient.DeleteAsync($"Voters/{id}/photo", HttpContext.Session.GetString("JwtToken"));
 
@@ -574,6 +578,6 @@ public class VotersController : Controller
                 ? "The photo could not be removed. Please try again."
                 : result.Message;
 
-        return RedirectToAction(nameof(Profile), new { id });
+        return BackFromPhoto(id, returnUrl);
     }
 }

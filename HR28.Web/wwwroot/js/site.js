@@ -218,3 +218,77 @@
         }
     }, 1000);
 })();
+
+// Photo buttons with data-photo-upload (e.g. Quick entry): phone photos are often 3-5 MB,
+// over the 2 MB limit, so the picture is made smaller on the device (longest side 1280 px,
+// JPEG) and the form is sent straight away. The server checks and cleans it again.
+(function () {
+    var maxSide = 1280;
+
+    // Decodes the picture without a blob: address (the page's security policy allows
+    // only its own and data: images), turning it the right way up where supported.
+    function decode(file) {
+        if (window.createImageBitmap) {
+            return createImageBitmap(file, { imageOrientation: "from-image" }).catch(function () {
+                return createImageBitmap(file);
+            });
+        }
+
+        return new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function () {
+                var img = new Image();
+                img.onload = function () { resolve(img); };
+                img.onerror = reject;
+                img.src = reader.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function shrink(file) {
+        return decode(file).then(function (img) {
+            var width = img.naturalWidth || img.width;
+            var height = img.naturalHeight || img.height;
+            var scale = Math.min(1, maxSide / Math.max(width, height));
+            var canvas = document.createElement("canvas");
+            canvas.width = Math.round(width * scale);
+            canvas.height = Math.round(height * scale);
+
+            var context = canvas.getContext("2d");
+            context.fillStyle = "#ffffff";   // transparent PNGs become white, not black
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(img, 0, 0, canvas.width, canvas.height);
+            if (img.close) img.close();
+
+            return new Promise(function (resolve, reject) {
+                canvas.toBlob(function (blob) {
+                    blob ? resolve(new File([blob], "photo.jpg", { type: "image/jpeg" })) : reject();
+                }, "image/jpeg", 0.85);
+            });
+        });
+    }
+
+    document.addEventListener("change", function (e) {
+        var input = e.target;
+        if (!(input instanceof HTMLInputElement) || !input.hasAttribute("data-photo-upload")) return;
+
+        var file = input.files && input.files[0];
+        var form = input.form;
+        var note = document.getElementById(input.getAttribute("aria-describedby") || "");
+        if (!file || !form) return;
+
+        if (note) note.textContent = "Saving photo…";
+
+        shrink(file).then(function (small) {
+            var list = new DataTransfer();
+            list.items.add(small);
+            input.files = list.files;
+            form.submit();
+        }).catch(function () {
+            if (note) note.textContent = "That picture could not be read. Please choose a JPG or PNG photo.";
+            input.value = "";
+        });
+    });
+})();

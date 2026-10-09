@@ -184,11 +184,15 @@ public class VoterService : IVoterService
             })
             .FirstOrDefaultAsync();
 
-        // The photo flag only for people who may view photos.
-        if (voter != null &&
-            (await _accessScopeService.GetAsync(userId)).HasPermission(HR28.Application.Common.PermissionCatalog.VotersPhotoView))
+        // The photo flag only for people who may view or change photos (to offer
+        // "Add photo" only when there is none, and "Remove photo" when there is one).
+        var photoScope = voter != null ? await _accessScopeService.GetAsync(userId) : null;
+
+        if (photoScope != null &&
+            (photoScope.HasPermission(HR28.Application.Common.PermissionCatalog.VotersPhotoView) ||
+             photoScope.HasPermission(HR28.Application.Common.PermissionCatalog.VotersPhotoEdit)))
         {
-            voter.HasPhoto = await _dbContext.VoterPhotos.AnyAsync(p => p.VoterId == voterId);
+            voter!.HasPhoto = await _dbContext.VoterPhotos.AnyAsync(p => p.VoterId == voterId);
         }
 
         return voter;
