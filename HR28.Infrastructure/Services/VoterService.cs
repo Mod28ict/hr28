@@ -679,9 +679,12 @@ public class VoterService : IVoterService
 
         query = query.AsNoTracking();
 
-        // Photos appear in the list only for people with "View voter photos".
-        var canSeePhotos = (await _accessScopeService.GetAsync(userId))
-            .HasPermission(HR28.Application.Common.PermissionCatalog.VotersPhotoView);
+        // The photo flag only for people who may view or change photos (the list shows
+        // the photo itself only with "View voter photos").
+        var photoScope = await _accessScopeService.GetAsync(userId);
+        var canSeePhotos =
+            photoScope.HasPermission(HR28.Application.Common.PermissionCatalog.VotersPhotoView) ||
+            photoScope.HasPermission(HR28.Application.Common.PermissionCatalog.VotersPhotoEdit);
 
         // Filters narrow the user's areas; they can never widen them.
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))

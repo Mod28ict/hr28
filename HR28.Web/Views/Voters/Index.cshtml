@@ -20,6 +20,11 @@
     // Rights (the API checks them again): adding voters. Status: Shared/_StatusButton.
     var canAdd = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.VotersAdd);
 
+    // Photos: viewing and changing are separate rights (the API checks both again).
+    var canViewPhoto = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.VotersPhotoView);
+    var canEditPhoto = HR28.Web.Services.Hr28Permissions.Has(Context.Session, HR28.Web.Services.Hr28Permissions.VotersPhotoEdit);
+    var listUrl = Context.Request.Path + Context.Request.QueryString;
+
     // Searches run only inside the user's areas; with no areas there is nothing to search.
     var areaText = HR28.Web.Services.Hr28Permissions.SearchAreaText(Context.Session);
     var noArea = Model.TotalCount == 0 && HR28.Web.Services.Hr28Permissions.HasNoSearchArea(Context.Session);
@@ -97,10 +102,9 @@
                     }
                     else
                     {
-                        @Model.TotalCount.ToString("N0")
-                        @(filter.IsNarrowed
+                        @(Model.TotalCount.ToString("N0") + " " + (filter.IsNarrowed
                             ? (Model.TotalCount == 1 ? $"voter matches your search and filters {areaText}" : $"voters match your search and filters {areaText}")
-                            : (Model.TotalCount == 1 ? $"voter {areaText}" : $"voters {areaText}"))
+                            : (Model.TotalCount == 1 ? $"voter {areaText}" : $"voters {areaText}")))
                     }
                 </p>
             </div>
@@ -384,12 +388,39 @@
                             <tr class="ui-row-link" onclick="window.location='@profileUrl'">
                                 <td>
                                     <div class="ui-person">
-                                        <span class="ui-avatar" aria-hidden="true">
-                                            @InitialsOf(name)
-                                            @if (voter.HasPhoto)
+                                        <span class="ui-avatar-wrap">
+                                            <span class="ui-avatar" aria-hidden="true">
+                                                @InitialsOf(name)
+                                                @if (voter.HasPhoto && canViewPhoto)
+                                                {
+                                                    @* Covers the initials; if it can't load, the initials show. *@
+                                                    <img src="@Url.Action("Photo", new { id = voter.Id })" alt="" loading="lazy" class="ui-avatar-img" onerror="this.remove()" />
+                                                }
+                                            </span>
+
+                                            @* Photo buttons on the avatar, by right; clicking them doesn't open the profile. *@
+                                            @if (canEditPhoto && !voter.HasPhoto)
                                             {
-                                                @* Covers the initials; if it can't load, the initials show. *@
-                                                <img src="@Url.Action("Photo", new { id = voter.Id })" alt="" loading="lazy" class="ui-avatar-img" onerror="this.remove()" />
+                                                <form asp-action="UploadPhoto" asp-route-id="@voter.Id" method="post" enctype="multipart/form-data"
+                                                      class="ui-avatar-action" onclick="event.stopPropagation()">
+                                                    <input type="hidden" name="returnUrl" value="@listUrl" />
+                                                    <label for="photo-@voter.Id" class="ui-avatar-btn" title="Add a photo of @name">
+                                                        <partial name="_Icon" model='"camera"' />
+                                                        <span class="visually-hidden">Add a photo of @name</span>
+                                                    </label>
+                                                    <input id="photo-@voter.Id" name="photo" type="file" accept="image/*" class="visually-hidden" data-photo-upload />
+                                                </form>
+                                            }
+                                            else if (canEditPhoto && voter.HasPhoto)
+                                            {
+                                                <form asp-action="RemovePhoto" asp-route-id="@voter.Id" method="post"
+                                                      class="ui-avatar-action h28-photo-remove" data-confirm="Remove the photo of @name?"
+                                                      onclick="event.stopPropagation()">
+                                                    <input type="hidden" name="returnUrl" value="@listUrl" />
+                                                    <button type="submit" class="ui-avatar-btn is-danger" title="Remove the photo of @name" aria-label="Remove the photo of @name">
+                                                        <partial name="_Icon" model='"trash"' />
+                                                    </button>
+                                                </form>
                                             }
                                         </span>
                                         <span>
@@ -571,6 +602,14 @@
 
 @section Scripts
 {
+    <script>
+        // Removing a photo from the list asks first (the text comes from data-confirm).
+        document.querySelectorAll("form.h28-photo-remove").forEach(function (form) {
+            form.addEventListener("submit", function (e) {
+                if (!window.confirm(form.dataset.confirm)) e.preventDefault();
+            });
+        });
+    </script>
     <script>
         (function ($) {
             var $constituency = $("#filterConstituency");

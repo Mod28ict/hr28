@@ -887,6 +887,62 @@
         object-fit: cover;
     }
 
+/* Voters list: a small add / remove photo button on the avatar's corner */
+.ui-avatar-wrap {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+}
+
+.ui-avatar-action {
+    position: absolute;
+    right: -6px;
+    bottom: -6px;
+    margin: 0;
+}
+
+.ui-avatar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 2px solid var(--ui-surface);
+    border-radius: 50%;
+    color: #ffffff;
+    background: var(--ui-blue);
+    cursor: pointer;
+}
+
+    .ui-avatar-btn .icon {
+        width: 12px;
+        height: 12px;
+    }
+
+    .ui-avatar-btn.is-danger {
+        background: var(--ui-red);
+        opacity: 0;
+        transition: opacity .15s;
+    }
+
+    .ui-row-link:hover .ui-avatar-btn.is-danger,
+    .ui-avatar-btn.is-danger:focus-visible {
+        opacity: 1;
+    }
+
+    .ui-avatar-btn:focus-visible,
+    .ui-avatar-action:focus-within .ui-avatar-btn {
+        outline: 2px solid var(--ui-blue);
+        outline-offset: 1px;
+    }
+
+@media (hover: none) {
+    .ui-avatar-btn.is-danger {
+        opacity: 1;
+    }
+}
+
 .ui-avatar-lg {
     width: 64px;
     height: 64px;
