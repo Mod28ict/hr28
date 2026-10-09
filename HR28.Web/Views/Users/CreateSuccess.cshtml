@@ -1,11 +1,13 @@
 @model HR28.Web.Models.UserCreateViewModel
 
 @{
-    // Also used after resetting a code (ViewBag.IsReset).
+    // Used after creating a user ("created": no code yet), after resetting a code
+    // (ViewBag.IsReset), and when an activation's welcome SMS could not be sent ("sms-failed").
     var isReset = (bool)(ViewBag.IsReset ?? false);
+    var mode = isReset ? "reset" : ViewBag.Mode as string ?? "created";
     var userName = ViewBag.UserName as string;
 
-    ViewData["Title"] = isReset ? "New Authorization Code" : "User Created";
+    ViewData["Title"] = mode switch { "reset" => "New Authorization Code", "sms-failed" => "Authorization Code", _ => "User Created" };
 
     var code =
         Model?.GeneratedAuthorizationCode
@@ -20,6 +22,25 @@
             <partial name="_Icon" model='"check"' />
         </span>
 
+        @if (mode == "created")
+        {
+            <h1 class="ui-title">User created</h1>
+            <p class="ui-sub">@Model?.User.FullName can't sign in yet. The account is inactive until you finish these steps.</p>
+
+            <ol class="ui-steps-list">
+                <li><strong>Give a role.</strong> At least one role is needed before the account can be activated.</li>
+                <li><strong>Add an area</strong> (constituency or island), so they can see voters.</li>
+                <li><strong>Activate the account.</strong> A welcome SMS with their authorization code is sent to @Model?.User.MobileNumber. Nobody else sees the code.</li>
+            </ol>
+
+            <div class="ui-form-actions" style="justify-content: center;">
+                <a asp-action="AssignRole" asp-route-id="@Model?.EditId" class="ui-btn ui-btn-primary">Give a role</a>
+                <a asp-action="AssignScope" asp-route-id="@Model?.EditId" class="ui-btn ui-btn-secondary">Add an area</a>
+                <a asp-action="Index" class="ui-btn ui-btn-ghost">Back to Users</a>
+            </div>
+        }
+        else
+        {
         @if (isReset)
         {
             <h1 class="ui-title">New code issued</h1>
@@ -30,8 +51,11 @@
         }
         else
         {
-            <h1 class="ui-title">User created</h1>
-            <p class="ui-sub">The account is ready. Share the authorization code with the user securely.</p>
+            <h1 class="ui-title">Account activated</h1>
+            <p class="ui-sub">
+                The welcome SMS could not be sent, so here is @(string.IsNullOrWhiteSpace(userName) ? "the" : $"{userName}'s") authorization code.
+                Give it to them in person or by phone.
+            </p>
         }
 
         <div style="margin: 26px 0 8px;" class="ui-label">Authorization code</div>
@@ -59,14 +83,8 @@
                 Back to Users
             </a>
 
-            @if (!isReset)
-            {
-                <a asp-action="Create" class="ui-btn ui-btn-secondary">
-                    <partial name="_Icon" model='"user-plus"' />
-                    Create another
-                </a>
-            }
         </div>
+        }
 
     </section>
 
@@ -77,6 +95,7 @@
     <script>
         (function () {
             const btn = document.getElementById("copyBtn");
+            if (!btn) return;
             const label = btn.querySelector("span");
             const code = document.getElementById("authCode");
 

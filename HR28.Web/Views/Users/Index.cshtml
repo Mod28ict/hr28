@@ -284,6 +284,12 @@
                                                 @(user.IsActive ? "Active" : "Inactive")
                                             </span>
                                         </button>
+                                        @if (user.NeverActivated)
+                                        {
+                                            <div class="ui-muted" style="font-size: 12px; margin-top: 4px;">
+                                                @(roles.Any() ? "Ready to activate" : "Needs a role first")
+                                            </div>
+                                        }
                                     }
                                 </td>
 
@@ -426,7 +432,7 @@
             <label class="ui-status-choice">
                 <input type="radio" name="isActive" value="true" />
                 <span class="ui-pill is-green">Active</span>
-                <small class="ui-muted">Can sign in and work as their roles allow.</small>
+                <small class="ui-muted">Can sign in and work as their roles allow. Needs at least one role. The first time, a welcome SMS with their authorization code is sent.</small>
             </label>
             <label class="ui-status-choice">
                 <input type="radio" name="isActive" value="false" />

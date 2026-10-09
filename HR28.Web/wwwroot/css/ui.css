@@ -2231,6 +2231,21 @@ a.ui-pill-link {
         box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 35%, transparent);
     }
 
+/* Users → Create: next steps after creating an account */
+.ui-steps-list {
+    display: grid;
+    gap: 10px;
+    margin: 22px auto;
+    max-width: 460px;
+    padding-left: 22px;
+    text-align: left;
+}
+
+    .ui-steps-list li::marker {
+        color: var(--ui-blue);
+        font-weight: 700;
+    }
+
 /* Settings → System → Logo */
 .ui-logo-row {
     display: flex;

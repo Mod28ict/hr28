@@ -165,7 +165,7 @@
                             <input type="checkbox" id="h28UserActive" name="IsActive" value="true" checked="@Model.IsActive" />
                             <span>
                                 <strong>Account is active</strong>
-                                <small>Untick to stop this person signing in. They are signed out on their next click; records they made are kept.</small>
+                                <small>Untick to stop this person signing in. They are signed out on their next click; records they made are kept. Ticking it needs at least one role; the first time, a welcome SMS with their authorization code is sent.</small>
                             </span>
                         </label>
                         <input type="hidden" name="IsActive" value="false" />
@@ -185,9 +185,9 @@
                     <div class="ui-note">
                         <partial name="_Icon" model='"shield"' />
                         <div>
-                            <strong>Role and scope are assigned separately</strong>
-                            After creating the account, return to the Users page and assign both a role and a
-                            geographic scope. The generated authorization code will be displayed on the next screen.
+                            <strong>The account starts inactive</strong>
+                            After creating it, give a role and an area, then activate it. A welcome SMS with the
+                            person's authorization code is sent to this mobile number; nobody else sees the code.
                         </div>
                     </div>
                 }

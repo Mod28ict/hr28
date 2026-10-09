@@ -47,13 +47,18 @@ public interface IUserService
     /// Changes a user's details and whether the account is active. Changed fields are
     /// audited; a new mobile number is announced by SMS to the old number.
     /// </summary>
-    Task UpdateUserAsync(Guid userId, UpdateUserDto request);
+    /// <summary>Saves the details; when this switches the account on, see <see cref="ActivationResultDto"/>.</summary>
+    Task<ActivationResultDto> UpdateUserAsync(Guid userId, UpdateUserDto request);
 
     /// <summary>
     /// Activates or deactivates an account (Users list status pop-up). Same rules as
     /// Edit: not your own account, not the last active Administrator. Audited.
     /// </summary>
-    Task SetActiveAsync(Guid userId, bool isActive);
+    /// <summary>
+    /// Switches an account on or off. Switching on needs at least one role; the first time,
+    /// a new authorization code is created and sent in a welcome SMS.
+    /// </summary>
+    Task<ActivationResultDto> SetActiveAsync(Guid userId, bool isActive);
 
     /// <summary>
     /// Permanently deletes an account that has not recorded encounters or pledges

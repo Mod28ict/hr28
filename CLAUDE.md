@@ -242,8 +242,13 @@ strong despite that:
      cryptographically random, shown as `ABCD-EFGH`, typed case-insensitively with or
      without the dash. Stored **only** as HMAC-SHA256 with `Security:AuthorizationCodeKey`
      (User Secrets in dev, Key Vault in prod; every instance must use the same key or
-     nobody can sign in). Shown **once** at creation or reset, never again; an
-     Administrator can "Reset code". Older 5-character codes still work.
+     nobody can sign in). **New accounts (owner decision, 2026-10-09) start inactive and
+     without a code; activation needs at least one role (API and UI); the first
+     activation creates the code and sends it in a welcome SMS** (campaign name, first
+     name, code, optional `App:SignInUrl`) — nobody else sees it. If that SMS can't be
+     sent, the code is shown once to the administrator instead. Re-activating later sends
+     an "active again" SMS and keeps the code. "Reset code" still shows the new code once
+     to the administrator. Older 5-character codes still work.
   2. **SMS OTP** (something the user has).
   Do not add passwords or PINs without the owner's approval.
 - SMS codes (implemented): 6 digits from `RandomNumberGenerator`, expiry set by the

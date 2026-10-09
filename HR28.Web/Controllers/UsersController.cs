@@ -176,11 +176,10 @@ public class UsersController : Controller
             return View(model);
         }
 
-        model.GeneratedAuthorizationCode =
-            created.Data.AuthorizationCode;
-
-        // The code is shown once; don't let the browser cache this page.
-        Response.Headers.CacheControl = "no-store";
+        // New accounts start inactive and without a code: next, give a role and an area,
+        // then activate; the code is sent to the person by SMS.
+        model.EditId = created.Data.Id;
+        ViewBag.Mode = "created";
 
         return View(
             "CreateSuccess",
@@ -288,7 +287,7 @@ public class UsersController : Controller
         if (!ModelState.IsValid)
             return View("Create", model);
 
-        var result = await _apiClient.PutAsync<object>(
+        var result = await _apiClient.PutAsync<ActivationResult>(
             $"Users/{id}",
             new
             {
@@ -318,7 +317,38 @@ public class UsersController : Controller
             return View("Create", model);
         }
 
+        if (result.Data?.Activated == true)
+            return AfterActivation(result.Data, model.User.FullName);
+
         TempData["SuccessMessage"] = $"{model.User.FullName} was updated.";
+        return BackToList();
+    }
+
+    /// <summary>
+    /// After switching an account on: a message saying the welcome SMS went out, or, if it
+    /// couldn't be sent, the new code shown once so it can be given to the person.
+    /// </summary>
+    private IActionResult AfterActivation(ActivationResult result, string? name)
+    {
+        var who = string.IsNullOrWhiteSpace(name) ? "The account" : name.Trim();
+
+        if (!string.IsNullOrWhiteSpace(result.AuthorizationCode))
+        {
+            ViewBag.Mode = "sms-failed";
+            ViewBag.UserName = who;
+
+            // The code is shown once; don't let the browser cache this page.
+            Response.Headers.CacheControl = "no-store";
+
+            return View("CreateSuccess", new UserCreateViewModel { GeneratedAuthorizationCode = result.AuthorizationCode });
+        }
+
+        TempData["SuccessMessage"] = result.FirstActivation
+            ? $"{who} is active. A welcome SMS with their authorization code was sent to their mobile."
+            : result.SmsSent
+                ? $"{who} is active again and has been told by SMS. Their authorization code is unchanged."
+                : $"{who} is active again. Their authorization code is unchanged.";
+
         return BackToList();
     }
 
@@ -330,7 +360,7 @@ public class UsersController : Controller
         if (!IsSuperAdmin())
             return RedirectToAction("Index", "Dashboard");
 
-        var result = await _apiClient.PutAsync<object>(
+        var result = await _apiClient.PutAsync<ActivationResult>(
             $"Users/{id}/active",
             new { isActive },
             HttpContext.Session.GetString("JwtToken"));
@@ -342,6 +372,9 @@ public class UsersController : Controller
         }
 
         var who = string.IsNullOrWhiteSpace(name) ? "The account" : name.Trim();
+
+        if (result.Success && result.Data?.Activated == true)
+            return AfterActivation(result.Data, name);
 
         if (result.Success)
             TempData["SuccessMessage"] = isActive

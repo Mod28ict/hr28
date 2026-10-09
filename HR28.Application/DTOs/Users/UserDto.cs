@@ -30,6 +30,9 @@ public class UserDto
 
     /// <summary>Browsers remembered with "Remember me on this device" (not expired).</summary>
     public int RememberedDevices { get; set; }
+
+    /// <summary>Never activated: no authorization code has been created yet.</summary>
+    public bool NeverActivated { get; set; }
     /// <summary>The user's highest-authority role (kept for screens that show one).</summary>
     public string? RoleName { get; set; }
 

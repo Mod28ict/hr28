@@ -62,9 +62,9 @@ public class UsersController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserDto request)
     {
-        await _userService.UpdateUserAsync(id, request);
-
-        return NoContent();
+        // When this switches the account on: whether the welcome SMS went out, and the code
+        // only if it could not be sent.
+        return Ok(await _userService.UpdateUserAsync(id, request));
     }
 
     public class SetActiveRequest
@@ -76,9 +76,7 @@ public class UsersController : ControllerBase
     [HttpPut("{id:guid}/active")]
     public async Task<IActionResult> SetActive(Guid id, [FromBody] SetActiveRequest request)
     {
-        await _userService.SetActiveAsync(id, request.IsActive);
-
-        return NoContent();
+        return Ok(await _userService.SetActiveAsync(id, request.IsActive));
     }
 
     /// <summary>Permanent; only for accounts that haven't recorded encounters or pledges.</summary>

@@ -20,6 +20,9 @@ public class UserService : IUserService
     private readonly ISmsSender _smsSender;
     private readonly ISystemSettingsService _settingsService;
 
+    /// <summary>Optional web address put in the welcome SMS (App:SignInUrl).</summary>
+    private readonly string? _signInUrl;
+
     public UserService(
         HR28DbContext dbContext,
         IAuthorizationCodeHasher codeHasher,
@@ -27,9 +30,11 @@ public class UserService : IUserService
         IHttpContextAccessor httpContextAccessor,
         IAccessScopeService accessScopeService,
         ISmsSender smsSender,
-        ISystemSettingsService settingsService)
+        ISystemSettingsService settingsService,
+        Microsoft.Extensions.Configuration.IConfiguration configuration)
     {
         _settingsService = settingsService;
+        _signInUrl = configuration["App:SignInUrl"];
         _dbContext = dbContext;
         _codeHasher = codeHasher;
         _auditService = auditService;
@@ -73,8 +78,9 @@ public class UserService : IUserService
         if (await _dbContext.Users.AnyAsync(u => u.NationalId == request.NationalId))
             throw new BusinessRuleException($"There is already a user with National ID {request.NationalId}.");
 
-        var (authorizationCode, codeHash) = await NewUniqueCodeAsync();
-
+        // New accounts start switched off and without a code (owner decision, 2026-10-09):
+        // the code is created when the account is first activated, and sent to the person
+        // by SMS, so nobody else ever sees it.
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -85,27 +91,18 @@ public class UserService : IUserService
             Email = request.Email?.Trim() ?? string.Empty,
             Designation = request.Designation?.Trim() ?? string.Empty,
             Remarks = request.Remarks?.Trim() ?? string.Empty,
-            AuthorizationCodeHash = codeHash,
-            IsActive = true,
+            AuthorizationCodeHash = null,
+            IsActive = false,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = GetCurrentUserId() ?? Guid.Empty
         };
 
         _dbContext.Users.Add(user);
 
-        _dbContext.AuthorizationCodeHistories.Add(new AuthorizationCodeHistory
-        {
-            Id = Guid.NewGuid(),
-            UserId = user.Id,
-            AuthorizationCodeHash = codeHash,
-            CreatedAt = DateTime.UtcNow,
-            Reason = "Issued when the account was created"
-        });
-
         await _dbContext.SaveChangesAsync();
 
         await _auditService.LogAsync(
-            GetCurrentUserId(), "Create", "User", user.Id.ToString());
+            GetCurrentUserId(), "Create (inactive until activated)", "User", user.Id.ToString());
 
         return new UserDto
         {
@@ -116,10 +113,8 @@ public class UserService : IUserService
             MobileNumber = user.MobileNumber,
             Email = user.Email,
             Designation = user.Designation,
-
-            // Returned this once so the administrator can hand it over.
-            AuthorizationCode = authorizationCode,
             IsActive = user.IsActive,
+            NeverActivated = true,
             LastLoginAt = user.LastLoginAt
         };
     }
@@ -323,6 +318,7 @@ public class UserService : IUserService
                 user.Remarks,
                 user.LastLoginAt,
                 RememberedDevices = _dbContext.TrustedDevices.Count(d => d.UserId == user.Id && d.ExpiresAt > DateTime.UtcNow),
+                NeverActivated = user.AuthorizationCodeHash == null,
                 Roles = user.UserRoles.Select(x => x.Role.Name).ToList(),
                 Scopes = user.UserScopes
                     .Select(s => new UserScopeDto
@@ -358,6 +354,7 @@ public class UserService : IUserService
                 Remarks = r.Remarks ?? string.Empty,
                 LastLoginAt = r.LastLoginAt,
                 RememberedDevices = r.RememberedDevices,
+                NeverActivated = r.NeverActivated,
                 Roles = roles,
                 RoleName = roles.FirstOrDefault(),
                 Scopes = scopes,
@@ -374,7 +371,7 @@ public class UserService : IUserService
             ur.Role.Name == AccessScopeService.SuperAdministratorRole &&
             ur.User.IsActive);
 
-    public async Task UpdateUserAsync(Guid userId, UpdateUserDto request)
+    public async Task<ActivationResultDto> UpdateUserAsync(Guid userId, UpdateUserDto request)
     {
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new KeyNotFoundException("User not found.");
@@ -396,6 +393,11 @@ public class UserService : IUserService
         if (!request.IsActive && user.IsActive)
             await RequireCanDeactivateAsync(userId);
 
+        var activating = request.IsActive && !user.IsActive;
+
+        if (activating)
+            await RequireRoleToActivateAsync(user);
+
         var email = (request.Email ?? string.Empty).Trim();
         var designation = (request.Designation ?? string.Empty).Trim();
         var address = (request.Address ?? string.Empty).Trim();
@@ -414,7 +416,10 @@ public class UserService : IUserService
         if (user.IsActive != request.IsActive) changes.Add(request.IsActive ? "account activated" : "account deactivated");
 
         if (changes.Count == 0)
-            return;
+            return new ActivationResultDto();
+
+        // The first activation creates the code (sent by SMS below).
+        var newCode = activating ? await PrepareFirstCodeAsync(user) : null;
 
         user.FullName = fullName;
         user.NationalId = nationalId;
@@ -424,6 +429,9 @@ public class UserService : IUserService
         user.Address = address;
         user.Remarks = remarks;
         user.IsActive = request.IsActive;
+
+        if (activating)
+            ResetSignInLock(user);
 
         await _dbContext.SaveChangesAsync();
 
@@ -439,6 +447,90 @@ public class UserService : IUserService
                 $"{(await _settingsService.GetBrandingAsync()).ShortName}: the mobile number on your account was changed by an administrator. " +
                 "If you did not ask for this, contact your administrator.");
         }
+
+        return activating
+            ? await SendActivationSmsAsync(user, newCode)
+            : new ActivationResultDto();
+    }
+
+    /// <summary>An account can only be switched on once it has at least one role.</summary>
+    private async Task RequireRoleToActivateAsync(User user)
+    {
+        if (!await _dbContext.UserRoles.AnyAsync(ur => ur.UserId == user.Id))
+        {
+            var name = string.IsNullOrWhiteSpace(user.FullName) ? "this person" : user.FullName;
+            throw new BusinessRuleException(
+                $"Give {name} at least one role before activating the account (Users → Roles).");
+        }
+    }
+
+    /// <summary>
+    /// First activation (no code yet): creates the authorization code and records it.
+    /// Returns the readable code for the welcome SMS, or null when the person already has one.
+    /// </summary>
+    private async Task<string?> PrepareFirstCodeAsync(User user)
+    {
+        if (!string.IsNullOrEmpty(user.AuthorizationCodeHash))
+            return null;
+
+        var (code, hash) = await NewUniqueCodeAsync();
+
+        user.AuthorizationCodeHash = hash;
+
+        _dbContext.AuthorizationCodeHistories.Add(new AuthorizationCodeHistory
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            AuthorizationCodeHash = hash,
+            CreatedAt = DateTime.UtcNow,
+            Reason = "Sent by SMS when the account was first activated"
+        });
+
+        return code;
+    }
+
+    /// <summary>A locked-out account starts fresh when it is turned back on.</summary>
+    private static void ResetSignInLock(User user)
+    {
+        user.FailedLoginAttempts = 0;
+        user.IsLocked = false;
+        user.LockedUntilUtc = null;
+    }
+
+    /// <summary>
+    /// After activation: the welcome SMS with the new code (first time), or a short
+    /// "active again" SMS. If the welcome SMS can't be sent, the code is returned once so
+    /// the administrator can give it to the person instead of it being lost.
+    /// </summary>
+    private async Task<ActivationResultDto> SendActivationSmsAsync(User user, string? newCode)
+    {
+        var brand = await _settingsService.GetBrandingAsync();
+        var firstName = (user.FullName ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
+        var signInAt = string.IsNullOrWhiteSpace(_signInUrl) ? string.Empty : $" Sign in at {_signInUrl}.";
+
+        var message = newCode != null
+            ? $"{brand.CampaignName}: Welcome{(firstName.Length > 0 ? ", " + firstName : string.Empty)}! Your account is ready. " +
+              $"Your authorization code is {newCode}. Sign in with it and the code we send you by SMS.{signInAt} " +
+              "Never share your codes. Campaign staff will never ask for them."
+            : $"{brand.ShortName}: your account is active again. Sign in with your authorization code.{signInAt}";
+
+        var sent = await _smsSender.SendAsync(user.MobileNumber, message);
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            newCode == null
+                ? (sent ? "\"Active again\" SMS sent" : "\"Active again\" SMS could not be sent")
+                : (sent ? "Welcome SMS with the authorization code sent" : "Welcome SMS could not be sent; code shown once to the administrator"),
+            "User",
+            user.Id.ToString());
+
+        return new ActivationResultDto
+        {
+            Activated = true,
+            FirstActivation = newCode != null,
+            SmsSent = sent,
+            AuthorizationCode = newCode != null && !sent ? newCode : null
+        };
     }
 
     private async Task RequireCanDeactivateAsync(Guid userId)
@@ -450,26 +542,25 @@ public class UserService : IUserService
             throw new BusinessRuleException("This is the only active Administrator, so the account must stay active.");
     }
 
-    public async Task SetActiveAsync(Guid userId, bool isActive)
+    public async Task<ActivationResultDto> SetActiveAsync(Guid userId, bool isActive)
     {
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new KeyNotFoundException("User not found.");
 
         if (user.IsActive == isActive)
-            return;
+            return new ActivationResultDto();
 
         if (!isActive)
             await RequireCanDeactivateAsync(userId);
+        else
+            await RequireRoleToActivateAsync(user);
+
+        var newCode = isActive ? await PrepareFirstCodeAsync(user) : null;
 
         user.IsActive = isActive;
 
-        // A locked-out account starts fresh when it is turned back on.
         if (isActive)
-        {
-            user.FailedLoginAttempts = 0;
-            user.IsLocked = false;
-            user.LockedUntilUtc = null;
-        }
+            ResetSignInLock(user);
 
         await _dbContext.SaveChangesAsync();
 
@@ -481,6 +572,10 @@ public class UserService : IUserService
             isActive ? "Account activated" : "Account deactivated",
             "User",
             userId.ToString());
+
+        return isActive
+            ? await SendActivationSmsAsync(user, newCode)
+            : new ActivationResultDto();
     }
 
     public async Task<string> DeleteUserAsync(Guid userId)
