@@ -1,0 +1,7027 @@
+{
+ "total": 1147,
+ "sections": [
+  {
+   "group": "Sign-in page",
+   "prefix": "SIGNIN",
+   "title": "Sign-in page",
+   "items": [
+    {
+     "key": "SIGNIN-001",
+     "english": "Enter your authorization code",
+     "kind": "Box hint",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-002",
+     "english": "Clear authorization code",
+     "kind": "Screen-reader label",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-003",
+     "english": "Secure campaign operations",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    },
+    {
+     "key": "SIGNIN-004",
+     "english": "Turn voter insights into",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    },
+    {
+     "key": "SIGNIN-005",
+     "english": "campaign action.",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    },
+    {
+     "key": "SIGNIN-006",
+     "english": "A unified platform for voter registration, engagement",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    },
+    {
+     "key": "SIGNIN-007",
+     "english": "tracking, constituency operations and campaign oversight.",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    },
+    {
+     "key": "SIGNIN-008",
+     "english": "Voter registration",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    },
+    {
+     "key": "SIGNIN-009",
+     "english": "Campaign analytics",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    },
+    {
+     "key": "SIGNIN-010",
+     "english": "Role-based access",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    },
+    {
+     "key": "SIGNIN-011",
+     "english": "Complete audit trail",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    },
+    {
+     "key": "SIGNIN-012",
+     "english": "Secure access portal",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    },
+    {
+     "key": "SIGNIN-013",
+     "english": "Welcome back{…}",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-014",
+     "english": "This device is remembered, so you don't need your authorization code.",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-015",
+     "english": "We'll send a one-time verification code to your phone{…}.",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-016",
+     "english": "Enter your assigned authorization code.",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-017",
+     "english": "A one-time verification code will be sent to continue.",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-018",
+     "english": "Secure two-step authentication",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-019",
+     "english": "This device was remembered when you ticked \"Remember me\". The code sent to your phone is still required.",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-020",
+     "english": "Your authorization code is verified before an OTP is issued.",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-021",
+     "english": "Send my sign-in code",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-022",
+     "english": "Not you? Use an authorization code instead",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-023",
+     "english": "Authorization code",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    },
+    {
+     "key": "SIGNIN-024",
+     "english": "Remember me on this device",
+     "kind": "Text",
+     "where": "Sign-in page, Index"
+    },
+    {
+     "key": "SIGNIN-025",
+     "english": "For {…} days you'll only need the code sent to your phone.",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-026",
+     "english": "Don't tick this on a shared or public computer.",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-027",
+     "english": "Send verification code",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-028",
+     "english": "Protected by secure OTP verification",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    },
+    {
+     "key": "SIGNIN-029",
+     "english": "Welcome back",
+     "kind": "Text",
+     "where": "Sign-in page"
+    },
+    {
+     "key": "SIGNIN-030",
+     "english": "Remember me",
+     "kind": "Text",
+     "where": "Sign-in page, SMS code page"
+    }
+   ]
+  },
+  {
+   "group": "SMS code page",
+   "prefix": "OTP",
+   "title": "SMS code page",
+   "items": [
+    {
+     "key": "OTP-001",
+     "english": "Code expired",
+     "kind": "Message",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-002",
+     "english": "Authorization code ending in {…}",
+     "kind": "Screen-reader label",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-003",
+     "english": "Verification code digit 1",
+     "kind": "Screen-reader label",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-004",
+     "english": "Verification code digit 2",
+     "kind": "Screen-reader label",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-005",
+     "english": "Verification code digit 3",
+     "kind": "Screen-reader label",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-006",
+     "english": "Verification code digit 4",
+     "kind": "Screen-reader label",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-007",
+     "english": "Verification code digit 5",
+     "kind": "Screen-reader label",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-008",
+     "english": "Verification code digit 6",
+     "kind": "Screen-reader label",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-009",
+     "english": "Verify Identity | {…}",
+     "kind": "Text",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-010",
+     "english": "Secure Verification",
+     "kind": "Text",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-011",
+     "english": "Enter the 6-digit verification code sent for this",
+     "kind": "Text",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-012",
+     "english": "authorization attempt.",
+     "kind": "Text",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-013",
+     "english": "Signing in on",
+     "kind": "Text",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-014",
+     "english": "This remembered device",
+     "kind": "Text",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-015",
+     "english": "Enter verification code",
+     "kind": "Text",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-016",
+     "english": "Enter the 6-digit code sent to your phone",
+     "kind": "Text",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-017",
+     "english": "Code expires in 5:00",
+     "kind": "Text",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-018",
+     "english": "Use another code",
+     "kind": "Text",
+     "where": "SMS code page"
+    },
+    {
+     "key": "OTP-019",
+     "english": "Verify and continue",
+     "kind": "Text",
+     "where": "SMS code page"
+    }
+   ]
+  },
+  {
+   "group": "Menu, header and footer (every page)",
+   "prefix": "MENU",
+   "title": "Menu, header and footer (every page)",
+   "items": [
+    {
+     "key": "MENU-001",
+     "english": "Main navigation",
+     "kind": "Screen-reader label",
+     "where": "Menu, header and footer (every page)"
+    },
+    {
+     "key": "MENU-002",
+     "english": "Open navigation",
+     "kind": "Screen-reader label",
+     "where": "Menu, header and footer (every page)"
+    },
+    {
+     "key": "MENU-003",
+     "english": "Search voters by name or National ID…",
+     "kind": "Box hint",
+     "where": "Menu, header and footer (every page)"
+    },
+    {
+     "key": "MENU-004",
+     "english": "Loading campaign data…",
+     "kind": "Text",
+     "where": "Menu, header and footer (every page)"
+    },
+    {
+     "key": "MENU-005",
+     "english": "This may take a few seconds",
+     "kind": "Text",
+     "where": "Menu, header and footer (every page)"
+    },
+    {
+     "key": "MENU-006",
+     "english": "Administration",
+     "kind": "Text",
+     "where": "Menu, header and footer (every page), Create"
+    },
+    {
+     "key": "MENU-007",
+     "english": "Search voters",
+     "kind": "Text",
+     "where": "Menu, header and footer (every page), Index"
+    },
+    {
+     "key": "MENU-008",
+     "english": "Ctrl + K",
+     "kind": "Text",
+     "where": "Menu, header and footer (every page)"
+    },
+    {
+     "key": "MENU-009",
+     "english": "Dark mode",
+     "kind": "Text",
+     "where": "Menu, header and footer (every page)"
+    },
+    {
+     "key": "MENU-010",
+     "english": "Sign out",
+     "kind": "Text",
+     "where": "Menu, header and footer (every page), SessionTimeout"
+    },
+    {
+     "key": "MENU-011",
+     "english": "© {…} {…} · {…} | Designed and Developed by: Ahmed Rasheed",
+     "kind": "Text",
+     "where": "Menu, header and footer (every page)"
+    },
+    {
+     "key": "MENU-012",
+     "english": "M12 2 3 7v10l9 5 9-5V7l-9-5zm0 2.3 6.8 3.8L12 11.9 5.2 8.1 12 4.3zM5 9.8l6 3.4v6.6l-6-3.4V9.8zm8 10v-6.6l6-3.4v6.6l-6 3.4z",
+     "kind": "Text",
+     "where": "Menu, header and footer (every page)"
+    },
+    {
+     "key": "MENU-013",
+     "english": "Campaign Intelligence",
+     "kind": "Text",
+     "where": "Menu, header and footer (every page), BrandingService"
+    },
+    {
+     "key": "MENU-014",
+     "english": "People Insights Progress",
+     "kind": "Text",
+     "where": "Menu, header and footer (every page)"
+    },
+    {
+     "key": "MENU-015",
+     "english": "Scripts",
+     "kind": "Text",
+     "where": "Menu, header and footer (every page)"
+    }
+   ]
+  },
+  {
+   "group": "Dashboard",
+   "prefix": "DASH",
+   "title": "Dashboard",
+   "items": [
+    {
+     "key": "DASH-001",
+     "english": "Key figures",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-002",
+     "english": "See all voters",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-003",
+     "english": "See supporters",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-004",
+     "english": "See undecided voters",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-005",
+     "english": "See opposition voters",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-006",
+     "english": "See all encounters",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-007",
+     "english": "See all pledges",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-008",
+     "english": "See all influencers",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-009",
+     "english": "Manage users",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-010",
+     "english": "See voters in your area",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-011",
+     "english": "Constituencies with voters",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-012",
+     "english": "Choose a voter, then record an encounter",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-013",
+     "english": "Choose a voter, then add a pledge",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-014",
+     "english": "status switch",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-015",
+     "english": "Here's what's happening across your campaign today.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-016",
+     "english": "Let's make progress.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-017",
+     "english": "Add Voter",
+     "kind": "Text",
+     "where": "Index, Create"
+    },
+    {
+     "key": "DASH-018",
+     "english": "“Better insights.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-019",
+     "english": "Stronger connections.”",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-020",
+     "english": "Total Voters",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-021",
+     "english": "In your scope",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-022",
+     "english": "Supporters",
+     "kind": "Text",
+     "where": "Index, ConstituencySummary"
+    },
+    {
+     "key": "DASH-023",
+     "english": "of voters",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-024",
+     "english": "Undecided",
+     "kind": "Text",
+     "where": "Index, ConstituencySummary"
+    },
+    {
+     "key": "DASH-025",
+     "english": "Opposition",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-026",
+     "english": "Encounters",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "DASH-027",
+     "english": "Recorded to date",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-028",
+     "english": "Pledges",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "DASH-029",
+     "english": "open · {…} completed",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-030",
+     "english": "Influencers",
+     "kind": "Text",
+     "where": "Index, Create"
+    },
+    {
+     "key": "DASH-031",
+     "english": "Community connectors",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-032",
+     "english": "Users",
+     "kind": "Text",
+     "where": "Index, Menu, header and footer (every page)"
+    },
+    {
+     "key": "DASH-033",
+     "english": "Your area",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-034",
+     "english": "islands in {…} {…}",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-035",
+     "english": "Voter Distribution",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-036",
+     "english": "Show distribution for",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-037",
+     "english": "No voters with a support status here yet.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-038",
+     "english": "Voters",
+     "kind": "Text",
+     "where": "Index, Create"
+    },
+    {
+     "key": "DASH-039",
+     "english": "Neutral",
+     "kind": "Text",
+     "where": "Index, Create"
+    },
+    {
+     "key": "DASH-040",
+     "english": "Constituency Performance",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-041",
+     "english": "View all",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-042",
+     "english": "No constituency in your area has voters yet.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-043",
+     "english": "Share of voters who are supporters",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-044",
+     "english": "Coverage",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-045",
+     "english": "Support level",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-046",
+     "english": "Constituencies",
+     "kind": "Text",
+     "where": "Index, ConstituencySummary"
+    },
+    {
+     "key": "DASH-047",
+     "english": "Islands",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "DASH-048",
+     "english": "With voters",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-049",
+     "english": "High support",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-050",
+     "english": "Medium",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-051",
+     "english": "Low support",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-052",
+     "english": "under 45%",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-053",
+     "english": "No data",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-054",
+     "english": "Constituencies and islands in your assigned scope.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-055",
+     "english": "No recent activity yet.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-056",
+     "english": "Recently Added Voters",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-057",
+     "english": "No voters added yet.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-058",
+     "english": "Quick Actions",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-059",
+     "english": "Record Encounter",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-060",
+     "english": "Add Pledge",
+     "kind": "Text",
+     "where": "Index, Create"
+    },
+    {
+     "key": "DASH-061",
+     "english": "Add Influencer",
+     "kind": "Text",
+     "where": "Index, Create"
+    },
+    {
+     "key": "DASH-062",
+     "english": "Manage Users",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-063",
+     "english": "Reports",
+     "kind": "Text",
+     "where": "Index, ConstituencySummary"
+    },
+    {
+     "key": "DASH-064",
+     "english": "Pledge Report",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-065",
+     "english": "Good morning",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-066",
+     "english": "Good afternoon",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-067",
+     "english": "Good evening",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-068",
+     "english": "Just now",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-069",
+     "english": "All constituencies",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "DASH-070",
+     "english": "All my areas",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-071",
+     "english": "Your assigned area",
+     "kind": "Text",
+     "where": "Index, ScopeChip"
+    },
+    {
+     "key": "DASH-072",
+     "english": "Recent Activity",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-073",
+     "english": "Your Recent Activity",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "DASH-074",
+     "english": "Audit",
+     "kind": "Text",
+     "where": "Index, Menu, header and footer (every page)"
+    },
+    {
+     "key": "DASH-075",
+     "english": "Unnamed voter",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "DASH-076",
+     "english": "Not set",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "DASH-077",
+     "english": "No location set",
+     "kind": "Text",
+     "where": "Index"
+    }
+   ]
+  },
+  {
+   "group": "QuickEntry",
+   "prefix": "QUICK",
+   "title": "Quick entry",
+   "items": [
+    {
+     "key": "QUICK-001",
+     "english": "Photo of {…}",
+     "kind": "Image description",
+     "where": "Index, Profile"
+    },
+    {
+     "key": "QUICK-002",
+     "english": "Remove the photo of {…}?",
+     "kind": "Question",
+     "where": "Index, Index"
+    },
+    {
+     "key": "QUICK-003",
+     "english": "Concise, factual notes only.",
+     "kind": "Box hint",
+     "where": "Index"
+    },
+    {
+     "key": "QUICK-004",
+     "english": "e.g. House rent assistance",
+     "kind": "Box hint",
+     "where": "Index"
+    },
+    {
+     "key": "QUICK-005",
+     "english": "Quick entry",
+     "kind": "Text",
+     "where": "Index, Menu, header and footer (every page)"
+    },
+    {
+     "key": "QUICK-006",
+     "english": "Find a voter by ID card, then record what happened on this page.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "QUICK-007",
+     "english": "You don't have an area yet",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "QUICK-008",
+     "english": "You can fetch voters only inside the areas (constituencies or islands) assigned to you. Ask your Administrator to assign an area to your account, then come back to this page.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "QUICK-009",
+     "english": "ID card number",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "QUICK-010",
+     "english": "Fetch voter",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "QUICK-011",
+     "english": "Add photo",
+     "kind": "Text",
+     "where": "Index, Profile"
+    },
+    {
+     "key": "QUICK-012",
+     "english": "Take one or choose a picture.",
+     "kind": "Text",
+     "where": "Index, Profile"
+    },
+    {
+     "key": "QUICK-013",
+     "english": "Remove photo",
+     "kind": "Text",
+     "where": "Index, Profile"
+    },
+    {
+     "key": "QUICK-014",
+     "english": "ID card",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "QUICK-015",
+     "english": "Gender",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "QUICK-016",
+     "english": "Date of birth",
+     "kind": "Text",
+     "where": "Index, Create"
+    },
+    {
+     "key": "QUICK-017",
+     "english": "Mobile",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "QUICK-018",
+     "english": "Political party",
+     "kind": "Text",
+     "where": "Index, Create"
+    },
+    {
+     "key": "QUICK-019",
+     "english": "Choose…",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "QUICK-020",
+     "english": "Title",
+     "kind": "Text",
+     "where": "Index, Profile"
+    },
+    {
+     "key": "QUICK-021",
+     "english": "What was pledged",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "QUICK-022",
+     "english": "Type a name or ID card to search.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "QUICK-023",
+     "english": "Find",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "QUICK-024",
+     "english": "Not known",
+     "kind": "Text",
+     "where": "Index, Index"
+    }
+   ]
+  },
+  {
+   "group": "Voters",
+   "prefix": "VOTER",
+   "title": "Voters",
+   "items": [
+    {
+     "key": "VOTER-001",
+     "english": "Choose what to add",
+     "kind": "Screen-reader label",
+     "where": "Choose"
+    },
+    {
+     "key": "VOTER-002",
+     "english": "What would you like to add?",
+     "kind": "Text",
+     "where": "Choose"
+    },
+    {
+     "key": "VOTER-003",
+     "english": "Choose one. You come back to the voter list when it's saved.",
+     "kind": "Text",
+     "where": "Choose"
+    },
+    {
+     "key": "VOTER-004",
+     "english": "✓ Not registered yet",
+     "kind": "Message",
+     "where": "Create"
+    },
+    {
+     "key": "VOTER-005",
+     "english": "Any factual notes about this voter",
+     "kind": "Box hint",
+     "where": "Create"
+    },
+    {
+     "key": "VOTER-006",
+     "english": "Add voter",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "VOTER-007",
+     "english": "Register a new voter and assign them to a constituency and island.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "VOTER-008",
+     "english": "Who the voter is and how to reach them",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-009",
+     "english": "Not recorded",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-010",
+     "english": "Male",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-011",
+     "english": "Female",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-012",
+     "english": "Location",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-013",
+     "english": "Choose the constituency first; islands load automatically",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-014",
+     "english": "Select Island",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-015",
+     "english": "Campaign",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-016",
+     "english": "Political party, support status and any notes",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-017",
+     "english": "Leave as \"Not known\" unless you are sure.",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-018",
+     "english": "Support status",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-019",
+     "english": "Supporter",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-020",
+     "english": "Opponent",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-021",
+     "english": "New voters start as Undecided. Changing the status needs the \"Change support status\" right.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "VOTER-022",
+     "english": "Save voter",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "VOTER-023",
+     "english": "Change support status",
+     "kind": "Text",
+     "where": "Create, Edit"
+    },
+    {
+     "key": "VOTER-024",
+     "english": "Edit Voter",
+     "kind": "Text",
+     "where": "Edit"
+    },
+    {
+     "key": "VOTER-025",
+     "english": "Update this voter's details and current support status.",
+     "kind": "Text",
+     "where": "Edit"
+    },
+    {
+     "key": "VOTER-026",
+     "english": "Changing the status needs the \"Change support status\" right.",
+     "kind": "Text",
+     "where": "Edit"
+    },
+    {
+     "key": "VOTER-027",
+     "english": "Update voter",
+     "kind": "Text",
+     "where": "Edit"
+    },
+    {
+     "key": "VOTER-028",
+     "english": "Only an Administrator can move a voter to another constituency or island",
+     "kind": "Text",
+     "where": "Edit"
+    },
+    {
+     "key": "VOTER-029",
+     "english": "House name",
+     "kind": "Box hint",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-030",
+     "english": "Add a photo of {…}",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-031",
+     "english": "Remove the photo of {…}",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-032",
+     "english": "Show only voters on {…}",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-033",
+     "english": "Show only voters in {…}",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-034",
+     "english": "Show everyone at {…}",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-035",
+     "english": "Voter pagination",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-036",
+     "english": "Voter search works inside the areas (constituencies or islands) assigned to you. Ask your Administrator to assign an area to your account, then come back to this page.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-037",
+     "english": "All parties",
+     "kind": "Text",
+     "where": "Index, PoliticalPartyService"
+    },
+    {
+     "key": "VOTER-038",
+     "english": "Party not known",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-039",
+     "english": "House",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-040",
+     "english": "Match house name exactly",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-041",
+     "english": "No voters found for “{…}” {…}",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-042",
+     "english": "Check the spelling or the ID card number, or try fewer filters.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-043",
+     "english": "No voters match these filters {…}",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-044",
+     "english": "Try fewer filters, or clear them to see everyone.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-045",
+     "english": "There are no voters {…} yet",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-046",
+     "english": "Clear search and filters",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-047",
+     "english": "Show all parties",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-048",
+     "english": "Sort by {…}, A to Z",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "VOTER-049",
+     "english": "Permanently delete {…} with all their encounters and pledges? This cannot be undone.",
+     "kind": "Question",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-050",
+     "english": "Permanently delete this encounter ({…}(",
+     "kind": "Question",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-051",
+     "english": "Delete encounter",
+     "kind": "Screen-reader label",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-052",
+     "english": "Permanently delete the pledge \"{…}\"? This cannot be undone.",
+     "kind": "Question",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-053",
+     "english": "Delete pledge",
+     "kind": "Screen-reader label",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-054",
+     "english": "Profile",
+     "kind": "Text",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-055",
+     "english": "Edit voter",
+     "kind": "Text",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-056",
+     "english": "Photo",
+     "kind": "Text",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-057",
+     "english": "Location details inside the photo are removed when it is saved.",
+     "kind": "Text",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-058",
+     "english": "To change the photo, remove this one first, then add the new one.",
+     "kind": "Text",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-059",
+     "english": "No influencers linked yet.",
+     "kind": "Text",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-060",
+     "english": "No encounters recorded yet.",
+     "kind": "Text",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-061",
+     "english": "Update:",
+     "kind": "Text",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-062",
+     "english": "Voter Profile",
+     "kind": "Text",
+     "where": "Profile"
+    },
+    {
+     "key": "VOTER-063",
+     "english": "View voter photos",
+     "kind": "Text",
+     "where": "Profile, PermissionCatalog"
+    },
+    {
+     "key": "VOTER-064",
+     "english": "Add or remove voter photos",
+     "kind": "Text",
+     "where": "Profile, PermissionCatalog"
+    },
+    {
+     "key": "VOTER-065",
+     "english": "No remarks added.",
+     "kind": "Text",
+     "where": "Profile"
+    }
+   ]
+  },
+  {
+   "group": "VoterImport",
+   "prefix": "UPLOAD",
+   "title": "Voter list and membership uploads",
+   "items": [
+    {
+     "key": "UPLOAD-001",
+     "english": "Upload voter list",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "UPLOAD-002",
+     "english": "Upload Voter List",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-003",
+     "english": "Add new voters and update existing ones from the voter list spreadsheet.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-004",
+     "english": "The upload of",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-005",
+     "english": "stopped early. See the details below.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-006",
+     "english": "was processed: {…} rows read.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-007",
+     "english": "New voters added",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-008",
+     "english": "Voters updated",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-009",
+     "english": "Already up to date",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-010",
+     "english": "Rows not imported",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-011",
+     "english": "created from codes in the file. Check their names under Settings → Constituencies & islands.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-012",
+     "english": "Rows that need attention",
+     "kind": "Text",
+     "where": "Index, Membership"
+    },
+    {
+     "key": "UPLOAD-013",
+     "english": "Showing the first {…} of {…}.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-014",
+     "english": "Fix these rows and upload the file again; rows already imported are not duplicated.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-015",
+     "english": "phone numbers, remarks and support status are never changed. Every upload is recorded in the Audit Trail.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-016",
+     "english": "Voter list file",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-017",
+     "english": "Excel file (.xlsx or .xls), up to 20 MB. Only the first sheet is read.",
+     "kind": "Text",
+     "where": "Index, Membership"
+    },
+    {
+     "key": "UPLOAD-018",
+     "english": "Columns the file must have",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-019",
+     "english": "The first row is a header and is skipped. Each row after it needs these 9 columns, in this order:",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-020",
+     "english": "(required)",
+     "kind": "Text",
+     "where": "Index, Membership"
+    },
+    {
+     "key": "UPLOAD-021",
+     "english": "(M or F)",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-022",
+     "english": "Ward",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-023",
+     "english": "Registered island",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-024",
+     "english": "Constituency code",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-025",
+     "english": "Constituency name",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-026",
+     "english": "Upload and import",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "UPLOAD-027",
+     "english": "Back to voters",
+     "kind": "Text",
+     "where": "Index, Membership"
+    },
+    {
+     "key": "UPLOAD-028",
+     "english": "Upload membership list",
+     "kind": "Text",
+     "where": "Membership, Index"
+    },
+    {
+     "key": "UPLOAD-029",
+     "english": "Upload Membership List",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-030",
+     "english": "Mark voters as members of a party, and fill in missing date of birth, mobile and gender from the list.",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-031",
+     "english": "was applied: {…} of {…} members found in the voter list and recorded as {…}",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-032",
+     "english": "Newly recorded as members",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-033",
+     "english": "Already members",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-034",
+     "english": "Details filled in",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-035",
+     "english": "Not matched",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-036",
+     "english": "See below",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-037",
+     "english": "(first {…} shown)",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-038",
+     "english": "Members are matched to voters by National ID and recorded with the party you choose.",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-039",
+     "english": "Date of birth, mobile number and gender are only filled in where the voter has none; existing",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-040",
+     "english": "values are never changed. Voters not in the list keep their party. The upload is recorded in the Audit Trail.",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-041",
+     "english": "Party the list belongs to",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-042",
+     "english": "Choose a party",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-043",
+     "english": "Membership list file",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-044",
+     "english": "Columns the file needs",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-045",
+     "english": "The first row holds the column headings; the order of the columns doesn't matter.",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-046",
+     "english": "NID",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-047",
+     "english": "— National ID",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-048",
+     "english": "GENDER",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-049",
+     "english": "— Male / Female or M / F",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-050",
+     "english": "DOB",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-051",
+     "english": "— date of birth",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-052",
+     "english": "— 7-digit mobile number",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-053",
+     "english": "Other columns (name, address, island…) are ignored.",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-054",
+     "english": "Upload and apply",
+     "kind": "Text",
+     "where": "Membership"
+    },
+    {
+     "key": "UPLOAD-055",
+     "english": "Membership",
+     "kind": "Text",
+     "where": "Membership, Index"
+    }
+   ]
+  },
+  {
+   "group": "Encounters",
+   "prefix": "ENC",
+   "title": "Encounters",
+   "items": [
+    {
+     "key": "ENC-001",
+     "english": "Breadcrumb",
+     "kind": "Screen-reader label",
+     "where": "Create, Create"
+    },
+    {
+     "key": "ENC-002",
+     "english": "Enter concise, factual notes only.",
+     "kind": "Box hint",
+     "where": "Create"
+    },
+    {
+     "key": "ENC-003",
+     "english": "Voter profile",
+     "kind": "Text",
+     "where": "Create, EditRelationship"
+    },
+    {
+     "key": "ENC-004",
+     "english": "Date and time",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "ENC-005",
+     "english": "Encounter type",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "ENC-006",
+     "english": "Select Encounter Type",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "ENC-007",
+     "english": "Door Visit",
+     "kind": "Text",
+     "where": "Create, EncounterListItemDto"
+    },
+    {
+     "key": "ENC-008",
+     "english": "Phone Call",
+     "kind": "Text",
+     "where": "Create, EncounterListItemDto"
+    },
+    {
+     "key": "ENC-009",
+     "english": "Meeting",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "ENC-010",
+     "english": "Campaign Event",
+     "kind": "Text",
+     "where": "Create, EncounterListItemDto"
+    },
+    {
+     "key": "ENC-011",
+     "english": "Office Visit",
+     "kind": "Text",
+     "where": "Create, EncounterListItemDto"
+    },
+    {
+     "key": "ENC-012",
+     "english": "Other",
+     "kind": "Text",
+     "where": "Create, Link"
+    },
+    {
+     "key": "ENC-013",
+     "english": "Outcome",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "ENC-014",
+     "english": "Select Outcome",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "ENC-015",
+     "english": "Response",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "ENC-016",
+     "english": "(optional)",
+     "kind": "Text",
+     "where": "Create, Create"
+    },
+    {
+     "key": "ENC-017",
+     "english": "Select Response",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "ENC-018",
+     "english": "Notes",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "ENC-019",
+     "english": "Cancel",
+     "kind": "Text",
+     "where": "Create, Create"
+    },
+    {
+     "key": "ENC-020",
+     "english": "Edit Encounter",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "ENC-021",
+     "english": "Add Encounter",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "ENC-022",
+     "english": "Add encounter only",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "ENC-023",
+     "english": "Edit encounter",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "ENC-024",
+     "english": "Add encounter",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "ENC-025",
+     "english": "Correct this encounter. The change is recorded in the Audit Trail.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "ENC-026",
+     "english": "Record a concise, factual interaction with this voter.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "ENC-027",
+     "english": "Save changes",
+     "kind": "Text",
+     "where": "Create, Create"
+    },
+    {
+     "key": "ENC-028",
+     "english": "Save encounter",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "ENC-029",
+     "english": "Search by voter name, National ID or notes",
+     "kind": "Box hint",
+     "where": "Index"
+    },
+    {
+     "key": "ENC-030",
+     "english": "Filter by outcome",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "ENC-031",
+     "english": "Filter by response",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "ENC-032",
+     "english": "Encounter pagination",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "ENC-033",
+     "english": "Dictionary",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "ENC-034",
+     "english": "Search encounters",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "ENC-035",
+     "english": "All types",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "ENC-036",
+     "english": "Rows per page",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "ENC-037",
+     "english": "All outcomes",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "ENC-038",
+     "english": "All responses",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "ENC-039",
+     "english": "Clear all",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "ENC-040",
+     "english": "Date",
+     "kind": "Text",
+     "where": "Index, Profile"
+    },
+    {
+     "key": "ENC-041",
+     "english": "Island",
+     "kind": "Text",
+     "where": "Index, Create"
+    },
+    {
+     "key": "ENC-042",
+     "english": "Type",
+     "kind": "Text",
+     "where": "Index, Profile"
+    },
+    {
+     "key": "ENC-043",
+     "english": "Recorded by",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "ENC-044",
+     "english": "Actions",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "ENC-045",
+     "english": "No island",
+     "kind": "Text",
+     "where": "Index, Voters"
+    },
+    {
+     "key": "ENC-046",
+     "english": "Edit",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "ENC-047",
+     "english": "View",
+     "kind": "Text",
+     "where": "Index, Voters"
+    },
+    {
+     "key": "ENC-048",
+     "english": "No encounters match your search and filters.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "ENC-049",
+     "english": "No encounters recorded yet. Add one from a voter's profile.",
+     "kind": "Text",
+     "where": "Index"
+    }
+   ]
+  },
+  {
+   "group": "Pledges",
+   "prefix": "PLEDGE",
+   "title": "Pledges",
+   "items": [
+    {
+     "key": "PLEDGE-001",
+     "english": "Example: House rent assistance",
+     "kind": "Box hint",
+     "where": "Create"
+    },
+    {
+     "key": "PLEDGE-002",
+     "english": "Describe the commitment clearly and factually.",
+     "kind": "Box hint",
+     "where": "Create"
+    },
+    {
+     "key": "PLEDGE-003",
+     "english": "Add pledge",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "PLEDGE-004",
+     "english": "Record a candidate or campaign commitment made to this voter.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "PLEDGE-005",
+     "english": "Record pledges clearly and factually. They are tracked against the voter and appear in pledge reports.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "PLEDGE-006",
+     "english": "Pledge title",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "PLEDGE-007",
+     "english": "Description",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "PLEDGE-008",
+     "english": "Pledge date",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "PLEDGE-009",
+     "english": "Due date",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "PLEDGE-010",
+     "english": "Save pledge",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "PLEDGE-011",
+     "english": "Search by pledge, voter name or National ID",
+     "kind": "Box hint",
+     "where": "Index"
+    },
+    {
+     "key": "PLEDGE-012",
+     "english": "Filter by status",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "PLEDGE-013",
+     "english": "Not completed or cancelled, and past the due date",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "PLEDGE-014",
+     "english": "Pledge pagination",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "PLEDGE-015",
+     "english": "Pledge summary",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "PLEDGE-016",
+     "english": "Search pledges",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "PLEDGE-017",
+     "english": "All",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "PLEDGE-018",
+     "english": "Overdue",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "PLEDGE-019",
+     "english": "Pledge",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "PLEDGE-020",
+     "english": "Due",
+     "kind": "Text",
+     "where": "Index, Update"
+    },
+    {
+     "key": "PLEDGE-021",
+     "english": "Pledged {…}",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "PLEDGE-022",
+     "english": "· done {…}",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "PLEDGE-023",
+     "english": "Update",
+     "kind": "Text",
+     "where": "Index, Update"
+    },
+    {
+     "key": "PLEDGE-024",
+     "english": "Edit pledges",
+     "kind": "Text",
+     "where": "Index, PermissionCatalog"
+    },
+    {
+     "key": "PLEDGE-025",
+     "english": "No pledges match your search and filters.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "PLEDGE-026",
+     "english": "No pledges recorded yet. Add one from a voter's profile.",
+     "kind": "Text",
+     "where": "Index, Pledges"
+    },
+    {
+     "key": "PLEDGE-027",
+     "english": "What was done, or why it was cancelled. Keep it short and factual.",
+     "kind": "Box hint",
+     "where": "Update"
+    },
+    {
+     "key": "PLEDGE-028",
+     "english": "Update pledge",
+     "kind": "Text",
+     "where": "Update"
+    },
+    {
+     "key": "PLEDGE-029",
+     "english": "Update Pledge",
+     "kind": "Text",
+     "where": "Update"
+    },
+    {
+     "key": "PLEDGE-030",
+     "english": "Record progress on this commitment. Every change is kept in the audit trail.",
+     "kind": "Text",
+     "where": "Update"
+    },
+    {
+     "key": "PLEDGE-031",
+     "english": "Pledged on",
+     "kind": "Text",
+     "where": "Update"
+    },
+    {
+     "key": "PLEDGE-032",
+     "english": "Completed on",
+     "kind": "Text",
+     "where": "Update"
+    },
+    {
+     "key": "PLEDGE-033",
+     "english": "Resolution notes",
+     "kind": "Text",
+     "where": "Update, UpdatePledgeViewModel"
+    },
+    {
+     "key": "PLEDGE-034",
+     "english": "Save update",
+     "kind": "Text",
+     "where": "Update"
+    }
+   ]
+  },
+  {
+   "group": "Influencers",
+   "prefix": "INFL",
+   "title": "Influencers",
+   "items": [
+    {
+     "key": "INFL-001",
+     "english": "Search constituency",
+     "kind": "Message",
+     "where": "Create, AssignScope"
+    },
+    {
+     "key": "INFL-002",
+     "english": "Search island",
+     "kind": "Message",
+     "where": "Create, Create"
+    },
+    {
+     "key": "INFL-003",
+     "english": "Loading islands…",
+     "kind": "Message",
+     "where": "Create, Index"
+    },
+    {
+     "key": "INFL-004",
+     "english": "7 digits, e.g. 7771234",
+     "kind": "Tooltip",
+     "where": "Create, Create"
+    },
+    {
+     "key": "INFL-005",
+     "english": "7XXXXXX",
+     "kind": "Box hint",
+     "where": "Create, Create"
+    },
+    {
+     "key": "INFL-006",
+     "english": "As shown on the national ID card",
+     "kind": "Box hint",
+     "where": "Create, Create"
+    },
+    {
+     "key": "INFL-007",
+     "english": "House name and street",
+     "kind": "Box hint",
+     "where": "Create, Create"
+    },
+    {
+     "key": "INFL-008",
+     "english": "Example: Community elder, organises the island youth league",
+     "kind": "Box hint",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-009",
+     "english": "You don't have an assigned area yet, so you can't add influencers.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-010",
+     "english": "Ask an administrator to assign your scope.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-011",
+     "english": "Identity",
+     "kind": "Text",
+     "where": "Create, Create"
+    },
+    {
+     "key": "INFL-012",
+     "english": "Who the influencer is and how to reach them",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-013",
+     "english": "National ID",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "INFL-014",
+     "english": "Contact number",
+     "kind": "Text",
+     "where": "Create, CreateInfluencerViewModel"
+    },
+    {
+     "key": "INFL-015",
+     "english": "Full name",
+     "kind": "Text",
+     "where": "Create, Create"
+    },
+    {
+     "key": "INFL-016",
+     "english": "Category",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "INFL-017",
+     "english": "No category",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "INFL-018",
+     "english": "For example MP, Island Council or GM Member.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-019",
+     "english": "Area",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-020",
+     "english": "Only areas within your assigned scope are listed",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-021",
+     "english": "Constituency",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "INFL-022",
+     "english": "Select Constituency",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "INFL-023",
+     "english": "Whole constituency",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "INFL-024",
+     "english": "Select a constituency to load its islands.",
+     "kind": "Text",
+     "where": "Create, Create"
+    },
+    {
+     "key": "INFL-025",
+     "english": "Address",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "INFL-026",
+     "english": "Keep notes short and factual",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-027",
+     "english": "Remarks",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "INFL-028",
+     "english": "Edit Influencer",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-029",
+     "english": "Add influencer",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-030",
+     "english": "Update this influencer's details. Every change is recorded in the audit trail.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-031",
+     "english": "Record a community leader or trusted contact in your area.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-032",
+     "english": "Save influencer",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "INFL-033",
+     "english": "Edit relationship",
+     "kind": "Text",
+     "where": "EditRelationship"
+    },
+    {
+     "key": "INFL-034",
+     "english": "Edit Relationship",
+     "kind": "Text",
+     "where": "EditRelationship"
+    },
+    {
+     "key": "INFL-035",
+     "english": "Change how this influencer is related to the voter.",
+     "kind": "Text",
+     "where": "EditRelationship"
+    },
+    {
+     "key": "INFL-036",
+     "english": "Relationship type",
+     "kind": "Text",
+     "where": "EditRelationship"
+    },
+    {
+     "key": "INFL-037",
+     "english": "Spouse",
+     "kind": "Text",
+     "where": "EditRelationship, Link"
+    },
+    {
+     "key": "INFL-038",
+     "english": "Parent",
+     "kind": "Text",
+     "where": "EditRelationship, Link"
+    },
+    {
+     "key": "INFL-039",
+     "english": "Child",
+     "kind": "Text",
+     "where": "EditRelationship, Link"
+    },
+    {
+     "key": "INFL-040",
+     "english": "Sibling",
+     "kind": "Text",
+     "where": "EditRelationship, Link"
+    },
+    {
+     "key": "INFL-041",
+     "english": "Relative",
+     "kind": "Text",
+     "where": "EditRelationship, Link"
+    },
+    {
+     "key": "INFL-042",
+     "english": "Friend",
+     "kind": "Text",
+     "where": "EditRelationship, Link"
+    },
+    {
+     "key": "INFL-043",
+     "english": "Colleague",
+     "kind": "Text",
+     "where": "EditRelationship, Link"
+    },
+    {
+     "key": "INFL-044",
+     "english": "Community Leader",
+     "kind": "Text",
+     "where": "EditRelationship, Link"
+    },
+    {
+     "key": "INFL-045",
+     "english": "Permanently delete",
+     "kind": "Message",
+     "where": "Index, Index"
+    },
+    {
+     "key": "INFL-046",
+     "english": "This also removes their link to",
+     "kind": "Message",
+     "where": "Index"
+    },
+    {
+     "key": "INFL-047",
+     "english": "Choose a constituency first",
+     "kind": "Message",
+     "where": "Index, Index"
+    },
+    {
+     "key": "INFL-048",
+     "english": "All islands",
+     "kind": "Message",
+     "where": "Index, AssignScope"
+    },
+    {
+     "key": "INFL-049",
+     "english": "Search by name, National ID, phone or island",
+     "kind": "Box hint",
+     "where": "Index, Voters"
+    },
+    {
+     "key": "INFL-050",
+     "english": "Show all {…} influencers",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "INFL-051",
+     "english": "See the voters linked to {…}",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "INFL-052",
+     "english": "Edit {…}",
+     "kind": "Screen-reader label",
+     "where": "Index, Index"
+    },
+    {
+     "key": "INFL-053",
+     "english": "Delete {…}",
+     "kind": "Screen-reader label",
+     "where": "Index, Index"
+    },
+    {
+     "key": "INFL-054",
+     "english": "Delete",
+     "kind": "Tooltip",
+     "where": "Index, Index"
+    },
+    {
+     "key": "INFL-055",
+     "english": "Influencer pagination",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "INFL-056",
+     "english": "Search influencers",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "INFL-057",
+     "english": "All categories",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "INFL-058",
+     "english": "Apply filters",
+     "kind": "Text",
+     "where": "Index, Voters"
+    },
+    {
+     "key": "INFL-059",
+     "english": "Add the first influencer",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "INFL-060",
+     "english": "Influencer",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "INFL-061",
+     "english": "Phone",
+     "kind": "Text",
+     "where": "Index, Voters"
+    },
+    {
+     "key": "INFL-062",
+     "english": "Linked voters",
+     "kind": "Text",
+     "where": "Index, Voters"
+    },
+    {
+     "key": "INFL-063",
+     "english": "No influencers match your search and filters.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "INFL-064",
+     "english": "No influencers recorded yet.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "INFL-065",
+     "english": "Unnamed influencer",
+     "kind": "Text",
+     "where": "Index, Voters"
+    },
+    {
+     "key": "INFL-066",
+     "english": "Search by influencer name or National ID",
+     "kind": "Message",
+     "where": "Link"
+    },
+    {
+     "key": "INFL-067",
+     "english": "Link influencer",
+     "kind": "Text",
+     "where": "Link, Index"
+    },
+    {
+     "key": "INFL-068",
+     "english": "Link Influencer",
+     "kind": "Text",
+     "where": "Link"
+    },
+    {
+     "key": "INFL-069",
+     "english": "Select an existing influencer and record their relationship to this voter.",
+     "kind": "Text",
+     "where": "Link"
+    },
+    {
+     "key": "INFL-070",
+     "english": "Choose influencer",
+     "kind": "Text",
+     "where": "Link"
+    },
+    {
+     "key": "INFL-071",
+     "english": "Select Influencer",
+     "kind": "Text",
+     "where": "Link"
+    },
+    {
+     "key": "INFL-072",
+     "english": "Type a name or National ID to search.",
+     "kind": "Text",
+     "where": "Link"
+    },
+    {
+     "key": "INFL-073",
+     "english": "Relationship to voter",
+     "kind": "Text",
+     "where": "Link, Index"
+    },
+    {
+     "key": "INFL-074",
+     "english": "Select Relationship",
+     "kind": "Text",
+     "where": "Link"
+    },
+    {
+     "key": "INFL-075",
+     "english": "Link",
+     "kind": "Text",
+     "where": "Link, RightsGrid"
+    },
+    {
+     "key": "INFL-076",
+     "english": "Linked voter pagination",
+     "kind": "Screen-reader label",
+     "where": "Voters"
+    },
+    {
+     "key": "INFL-077",
+     "english": "In your areas",
+     "kind": "Text",
+     "where": "Voters"
+    },
+    {
+     "key": "INFL-078",
+     "english": "Outside your areas",
+     "kind": "Text",
+     "where": "Voters"
+    },
+    {
+     "key": "INFL-079",
+     "english": "Counted, not shown",
+     "kind": "Text",
+     "where": "Voters"
+    },
+    {
+     "key": "INFL-080",
+     "english": "Search linked voters",
+     "kind": "Text",
+     "where": "Voters"
+    },
+    {
+     "key": "INFL-081",
+     "english": "Status",
+     "kind": "Text",
+     "where": "Voters, Index"
+    },
+    {
+     "key": "INFL-082",
+     "english": "All statuses",
+     "kind": "Text",
+     "where": "Voters, Index"
+    },
+    {
+     "key": "INFL-083",
+     "english": "Relationship",
+     "kind": "Text",
+     "where": "Voters, Profile"
+    },
+    {
+     "key": "INFL-084",
+     "english": "All relationships",
+     "kind": "Text",
+     "where": "Voters"
+    },
+    {
+     "key": "INFL-085",
+     "english": "No linked voters match your search and filters.",
+     "kind": "Text",
+     "where": "Voters"
+    },
+    {
+     "key": "INFL-086",
+     "english": "This influencer's linked voters are all outside your areas.",
+     "kind": "Text",
+     "where": "Voters"
+    },
+    {
+     "key": "INFL-087",
+     "english": "No voters are linked to this influencer yet. Link one from a voter's profile.",
+     "kind": "Text",
+     "where": "Voters"
+    },
+    {
+     "key": "INFL-088",
+     "english": "linked {…}",
+     "kind": "Text",
+     "where": "Voters"
+    },
+    {
+     "key": "INFL-089",
+     "english": "Linked",
+     "kind": "Text",
+     "where": "Voters"
+    },
+    {
+     "key": "INFL-090",
+     "english": "Voters linked to {…}",
+     "kind": "Text",
+     "where": "Voters"
+    }
+   ]
+  },
+  {
+   "group": "Reports",
+   "prefix": "REPORT",
+   "title": "Reports",
+   "items": [
+    {
+     "key": "REPORT-001",
+     "english": "Filter by name or code, e.g. F03",
+     "kind": "Box hint",
+     "where": "ConstituencySummary"
+    },
+    {
+     "key": "REPORT-002",
+     "english": "Constituency Summary",
+     "kind": "Text",
+     "where": "ConstituencySummary, ReportsController"
+    },
+    {
+     "key": "REPORT-003",
+     "english": "Voter support and engagement across {…} {…}.",
+     "kind": "Text",
+     "where": "ConstituencySummary"
+    },
+    {
+     "key": "REPORT-004",
+     "english": "Total voters",
+     "kind": "Text",
+     "where": "ConstituencySummary, ReportsController"
+    },
+    {
+     "key": "REPORT-005",
+     "english": "Overall support",
+     "kind": "Text",
+     "where": "ConstituencySummary, Index"
+    },
+    {
+     "key": "REPORT-006",
+     "english": "Filter constituencies",
+     "kind": "Text",
+     "where": "ConstituencySummary, Index"
+    },
+    {
+     "key": "REPORT-007",
+     "english": "No constituency data available.",
+     "kind": "Text",
+     "where": "ConstituencySummary"
+    },
+    {
+     "key": "REPORT-008",
+     "english": "Support",
+     "kind": "Text",
+     "where": "ConstituencySummary"
+    },
+    {
+     "key": "REPORT-009",
+     "english": "No constituencies match your filter.",
+     "kind": "Text",
+     "where": "ConstituencySummary"
+    },
+    {
+     "key": "REPORT-010",
+     "english": "Download CSV",
+     "kind": "Tooltip",
+     "where": "Index, ReportActions"
+    },
+    {
+     "key": "REPORT-011",
+     "english": "Download constituency summary as CSV",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "REPORT-012",
+     "english": "Download pledge summary as CSV",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "REPORT-013",
+     "english": "Download top influencers as CSV",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "REPORT-014",
+     "english": "Support, engagement and commitments at a glance.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "REPORT-015",
+     "english": "Recorded interactions",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "REPORT-016",
+     "english": "Pledges completed",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "REPORT-017",
+     "english": "Constituency support",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "REPORT-018",
+     "english": "Full report →",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "REPORT-019",
+     "english": "No voters recorded in your area yet.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "REPORT-020",
+     "english": "Highest share of supporters",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "REPORT-021",
+     "english": "Pledge pipeline",
+     "kind": "Text",
+     "where": "Index, Pledges"
+    },
+    {
+     "key": "REPORT-022",
+     "english": "No pledges recorded yet.",
+     "kind": "Text",
+     "where": "Index, Profile"
+    },
+    {
+     "key": "REPORT-023",
+     "english": "Top influencers",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "REPORT-024",
+     "english": "No influencers are linked to voters yet.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "REPORT-025",
+     "english": "Download",
+     "kind": "Text",
+     "where": "Index, ReportActions"
+    },
+    {
+     "key": "REPORT-026",
+     "english": "Open",
+     "kind": "Text",
+     "where": "Index, Pledges"
+    },
+    {
+     "key": "REPORT-027",
+     "english": "In progress",
+     "kind": "Text",
+     "where": "Index, Pledges"
+    },
+    {
+     "key": "REPORT-028",
+     "english": "Completed",
+     "kind": "Text",
+     "where": "Index, Pledges"
+    },
+    {
+     "key": "REPORT-029",
+     "english": "Pledge Summary",
+     "kind": "Text",
+     "where": "Pledges, ReportsController"
+    },
+    {
+     "key": "REPORT-030",
+     "english": "Track campaign commitments from first promise to delivery.",
+     "kind": "Text",
+     "where": "Pledges"
+    },
+    {
+     "key": "REPORT-031",
+     "english": "Total",
+     "kind": "Text",
+     "where": "Pledges"
+    },
+    {
+     "key": "REPORT-032",
+     "english": "Still active",
+     "kind": "Text",
+     "where": "Pledges"
+    },
+    {
+     "key": "REPORT-033",
+     "english": "Completion",
+     "kind": "Text",
+     "where": "Pledges"
+    },
+    {
+     "key": "REPORT-034",
+     "english": "How all recorded pledges are distributed across statuses",
+     "kind": "Text",
+     "where": "Pledges"
+    },
+    {
+     "key": "REPORT-035",
+     "english": "Awaiting action",
+     "kind": "Text",
+     "where": "Pledges"
+    },
+    {
+     "key": "REPORT-036",
+     "english": "Being worked on",
+     "kind": "Text",
+     "where": "Pledges"
+    },
+    {
+     "key": "REPORT-037",
+     "english": "Delivered to voter",
+     "kind": "Text",
+     "where": "Pledges"
+    },
+    {
+     "key": "REPORT-038",
+     "english": "No longer pursued",
+     "kind": "Text",
+     "where": "Pledges"
+    },
+    {
+     "key": "REPORT-039",
+     "english": "Top Influencers",
+     "kind": "Text",
+     "where": "TopInfluencers, ReportsController"
+    },
+    {
+     "key": "REPORT-040",
+     "english": "Influencers ranked by the number of voters linked to them.",
+     "kind": "Text",
+     "where": "TopInfluencers"
+    },
+    {
+     "key": "REPORT-041",
+     "english": "No influencers have linked voters yet.",
+     "kind": "Text",
+     "where": "TopInfluencers"
+    },
+    {
+     "key": "REPORT-042",
+     "english": "Name",
+     "kind": "Text",
+     "where": "TopInfluencers, Index"
+    }
+   ]
+  },
+  {
+   "group": "Audit",
+   "prefix": "AUDIT",
+   "title": "Audit trail",
+   "items": [
+    {
+     "key": "AUDIT-001",
+     "english": "From",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-002",
+     "english": "To",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-003",
+     "english": "Audit trail pagination",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-004",
+     "english": "page,",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-005",
+     "english": "Audit Trail",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "AUDIT-006",
+     "english": "All users",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-007",
+     "english": "Your actions only",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-008",
+     "english": "Search",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "AUDIT-009",
+     "english": "Record type",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-010",
+     "english": "All record types",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-011",
+     "english": "Action",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-012",
+     "english": "All actions",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-013",
+     "english": "From date",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-014",
+     "english": "To date",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-015",
+     "english": "Filter",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-016",
+     "english": "Clear",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "AUDIT-017",
+     "english": "Showing",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "AUDIT-018",
+     "english": "to",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "AUDIT-019",
+     "english": "of",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "AUDIT-020",
+     "english": "When",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-021",
+     "english": "User",
+     "kind": "Text",
+     "where": "Index, Menu, header and footer (every page)"
+    },
+    {
+     "key": "AUDIT-022",
+     "english": "Record",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-023",
+     "english": "Record no longer available",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-024",
+     "english": "‹ Previous",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "AUDIT-025",
+     "english": "Next ›",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "AUDIT-026",
+     "english": "private static Dictionary",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-027",
+     "english": "Every create, update and delete across the platform, with who did it and when.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-028",
+     "english": "A record of the changes you have made.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-029",
+     "english": "Search action or record type",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-030",
+     "english": "No entries match these filters.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-031",
+     "english": "No activity has been recorded yet.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-032",
+     "english": "You haven't made any recorded changes yet.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "AUDIT-033",
+     "english": "Voter",
+     "kind": "Text",
+     "where": "Index, Index"
+    }
+   ]
+  },
+  {
+   "group": "Users",
+   "prefix": "USER",
+   "title": "Users",
+   "items": [
+    {
+     "key": "USER-001",
+     "english": "Manages users, roles, areas and settings. Sees everything.",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-002",
+     "english": "Sees and works with every record in every constituency.",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-003",
+     "english": "Works with records in the constituencies assigned to this user.",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-004",
+     "english": "Works with records on the islands assigned to this user.",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-005",
+     "english": "Adds and updates voters, encounters and pledges in their areas.",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-006",
+     "english": "Views reports for their areas. Cannot change records on its own.",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-007",
+     "english": "Roles for {…}",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-008",
+     "english": "Tick every role this person needs. They get the combined permissions of all ticked roles.",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-009",
+     "english": "What this person can do",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-010",
+     "english": "Comes from the ticked roles and changes as you tick them; only inside this person's areas.",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-011",
+     "english": "To change what a role allows, use",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-012",
+     "english": "Settings → Roles & rights",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-013",
+     "english": "has every right.",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-014",
+     "english": "This person also has rights given to them directly under the older setting:",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-015",
+     "english": "Roles decide",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-016",
+     "english": "someone can do. Their areas decide",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-017",
+     "english": "Save roles",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-018",
+     "english": "National Administrator",
+     "kind": "Text",
+     "where": "AssignRole, Hr28Roles"
+    },
+    {
+     "key": "USER-019",
+     "english": "Constituency Administrator",
+     "kind": "Text",
+     "where": "AssignRole, Hr28Roles"
+    },
+    {
+     "key": "USER-020",
+     "english": "Island Administrator",
+     "kind": "Text",
+     "where": "AssignRole, Hr28Roles"
+    },
+    {
+     "key": "USER-021",
+     "english": "Collector",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-022",
+     "english": "Reporter",
+     "kind": "Text",
+     "where": "AssignRole"
+    },
+    {
+     "key": "USER-023",
+     "english": "All islands in the constituency",
+     "kind": "Message",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-024",
+     "english": "Remove {…}",
+     "kind": "Screen-reader label",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-025",
+     "english": "Areas",
+     "kind": "Text",
+     "where": "AssignScope, Index"
+    },
+    {
+     "key": "USER-026",
+     "english": "Areas for {…}",
+     "kind": "Text",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-027",
+     "english": "This person sees records in any of these areas. Add as many as they need.",
+     "kind": "Text",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-028",
+     "english": "This person has an administrator role, so they can open records in every area. Voter searches and the Voters list stay inside the areas below; with no areas, they search the whole registry.",
+     "kind": "Text",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-029",
+     "english": "Current areas",
+     "kind": "Text",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-030",
+     "english": "No areas yet. Until you add one, this person won't see any voters or influencers.",
+     "kind": "Text",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-031",
+     "english": "Remove",
+     "kind": "Text",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-032",
+     "english": "Add an area",
+     "kind": "Text",
+     "where": "AssignScope, CreateSuccess"
+    },
+    {
+     "key": "USER-033",
+     "english": "Leave as \"All islands\" to give access to the whole constituency.",
+     "kind": "Text",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-034",
+     "english": "Add area",
+     "kind": "Text",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-035",
+     "english": "Done",
+     "kind": "Text",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-036",
+     "english": "Whole constituency, all islands",
+     "kind": "Text",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-037",
+     "english": "Island in {…}",
+     "kind": "Text",
+     "where": "AssignScope"
+    },
+    {
+     "key": "USER-038",
+     "english": "Example: Constituency Coordinator",
+     "kind": "Box hint",
+     "where": "Create"
+    },
+    {
+     "key": "USER-039",
+     "english": "Enter the user's full name",
+     "kind": "Box hint",
+     "where": "Create"
+    },
+    {
+     "key": "USER-040",
+     "english": "name{…}",
+     "kind": "Box hint",
+     "where": "Create"
+    },
+    {
+     "key": "USER-041",
+     "english": "House name, street and island",
+     "kind": "Box hint",
+     "where": "Create"
+    },
+    {
+     "key": "USER-042",
+     "english": "Add relevant administrative notes",
+     "kind": "Box hint",
+     "where": "Create"
+    },
+    {
+     "key": "USER-043",
+     "english": "Sign {…} out everywhere now? They will need to sign in again.",
+     "kind": "Question",
+     "where": "Create"
+    },
+    {
+     "key": "USER-044",
+     "english": "Forget all remembered devices of {…}? They will need their authorization code again on every device.",
+     "kind": "Question",
+     "where": "Create"
+    },
+    {
+     "key": "USER-045",
+     "english": "Official identification and the user's full name",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-046",
+     "english": "Designation",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-047",
+     "english": "Contact information",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-048",
+     "english": "Contact details used for account communication",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-049",
+     "english": "Mobile number",
+     "kind": "Text",
+     "where": "Create, Create"
+    },
+    {
+     "key": "USER-050",
+     "english": "Internal notes and the next access-control steps",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-051",
+     "english": "Account is active",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-052",
+     "english": "Untick to stop this person signing in. They are signed out on their next click; records they made are kept. Ticking it needs at least one role; the first time, a welcome SMS with their authorization code is sent.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-053",
+     "english": "Changing the mobile number",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-054",
+     "english": "Sign-in codes go to this number, so a change is recorded in the audit trail and an SMS warning",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-055",
+     "english": "is sent to the old number. Roles and areas are changed from the Users list.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-056",
+     "english": "The account starts inactive",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-057",
+     "english": "After creating it, give a role and an area, then activate it. A welcome SMS with the",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-058",
+     "english": "person's authorization code is sent to this mobile number; nobody else sees the code.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-059",
+     "english": "Sign-in",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-060",
+     "english": "Last signed in:",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-061",
+     "english": "End their sessions if a phone or computer is lost, shared or left signed in. They are signed",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-062",
+     "english": "out everywhere on their next click and need their code and the SMS code to sign in again.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-063",
+     "english": "This is your own account. To end your session, use Sign out.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-064",
+     "english": "End all sessions",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-065",
+     "english": "Remembered devices",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-066",
+     "english": "so they only need the SMS code there. Forget them if a phone or computer is lost, shared or replaced.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-067",
+     "english": "Resetting their authorization code also forgets them.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-068",
+     "english": "Forget remembered devices",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-069",
+     "english": "No remembered devices. This person enters their authorization code every time.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-070",
+     "english": "Edit User",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-071",
+     "english": "Create User",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-072",
+     "english": "Edit user",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-073",
+     "english": "Create user",
+     "kind": "Text",
+     "where": "Create, Index"
+    },
+    {
+     "key": "USER-074",
+     "english": "Change this person's details. Every change is recorded in the audit trail.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-075",
+     "english": "Create a secure platform account before assigning its role and geographic access scope.",
+     "kind": "Text",
+     "where": "Create"
+    },
+    {
+     "key": "USER-076",
+     "english": "Copy code",
+     "kind": "Message",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-077",
+     "english": "User created",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-078",
+     "english": "Give a role.",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-079",
+     "english": "At least one role is needed before the account can be activated.",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-080",
+     "english": "(constituency or island), so they can see voters.",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-081",
+     "english": "Activate the account.",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-082",
+     "english": "A welcome SMS with their authorization code is sent to {…}?.User.MobileNumber. Nobody else sees the code.",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-083",
+     "english": "Give a role",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-084",
+     "english": "Back to Users",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-085",
+     "english": "New code issued",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-086",
+     "english": "Give them this new code in person or by phone.",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-087",
+     "english": "Account activated",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-088",
+     "english": "The welcome SMS could not be sent, so here is {…} authorization code.",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-089",
+     "english": "Give it to them in person or by phone.",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-090",
+     "english": "This code is shown only once",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-091",
+     "english": "It is stored in a form nobody can read back, including administrators.",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-092",
+     "english": "If it is lost, use \"Reset code\" on the Users page to issue a new one.",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-093",
+     "english": "Users can type it with or without the dash, in capitals or lower case.",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-094",
+     "english": "New Authorization Code",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-095",
+     "english": "Authorization Code",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-096",
+     "english": "User Created",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-097",
+     "english": "The user's",
+     "kind": "Text",
+     "where": "CreateSuccess"
+    },
+    {
+     "key": "USER-098",
+     "english": "Reset code",
+     "kind": "Text",
+     "where": "CreateSuccess, Index"
+    },
+    {
+     "key": "USER-099",
+     "english": "Issue a new authorization code for",
+     "kind": "Message",
+     "where": "Index"
+    },
+    {
+     "key": "USER-100",
+     "english": "Search by name, ID card, phone, role or area",
+     "kind": "Box hint",
+     "where": "Index"
+    },
+    {
+     "key": "USER-101",
+     "english": "Change whether {…} can sign in",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "USER-102",
+     "english": "Edit {…}'s details",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "USER-103",
+     "english": "Issue a new authorization code",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "USER-104",
+     "english": "Users pagination",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "USER-105",
+     "english": "Manage platform accounts, roles and access scopes.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-106",
+     "english": "Total users",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-107",
+     "english": "Active",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-108",
+     "english": "Inactive",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-109",
+     "english": "No role assigned",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-110",
+     "english": "Search users",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-111",
+     "english": "Users per page",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-112",
+     "english": "No users match your search",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-113",
+     "english": "Check the spelling, or clear the search to see everyone.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-114",
+     "english": "Clear search",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-115",
+     "english": "No users created yet.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-116",
+     "english": "There are no users on this page.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-117",
+     "english": "Go to the first page",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-118",
+     "english": "Contact",
+     "kind": "Text",
+     "where": "Index, Profile"
+    },
+    {
+     "key": "USER-119",
+     "english": "No role",
+     "kind": "Text",
+     "where": "Index, Hr28Roles"
+    },
+    {
+     "key": "USER-120",
+     "english": "All areas",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-121",
+     "english": "Not assigned",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-122",
+     "english": "+{…} more",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-123",
+     "english": "Account status",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-124",
+     "english": "Can sign in and work as their roles allow. Needs at least one role. The first time, a welcome SMS with their authorization code is sent.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-125",
+     "english": "Can't sign in; signed out on their next click. Their records are kept.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-126",
+     "english": "Unnamed user",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-127",
+     "english": "Ready to activate",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "USER-128",
+     "english": "Needs a role first",
+     "kind": "Text",
+     "where": "Index"
+    }
+   ]
+  },
+  {
+   "group": "Settings",
+   "prefix": "SET",
+   "title": "Settings",
+   "items": [
+    {
+     "key": "SET-001",
+     "english": "Settings sections",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "SET-002",
+     "english": "Theme",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "SET-003",
+     "english": "Campaign Intelligence Platform",
+     "kind": "Box hint",
+     "where": "Index, BrandingService"
+    },
+    {
+     "key": "SET-004",
+     "english": "Roles",
+     "kind": "Screen-reader label",
+     "where": "Index, AssignRole"
+    },
+    {
+     "key": "SET-005",
+     "english": "e.g. Field Coordinator",
+     "kind": "Box hint",
+     "where": "Index"
+    },
+    {
+     "key": "SET-006",
+     "english": "Built-in roles can't be renamed or deleted",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "SET-007",
+     "english": "Delete the role \"{…}\"?",
+     "kind": "Question",
+     "where": "Index"
+    },
+    {
+     "key": "SET-008",
+     "english": "e.g. Atoll Council",
+     "kind": "Box hint",
+     "where": "Index"
+    },
+    {
+     "key": "SET-009",
+     "english": "Rename {…}",
+     "kind": "Screen-reader label",
+     "where": "Index"
+    },
+    {
+     "key": "SET-010",
+     "english": "Rename",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "SET-011",
+     "english": "Delete the category \"{…}\"?",
+     "kind": "Question",
+     "where": "Index"
+    },
+    {
+     "key": "SET-012",
+     "english": "Full party name",
+     "kind": "Box hint",
+     "where": "Index"
+    },
+    {
+     "key": "SET-013",
+     "english": "e.g. MDP",
+     "kind": "Box hint",
+     "where": "Index"
+    },
+    {
+     "key": "SET-014",
+     "english": "The Voters list opens filtered to this party",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "SET-015",
+     "english": "Open the Voters list on {…}",
+     "kind": "Tooltip",
+     "where": "Index"
+    },
+    {
+     "key": "SET-016",
+     "english": "Delete \"{…}\"?",
+     "kind": "Question",
+     "where": "Index"
+    },
+    {
+     "key": "SET-017",
+     "english": "e.g. K, HA, Sh",
+     "kind": "Box hint",
+     "where": "Index"
+    },
+    {
+     "key": "SET-018",
+     "english": "Settings",
+     "kind": "Text",
+     "where": "Index, Menu, header and footer (every page)"
+    },
+    {
+     "key": "SET-019",
+     "english": "Personalise the app and {…}",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-020",
+     "english": "Saved on this device. You can also switch quickly from the menu under your name.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-021",
+     "english": "Light",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-022",
+     "english": "Bright and clear for daytime use",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-023",
+     "english": "Dark",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-024",
+     "english": "Easier on the eyes in low light",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-025",
+     "english": "Match device",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-026",
+     "english": "Follows your operating system setting",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-027",
+     "english": "Your account details could not be loaded.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-028",
+     "english": "Email",
+     "kind": "Text",
+     "where": "Index, Create"
+    },
+    {
+     "key": "SET-029",
+     "english": "Last sign-in",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-030",
+     "english": "What you can see",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-031",
+     "english": "No area assigned yet",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "SET-032",
+     "english": "You won't see any voters or influencers until an administrator assigns your scope.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-033",
+     "english": "Your role decides what you can do; your scope decides which records it applies to. Contact your Administrator to change either.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-034",
+     "english": "Branding",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-035",
+     "english": "Your campaign's own name, shown on the sign-in pages, in the sidebar, page titles, sign-in SMS and report files",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-036",
+     "english": "Campaign name",
+     "kind": "Text",
+     "where": "Index, SettingsModels"
+    },
+    {
+     "key": "SET-037",
+     "english": "Your campaign's name or slogan, for example \"Forward Together 2028\".",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-038",
+     "english": "Short name",
+     "kind": "Text",
+     "where": "Index, SystemSettingsService"
+    },
+    {
+     "key": "SET-039",
+     "english": "Up to 8 letters or numbers, e.g. FT28. Shown in the logo square, page titles and the SMS. Empty: the campaign name's initials.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-040",
+     "english": "Tagline",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-041",
+     "english": "The line under the name on the sign-in pages and in the sidebar.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-042",
+     "english": "Sign-in security",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-043",
+     "english": "Applies to the next OTP requested by any user",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-044",
+     "english": "OTP expiry (minutes)",
+     "kind": "Text",
+     "where": "Index, SettingsModels"
+    },
+    {
+     "key": "SET-045",
+     "english": "Between 1 and 15 minutes.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-046",
+     "english": "Maximum OTP attempts",
+     "kind": "Text",
+     "where": "Index, SettingsModels"
+    },
+    {
+     "key": "SET-047",
+     "english": "After this many wrong entries the code is locked and a new one is needed.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-048",
+     "english": "Remember devices for (days)",
+     "kind": "Text",
+     "where": "Index, SettingsModels"
+    },
+    {
+     "key": "SET-049",
+     "english": "With \"Remember me on this device\" ticked at sign-in, people only need the SMS code on that",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-050",
+     "english": "device for this many days. 0 turns it off and forgets every remembered device.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-051",
+     "english": "Save settings",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-052",
+     "english": "Last changed {…}{…}. Every change is recorded in the audit trail.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-053",
+     "english": "Logo",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-054",
+     "english": "Logo file",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-055",
+     "english": "PNG or JPG, up to 1 MB. A square image works best.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-056",
+     "english": "Remove logo",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-057",
+     "english": "A role is a set of rights. Everyone with the role gets them, but only inside their own areas",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-058",
+     "english": "(Users → Areas). To give a right to just one person, use Users → Roles → Extra rights.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-059",
+     "english": "New role",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-060",
+     "english": "Create role",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-061",
+     "english": "Built-in",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-062",
+     "english": "When someone with this role opens a voter",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-063",
+     "english": "The Administrator always sees the full profile.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-064",
+     "english": "Full profile",
+     "kind": "Text",
+     "where": "Index, PermissionCatalog"
+    },
+    {
+     "key": "SET-065",
+     "english": "Details, plus the sections this role may view below.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-066",
+     "english": "Goes straight to recording an encounter, with a short summary of the voter.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-067",
+     "english": "If someone has several roles, the full profile wins when any of them allows it.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-068",
+     "english": "When someone with this role signs in",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-069",
+     "english": "The Administrator always starts on the Dashboard.",
+     "kind": "Text",
+     "where": "Index, PermissionService"
+    },
+    {
+     "key": "SET-070",
+     "english": "Dashboard",
+     "kind": "Text",
+     "where": "Index, Menu, header and footer (every page)"
+    },
+    {
+     "key": "SET-071",
+     "english": "Figures and recent activity first.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-072",
+     "english": "Quick entry (skip the Dashboard)",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-073",
+     "english": "Straight to \"find a voter by ID card\" with the add forms on the same page.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-074",
+     "english": "Quick entry needs \"View voters\" and at least one of: add encounters, add pledges, link influencers. If someone has several roles, the Dashboard wins when any of them allows it.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-075",
+     "english": "What this role may do",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-076",
+     "english": "Example: a Collector who should only add encounters needs \"View\" voters and \"Add\" encounters, with \"View\" encounters left unticked so no history is shown.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-077",
+     "english": "Save role",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-078",
+     "english": "Changes apply straight away and are recorded in the audit trail.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-079",
+     "english": "Delete role",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-080",
+     "english": "Remove this role from everyone who has it first (Users → Roles).",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-081",
+     "english": "These lists fill the drop-downs on the forms and filters. Renaming an entry updates every record that uses it. An entry can only be deleted when nothing uses it.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-082",
+     "english": "Influencer categories",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-083",
+     "english": "New category",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-084",
+     "english": "Add",
+     "kind": "Text",
+     "where": "Index, RightsGrid"
+    },
+    {
+     "key": "SET-085",
+     "english": "No categories yet. Add the first one above.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-086",
+     "english": "New name for {…}",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-087",
+     "english": "Save",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-088",
+     "english": "Every change is recorded in the audit trail.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-089",
+     "english": "Political parties",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-090",
+     "english": "Parties registered with the Elections Commission. A voter with no party is shown as \"Not known\".",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-091",
+     "english": "New party",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-092",
+     "english": "Party",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "SET-093",
+     "english": "Voters list opens here",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-094",
+     "english": "Open list here",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-095",
+     "english": "Open the Voters list on all parties instead",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-096",
+     "english": "Each island belongs to exactly one constituency. An island that already has voters can be renamed but not moved to another constituency.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-097",
+     "english": "Code",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-098",
+     "english": "Island name",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-099",
+     "english": "Atoll code",
+     "kind": "Text",
+     "where": "Index, Index"
+    },
+    {
+     "key": "SET-100",
+     "english": "Show islands for",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-101",
+     "english": "Show",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-102",
+     "english": "No islands for this constituency yet.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-103",
+     "english": "Atoll",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-104",
+     "english": "Appearance",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-105",
+     "english": "My account",
+     "kind": "Text",
+     "where": "Index, Menu, header and footer (every page)"
+    },
+    {
+     "key": "SET-106",
+     "english": "System",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-107",
+     "english": "Constituencies & islands",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-108",
+     "english": "Lists",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-109",
+     "english": "Roles & rights",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-110",
+     "english": "Forward Together 2028",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-111",
+     "english": "Your logo is shown on the sign-in pages and in the sidebar.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-112",
+     "english": "No logo yet: your short name is shown in a square instead. A logo is shown on the sign-in pages and in the sidebar.",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-113",
+     "english": "Replace logo",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-114",
+     "english": "Upload logo",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-115",
+     "english": "1 person",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-116",
+     "english": "View voters",
+     "kind": "Text",
+     "where": "Index, PermissionCatalog"
+    },
+    {
+     "key": "SET-117",
+     "english": "Edit constituency",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-118",
+     "english": "New constituency",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-119",
+     "english": "Edit island",
+     "kind": "Text",
+     "where": "Index"
+    },
+    {
+     "key": "SET-120",
+     "english": "New island",
+     "kind": "Text",
+     "where": "Index"
+    }
+   ]
+  },
+  {
+   "group": "Shared",
+   "prefix": "SHARED",
+   "title": "Shared pieces (pop-ups, status labels, buttons)",
+   "items": [
+    {
+     "key": "SHARED-001",
+     "english": "Something went wrong",
+     "kind": "Text",
+     "where": "Error"
+    },
+    {
+     "key": "SHARED-002",
+     "english": "We couldn't complete your request. Please try again in a moment.",
+     "kind": "Text",
+     "where": "Error"
+    },
+    {
+     "key": "SHARED-003",
+     "english": "If the problem continues, contact your system administrator.",
+     "kind": "Text",
+     "where": "Error"
+    },
+    {
+     "key": "SHARED-004",
+     "english": "Go to dashboard",
+     "kind": "Text",
+     "where": "Error"
+    },
+    {
+     "key": "SHARED-005",
+     "english": "Go back",
+     "kind": "Text",
+     "where": "Error"
+    },
+    {
+     "key": "SHARED-006",
+     "english": "Copy ID card number",
+     "kind": "Tooltip",
+     "where": "CopyId"
+    },
+    {
+     "key": "SHARED-007",
+     "english": "Copy ID card number {…}",
+     "kind": "Screen-reader label",
+     "where": "CopyId"
+    },
+    {
+     "key": "SHARED-008",
+     "english": "Set the response",
+     "kind": "Tooltip",
+     "where": "EncounterResponse, EncounterResponseDialog"
+    },
+    {
+     "key": "SHARED-009",
+     "english": "Set response",
+     "kind": "Text",
+     "where": "EncounterResponse"
+    },
+    {
+     "key": "SHARED-010",
+     "english": "Save response",
+     "kind": "Text",
+     "where": "EncounterResponseDialog"
+    },
+    {
+     "key": "SHARED-011",
+     "english": "Print / PDF",
+     "kind": "Text",
+     "where": "ReportActions"
+    },
+    {
+     "key": "SHARED-012",
+     "english": "Records",
+     "kind": "Text",
+     "where": "RightsGrid"
+    },
+    {
+     "key": "SHARED-013",
+     "english": "Always",
+     "kind": "Text",
+     "where": "RightsGrid"
+    },
+    {
+     "key": "SHARED-014",
+     "english": "What each right allows",
+     "kind": "Text",
+     "where": "RightsGrid"
+    },
+    {
+     "key": "SHARED-015",
+     "english": "Rights work only inside the person's",
+     "kind": "Text",
+     "where": "RightsGrid"
+    },
+    {
+     "key": "SHARED-016",
+     "english": "(constituencies or islands). Influencers are the exception: everyone shares them.",
+     "kind": "Text",
+     "where": "RightsGrid"
+    },
+    {
+     "key": "SHARED-017",
+     "english": "A person gets the rights of",
+     "kind": "Text",
+     "where": "RightsGrid"
+    },
+    {
+     "key": "SHARED-018",
+     "english": "all their roles",
+     "kind": "Text",
+     "where": "RightsGrid"
+    },
+    {
+     "key": "SHARED-019",
+     "english": ", plus any extra rights given to them on the Users page.",
+     "kind": "Text",
+     "where": "RightsGrid"
+    },
+    {
+     "key": "SHARED-020",
+     "english": "The",
+     "kind": "Text",
+     "where": "RightsGrid"
+    },
+    {
+     "key": "SHARED-021",
+     "english": "Administrator",
+     "kind": "Text",
+     "where": "RightsGrid, AssignRole"
+    },
+    {
+     "key": "SHARED-022",
+     "english": "always has every right.",
+     "kind": "Text",
+     "where": "RightsGrid"
+    },
+    {
+     "key": "SHARED-023",
+     "english": "Changes apply within about a minute; nobody has to sign in again.",
+     "kind": "Text",
+     "where": "RightsGrid"
+    },
+    {
+     "key": "SHARED-024",
+     "english": "Administrators see every constituency and island",
+     "kind": "Tooltip",
+     "where": "ScopeChip"
+    },
+    {
+     "key": "SHARED-025",
+     "english": "Figures are limited to the area assigned to you",
+     "kind": "Tooltip",
+     "where": "ScopeChip"
+    },
+    {
+     "key": "SHARED-026",
+     "english": "Are you still there?",
+     "kind": "Text",
+     "where": "SessionTimeout"
+    },
+    {
+     "key": "SHARED-027",
+     "english": "There has been no activity for an hour. For your security you will be signed out in",
+     "kind": "Text",
+     "where": "SessionTimeout"
+    },
+    {
+     "key": "SHARED-028",
+     "english": "60 seconds",
+     "kind": "Text",
+     "where": "SessionTimeout"
+    },
+    {
+     "key": "SHARED-029",
+     "english": "Stay signed in",
+     "kind": "Text",
+     "where": "SessionTimeout"
+    },
+    {
+     "key": "SHARED-030",
+     "english": "Change status",
+     "kind": "Tooltip",
+     "where": "StatusButton, StatusDialog"
+    },
+    {
+     "key": "SHARED-031",
+     "english": "Save status",
+     "kind": "Text",
+     "where": "StatusDialog, Index"
+    }
+   ]
+  },
+  {
+   "group": "Rights and lists",
+   "prefix": "RIGHT",
+   "title": "Rights and lists",
+   "items": [
+    {
+     "key": "RIGHT-001",
+     "english": "Search the Voters list, open a voter's profile and look a voter up by ID card on Quick entry.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-002",
+     "english": "Add voters",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-003",
+     "english": "Add new voters.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-004",
+     "english": "Edit voters",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-005",
+     "english": "Change a voter's name, ID card, mobile, address, gender, date of birth, party and remarks. Moving a voter to another constituency or island is for administrators only.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-006",
+     "english": "Delete voters",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-007",
+     "english": "Permanently delete a voter with their encounters and pledges. This cannot be undone.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-008",
+     "english": "Set or change a voter's support status (Supporter, Undecided, Opponent, Neutral): click the status on the Voters list, Quick entry or the profile, or choose it on the Add and Edit forms. Without it, new voters start as Undecided and the status stays as it is.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-009",
+     "english": "See voters' photos on the Voters list, the profile and Quick entry.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-010",
+     "english": "Voter photos",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-011",
+     "english": "Add a photo to a voter (JPG or PNG, up to 2 MB) or remove it.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-012",
+     "english": "View encounters",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-013",
+     "english": "See the Encounters list and the encounter history on a voter's profile.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-014",
+     "english": "Add encounters",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-015",
+     "english": "Record a new encounter (meet, call or request) with a voter, including on Quick entry.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-016",
+     "english": "Edit encounters",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-017",
+     "english": "Correct the date, type, outcome or notes of a recorded encounter.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-018",
+     "english": "Delete encounters",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-019",
+     "english": "Permanently delete a recorded encounter.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-020",
+     "english": "Set encounter response",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-021",
+     "english": "Record or change whether the voter supports, is undecided or does not support (green / yellow / red). Without it, encounters are saved without a response.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-022",
+     "english": "View pledges",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-023",
+     "english": "See the Pledges list and the pledges on a voter's profile.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-024",
+     "english": "Add pledges",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-025",
+     "english": "Record a new pledge for a voter, including on Quick entry.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-026",
+     "english": "Change a pledge's status, for example mark it fulfilled.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-027",
+     "english": "Delete pledges",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-028",
+     "english": "Permanently delete a pledge.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-029",
+     "english": "View influencers",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-030",
+     "english": "See the Influencers list and which voters each influencer is linked to (only voters in the person's areas are listed).",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-031",
+     "english": "Add influencers",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-032",
+     "english": "Add new influencers.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-033",
+     "english": "Edit influencers",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-034",
+     "english": "Change any influencer's details, category and area. Influencers are shared by everyone.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-035",
+     "english": "Delete influencers",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-036",
+     "english": "Permanently delete any influencer and all their links to voters.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-037",
+     "english": "Link influencers to voters",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-038",
+     "english": "Link an influencer to a voter and change the relationship, including on Quick entry.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-039",
+     "english": "View reports",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-040",
+     "english": "Open the Reports pages: constituency summary, pledges and top influencers. Figures cover only the person's areas.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-041",
+     "english": "Download and print reports",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    },
+    {
+     "key": "RIGHT-042",
+     "english": "Download reports as CSV files and print them. Every download is recorded in the audit trail.",
+     "kind": "Message",
+     "where": "PermissionCatalog"
+    }
+   ]
+  },
+  {
+   "group": "Form names and checks (web)",
+   "prefix": "FORM",
+   "title": "Form field names and checks",
+   "items": [
+    {
+     "key": "FORM-001",
+     "english": "Encounter Date",
+     "kind": "Message",
+     "where": "CreateEncounterDto"
+    },
+    {
+     "key": "FORM-002",
+     "english": "Encounter Type",
+     "kind": "Message",
+     "where": "CreateEncounterDto"
+    },
+    {
+     "key": "FORM-003",
+     "english": "Choose Meet, Call or Request.",
+     "kind": "Message",
+     "where": "CreateEncounterDto, QuickEntryModels"
+    },
+    {
+     "key": "FORM-004",
+     "english": "National ID is required.",
+     "kind": "Message",
+     "where": "CreateInfluencerViewModel, InfluencerService"
+    },
+    {
+     "key": "FORM-005",
+     "english": "National ID is 7 characters, e.g. A123456.",
+     "kind": "Message",
+     "where": "CreateInfluencerViewModel, VoterCreateEditDto"
+    },
+    {
+     "key": "FORM-006",
+     "english": "National ID must be one letter followed by 6 digits, e.g. A123456.",
+     "kind": "Message",
+     "where": "CreateInfluencerViewModel, VoterCreateEditDto"
+    },
+    {
+     "key": "FORM-007",
+     "english": "Full name is required.",
+     "kind": "Message",
+     "where": "CreateInfluencerViewModel, InfluencerService"
+    },
+    {
+     "key": "FORM-008",
+     "english": "Contact number is 7 digits.",
+     "kind": "Message",
+     "where": "CreateInfluencerViewModel"
+    },
+    {
+     "key": "FORM-009",
+     "english": "Contact number must be exactly 7 digits, e.g. 7771234.",
+     "kind": "Message",
+     "where": "CreateInfluencerViewModel"
+    },
+    {
+     "key": "FORM-010",
+     "english": "Please choose a constituency.",
+     "kind": "Message",
+     "where": "CreateInfluencerViewModel, SettingsModels"
+    },
+    {
+     "key": "FORM-011",
+     "english": "Pledge Date",
+     "kind": "Message",
+     "where": "CreatePledgeDto"
+    },
+    {
+     "key": "FORM-012",
+     "english": "Due Date",
+     "kind": "Message",
+     "where": "CreatePledgeDto"
+    },
+    {
+     "key": "FORM-013",
+     "english": "Does not support",
+     "kind": "Message",
+     "where": "EncounterListItemDto, EncounterValues"
+    },
+    {
+     "key": "FORM-014",
+     "english": "Relationship Type",
+     "kind": "Message",
+     "where": "LinkInfluencerDto"
+    },
+    {
+     "key": "FORM-015",
+     "english": "Enter the date and time.",
+     "kind": "Message",
+     "where": "QuickEntryModels"
+    },
+    {
+     "key": "FORM-016",
+     "english": "Choose the encounter type.",
+     "kind": "Message",
+     "where": "QuickEntryModels"
+    },
+    {
+     "key": "FORM-017",
+     "english": "Enter a short title for the pledge.",
+     "kind": "Message",
+     "where": "QuickEntryModels"
+    },
+    {
+     "key": "FORM-018",
+     "english": "Describe what was pledged.",
+     "kind": "Message",
+     "where": "QuickEntryModels"
+    },
+    {
+     "key": "FORM-019",
+     "english": "Choose an influencer.",
+     "kind": "Message",
+     "where": "QuickEntryModels"
+    },
+    {
+     "key": "FORM-020",
+     "english": "Choose the relationship.",
+     "kind": "Message",
+     "where": "QuickEntryModels"
+    },
+    {
+     "key": "FORM-021",
+     "english": "Campaign name is required.",
+     "kind": "Message",
+     "where": "SettingsModels"
+    },
+    {
+     "key": "FORM-022",
+     "english": "Campaign name must be between 2 and 80 characters.",
+     "kind": "Message",
+     "where": "SettingsModels, SystemSettingsService"
+    },
+    {
+     "key": "FORM-023",
+     "english": "OTP expiry must be between 1 and 15 minutes.",
+     "kind": "Message",
+     "where": "SettingsModels, SystemSettingsService"
+    },
+    {
+     "key": "FORM-024",
+     "english": "Maximum OTP attempts must be between 3 and 10.",
+     "kind": "Message",
+     "where": "SettingsModels, SystemSettingsService"
+    },
+    {
+     "key": "FORM-025",
+     "english": "Remember devices for must be between 0 (off) and 90 days.",
+     "kind": "Message",
+     "where": "SettingsModels, SystemSettingsService"
+    },
+    {
+     "key": "FORM-026",
+     "english": "Code is required.",
+     "kind": "Message",
+     "where": "SettingsModels"
+    },
+    {
+     "key": "FORM-027",
+     "english": "Name is required.",
+     "kind": "Message",
+     "where": "SettingsModels"
+    },
+    {
+     "key": "FORM-028",
+     "english": "Island name is required.",
+     "kind": "Message",
+     "where": "SettingsModels, IslandService"
+    },
+    {
+     "key": "FORM-029",
+     "english": "Atoll is required.",
+     "kind": "Message",
+     "where": "SettingsModels"
+    },
+    {
+     "key": "FORM-030",
+     "english": "Please choose a status.",
+     "kind": "Message",
+     "where": "UpdatePledgeViewModel"
+    },
+    {
+     "key": "FORM-031",
+     "english": "Resolution notes must be 1000 characters or fewer.",
+     "kind": "Message",
+     "where": "UpdatePledgeViewModel, PledgeService"
+    },
+    {
+     "key": "FORM-032",
+     "english": "Promised, nothing done yet",
+     "kind": "Message",
+     "where": "UpdatePledgeViewModel"
+    },
+    {
+     "key": "FORM-033",
+     "english": "In Progress",
+     "kind": "Message",
+     "where": "UpdatePledgeViewModel, PledgeService"
+    },
+    {
+     "key": "FORM-034",
+     "english": "Work has started",
+     "kind": "Message",
+     "where": "UpdatePledgeViewModel"
+    },
+    {
+     "key": "FORM-035",
+     "english": "Delivered to the voter",
+     "kind": "Message",
+     "where": "UpdatePledgeViewModel"
+    },
+    {
+     "key": "FORM-036",
+     "english": "No longer being pursued",
+     "kind": "Message",
+     "where": "UpdatePledgeViewModel"
+    },
+    {
+     "key": "FORM-037",
+     "english": "Enter the National ID.",
+     "kind": "Message",
+     "where": "VoterCreateEditDto, CreateUserDto"
+    },
+    {
+     "key": "FORM-038",
+     "english": "Mobile number is 7 digits.",
+     "kind": "Message",
+     "where": "VoterCreateEditDto, CreateUserDto"
+    },
+    {
+     "key": "FORM-039",
+     "english": "Mobile number must be exactly 7 digits, e.g. 7771234.",
+     "kind": "Message",
+     "where": "VoterCreateEditDto, CreateUserDto"
+    },
+    {
+     "key": "FORM-040",
+     "english": "Enter the mobile number. The sign-in code is sent to it.",
+     "kind": "Message",
+     "where": "CreateUserDto"
+    }
+   ]
+  },
+  {
+   "group": "Messages after an action (web)",
+   "prefix": "ACTION",
+   "title": "Messages after an action",
+   "items": [
+    {
+     "key": "ACTION-001",
+     "english": "You don't have permission to do that.",
+     "kind": "Message",
+     "where": "AppController, ApiClient"
+    },
+    {
+     "key": "ACTION-002",
+     "english": "This device is no longer remembered. Please enter your authorization code.",
+     "kind": "Message",
+     "where": "AuthController, AuthService"
+    },
+    {
+     "key": "ACTION-003",
+     "english": "That code didn't work. Please try again.",
+     "kind": "Message",
+     "where": "AuthController"
+    },
+    {
+     "key": "ACTION-004",
+     "english": "Samsung Internet",
+     "kind": "Message",
+     "where": "AuthController"
+    },
+    {
+     "key": "ACTION-005",
+     "english": "A web browser",
+     "kind": "Message",
+     "where": "AuthController, AuthService"
+    },
+    {
+     "key": "ACTION-006",
+     "english": "Mac OS",
+     "kind": "Message",
+     "where": "AuthController"
+    },
+    {
+     "key": "ACTION-007",
+     "english": "You don't have permission to edit encounters. Ask your Administrator.",
+     "kind": "Message",
+     "where": "EncountersController, EncounterService"
+    },
+    {
+     "key": "ACTION-008",
+     "english": "That encounter could not be found.",
+     "kind": "Message",
+     "where": "EncountersController"
+    },
+    {
+     "key": "ACTION-009",
+     "english": "Encounter updated.",
+     "kind": "Message",
+     "where": "EncountersController"
+    },
+    {
+     "key": "ACTION-010",
+     "english": "The encounter could not be saved. Please try again.",
+     "kind": "Message",
+     "where": "EncountersController"
+    },
+    {
+     "key": "ACTION-011",
+     "english": "Encounter recorded successfully.",
+     "kind": "Message",
+     "where": "EncountersController"
+    },
+    {
+     "key": "ACTION-012",
+     "english": "Response cleared.",
+     "kind": "Message",
+     "where": "EncountersController"
+    },
+    {
+     "key": "ACTION-013",
+     "english": "Response set to {…}.",
+     "kind": "Message",
+     "where": "EncountersController"
+    },
+    {
+     "key": "ACTION-014",
+     "english": "The response could not be saved.",
+     "kind": "Message",
+     "where": "EncountersController"
+    },
+    {
+     "key": "ACTION-015",
+     "english": "The encounter was deleted.",
+     "kind": "Message",
+     "where": "EncountersController, EncountersController"
+    },
+    {
+     "key": "ACTION-016",
+     "english": "The encounter could not be deleted.",
+     "kind": "Message",
+     "where": "EncountersController"
+    },
+    {
+     "key": "ACTION-017",
+     "english": "You don't have permission to edit influencers. Ask your Administrator.",
+     "kind": "Message",
+     "where": "InfluencersController, InfluencerService"
+    },
+    {
+     "key": "ACTION-018",
+     "english": "That influencer could not be found.",
+     "kind": "Message",
+     "where": "InfluencersController"
+    },
+    {
+     "key": "ACTION-019",
+     "english": "The influencer was deleted.",
+     "kind": "Message",
+     "where": "InfluencersController"
+    },
+    {
+     "key": "ACTION-020",
+     "english": "The influencer could not be linked. Please try again.",
+     "kind": "Message",
+     "where": "InfluencersController"
+    },
+    {
+     "key": "ACTION-021",
+     "english": "Influencer linked successfully.",
+     "kind": "Message",
+     "where": "InfluencersController"
+    },
+    {
+     "key": "ACTION-022",
+     "english": "That pledge could not be found.",
+     "kind": "Message",
+     "where": "PledgesController"
+    },
+    {
+     "key": "ACTION-023",
+     "english": "Pledge \"{…}\" is now {…}.",
+     "kind": "Message",
+     "where": "PledgesController"
+    },
+    {
+     "key": "ACTION-024",
+     "english": "The pledge could not be saved.",
+     "kind": "Message",
+     "where": "PledgesController, QuickEntryController"
+    },
+    {
+     "key": "ACTION-025",
+     "english": "Pledge recorded successfully.",
+     "kind": "Message",
+     "where": "PledgesController"
+    },
+    {
+     "key": "ACTION-026",
+     "english": "The pledge was deleted.",
+     "kind": "Message",
+     "where": "PledgesController, PledgesController"
+    },
+    {
+     "key": "ACTION-027",
+     "english": "The pledge could not be deleted.",
+     "kind": "Message",
+     "where": "PledgesController"
+    },
+    {
+     "key": "ACTION-028",
+     "english": "Quick entry needs the rights to view voters and to add encounters, pledges or influencer links. Ask your Administrator.",
+     "kind": "Message",
+     "where": "QuickEntryController"
+    },
+    {
+     "key": "ACTION-029",
+     "english": "That voter could not be found in your areas.",
+     "kind": "Message",
+     "where": "QuickEntryController"
+    },
+    {
+     "key": "ACTION-030",
+     "english": "Type the ID card number as one letter and 6 digits, e.g. A123456.",
+     "kind": "Message",
+     "where": "QuickEntryController"
+    },
+    {
+     "key": "ACTION-031",
+     "english": "No voter with ID card {…} was found {…}. Check the number and try again.",
+     "kind": "Message",
+     "where": "QuickEntryController"
+    },
+    {
+     "key": "ACTION-032",
+     "english": "The voter could not be loaded. Please try again.",
+     "kind": "Message",
+     "where": "QuickEntryController"
+    },
+    {
+     "key": "ACTION-033",
+     "english": "The encounter could not be saved.",
+     "kind": "Message",
+     "where": "QuickEntryController"
+    },
+    {
+     "key": "ACTION-034",
+     "english": "Encounter recorded.",
+     "kind": "Message",
+     "where": "QuickEntryController"
+    },
+    {
+     "key": "ACTION-035",
+     "english": "Pledge recorded.",
+     "kind": "Message",
+     "where": "QuickEntryController"
+    },
+    {
+     "key": "ACTION-036",
+     "english": "The influencer could not be linked.",
+     "kind": "Message",
+     "where": "QuickEntryController"
+    },
+    {
+     "key": "ACTION-037",
+     "english": "Influencer linked.",
+     "kind": "Message",
+     "where": "QuickEntryController"
+    },
+    {
+     "key": "ACTION-038",
+     "english": "Please check the form and try again.",
+     "kind": "Message",
+     "where": "QuickEntryController, SettingsController"
+    },
+    {
+     "key": "ACTION-039",
+     "english": "Downloading reports needs the \"Download and print reports\" right. Ask your Administrator.",
+     "kind": "Message",
+     "where": "ReportsController"
+    },
+    {
+     "key": "ACTION-040",
+     "english": "Reports need the \"View reports\" right. Ask your Administrator.",
+     "kind": "Message",
+     "where": "ReportsController"
+    },
+    {
+     "key": "ACTION-041",
+     "english": "The report could not be downloaded. Please try again.",
+     "kind": "Message",
+     "where": "ReportsController"
+    },
+    {
+     "key": "ACTION-042",
+     "english": "Please choose a logo first.",
+     "kind": "Message",
+     "where": "SettingsController, SystemSettingsService"
+    },
+    {
+     "key": "ACTION-043",
+     "english": "The logo is too large ({…} MB). Please choose one under 1 MB.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-044",
+     "english": "Logo saved.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-045",
+     "english": "The logo could not be saved.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-046",
+     "english": "Logo removed.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-047",
+     "english": "The logo could not be removed.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-048",
+     "english": "System settings saved.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-049",
+     "english": "Category renamed to {…}.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-050",
+     "english": "Category {…} was added.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-051",
+     "english": "The category was deleted.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-052",
+     "english": "The party was deleted.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-053",
+     "english": "Saved. The Voters list now opens on the party you chose.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-054",
+     "english": "The role \"{…}\" was created. Now tick what it may do and save.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-055",
+     "english": "That role no longer exists.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-056",
+     "english": "Saved. The changes apply straight away.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-057",
+     "english": "The role was deleted.",
+     "kind": "Message",
+     "where": "SettingsController"
+    },
+    {
+     "key": "ACTION-058",
+     "english": "The code could not be reset. Please try again.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-059",
+     "english": "The users could not be loaded. Please refresh the page.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-060",
+     "english": "The user could not be created. Please try again.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-061",
+     "english": "That user could not be found.",
+     "kind": "Message",
+     "where": "UsersController, UsersController"
+    },
+    {
+     "key": "ACTION-062",
+     "english": "The sessions could not be ended. Please try again.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-063",
+     "english": "The remembered devices could not be forgotten. Please try again.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-064",
+     "english": "The changes could not be saved. Please try again.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-065",
+     "english": "The account",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-066",
+     "english": "The status could not be changed.",
+     "kind": "Message",
+     "where": "UsersController, VotersController"
+    },
+    {
+     "key": "ACTION-067",
+     "english": "The user was deleted.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-068",
+     "english": "The user could not be deleted.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-069",
+     "english": "Tick at least one role.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-070",
+     "english": "Choose a constituency to add.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-071",
+     "english": "Added {…}. The change applies straight away.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-072",
+     "english": "Removed {…}. The change applies straight away.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "ACTION-073",
+     "english": "Choose an Excel file to upload.",
+     "kind": "Message",
+     "where": "VoterImportController, MembershipImportsController"
+    },
+    {
+     "key": "ACTION-074",
+     "english": "The file is larger than 20 MB. Split it into smaller files and upload them one at a time.",
+     "kind": "Message",
+     "where": "VoterImportController, MembershipImportsController"
+    },
+    {
+     "key": "ACTION-075",
+     "english": "Only Excel files (.xlsx or .xls) can be uploaded.",
+     "kind": "Message",
+     "where": "VoterImportController, MembershipImportsController"
+    },
+    {
+     "key": "ACTION-076",
+     "english": "Please choose the party the list belongs to.",
+     "kind": "Message",
+     "where": "VoterImportController, MembershipImportsController"
+    },
+    {
+     "key": "ACTION-077",
+     "english": "Only administrators can upload voter lists.",
+     "kind": "Message",
+     "where": "VoterImportController"
+    },
+    {
+     "key": "ACTION-078",
+     "english": "Status changed to {…}.",
+     "kind": "Message",
+     "where": "VotersController"
+    },
+    {
+     "key": "ACTION-079",
+     "english": "That voter could not be found.",
+     "kind": "Message",
+     "where": "VotersController"
+    },
+    {
+     "key": "ACTION-080",
+     "english": "The voter could not be saved. Please try again.",
+     "kind": "Message",
+     "where": "VotersController"
+    },
+    {
+     "key": "ACTION-081",
+     "english": "The voter could not be deleted.",
+     "kind": "Message",
+     "where": "VotersController"
+    },
+    {
+     "key": "ACTION-082",
+     "english": "The voter was deleted.",
+     "kind": "Message",
+     "where": "VotersController"
+    },
+    {
+     "key": "ACTION-083",
+     "english": "Please choose a photo first.",
+     "kind": "Message",
+     "where": "VotersController"
+    },
+    {
+     "key": "ACTION-084",
+     "english": "The photo is too large ({…} MB). Please choose one under 2 MB.",
+     "kind": "Message",
+     "where": "VotersController"
+    },
+    {
+     "key": "ACTION-085",
+     "english": "Photo saved.",
+     "kind": "Message",
+     "where": "VotersController, VotersController"
+    },
+    {
+     "key": "ACTION-086",
+     "english": "The photo could not be saved. Please try again.",
+     "kind": "Message",
+     "where": "VotersController"
+    },
+    {
+     "key": "ACTION-087",
+     "english": "Photo removed.",
+     "kind": "Message",
+     "where": "VotersController, VotersController"
+    },
+    {
+     "key": "ACTION-088",
+     "english": "The photo could not be removed. Please try again.",
+     "kind": "Message",
+     "where": "VotersController"
+    }
+   ]
+  },
+  {
+   "group": "Messages from the web app",
+   "prefix": "WEB",
+   "title": "Messages from the web app",
+   "items": [
+    {
+     "key": "WEB-001",
+     "english": "Your session has ended. Please sign in again.",
+     "kind": "Message",
+     "where": "ApiClient, SessionKeeper"
+    },
+    {
+     "key": "WEB-002",
+     "english": "The service is not responding. Please try again shortly.",
+     "kind": "Message",
+     "where": "ApiClient"
+    },
+    {
+     "key": "WEB-003",
+     "english": "The upload is taking longer than expected and may still finish. Check the Audit Trail in a few minutes before uploading the file again.",
+     "kind": "Message",
+     "where": "ApiClient"
+    },
+    {
+     "key": "WEB-004",
+     "english": "The upload did not finish. Please try again shortly.",
+     "kind": "Message",
+     "where": "ApiClient"
+    },
+    {
+     "key": "WEB-005",
+     "english": "The requested record was not found.",
+     "kind": "Message",
+     "where": "ApiClient"
+    },
+    {
+     "key": "WEB-006",
+     "english": "Too many requests. Please wait a few minutes and try again.",
+     "kind": "Message",
+     "where": "ApiClient"
+    },
+    {
+     "key": "WEB-007",
+     "english": "Something went wrong. Please try again.",
+     "kind": "Message",
+     "where": "ApiClient"
+    },
+    {
+     "key": "WEB-008",
+     "english": "We couldn't sign you in right now. Please try again in a moment.",
+     "kind": "Message",
+     "where": "AuthService"
+    },
+    {
+     "key": "WEB-009",
+     "english": "Too many attempts. Please wait a few minutes and try again.",
+     "kind": "Message",
+     "where": "AuthService"
+    },
+    {
+     "key": "WEB-010",
+     "english": "Super Administrator",
+     "kind": "Message",
+     "where": "Hr28Roles, AccessScopeService"
+    },
+    {
+     "key": "WEB-011",
+     "english": "Maldives Time (UTC+05:00)",
+     "kind": "Message",
+     "where": "Hr28Time, MaldivesTime"
+    },
+    {
+     "key": "WEB-012",
+     "english": "Maldives Time",
+     "kind": "Message",
+     "where": "Hr28Time, MaldivesTime"
+    },
+    {
+     "key": "WEB-013",
+     "english": "You were signed out because there was no activity for an hour. Anything you saved is kept. Please sign in again.",
+     "kind": "Message",
+     "where": "SessionKeeper"
+    },
+    {
+     "key": "WEB-014",
+     "english": "Record a meeting, call or request with this voter.",
+     "kind": "Message",
+     "where": "VoterQuickActions"
+    },
+    {
+     "key": "WEB-015",
+     "english": "Record something promised to this voter.",
+     "kind": "Message",
+     "where": "VoterQuickActions"
+    },
+    {
+     "key": "WEB-016",
+     "english": "Link a community leader or trusted contact to this voter.",
+     "kind": "Message",
+     "where": "VoterQuickActions"
+    },
+    {
+     "key": "WEB-017",
+     "english": "The file could not be sent. It may be too large. Please choose a smaller file and try again.",
+     "kind": "Message",
+     "where": "FriendlyAntiforgeryFailureFilter"
+    },
+    {
+     "key": "WEB-018",
+     "english": "This page was open for a long time, so it couldn't be saved. Please try again.",
+     "kind": "Message",
+     "where": "FriendlyAntiforgeryFailureFilter"
+    }
+   ]
+  },
+  {
+   "group": "Messages from the server",
+   "prefix": "SERVER",
+   "title": "Messages from the server (errors and SMS)",
+   "items": [
+    {
+     "key": "SERVER-001",
+     "english": "Voter not found.",
+     "kind": "Message",
+     "where": "AccessScopeService, VoterService"
+    },
+    {
+     "key": "SERVER-002",
+     "english": "Too many attempts. Please wait {…} minutes and try again.",
+     "kind": "Message",
+     "where": "AuthService"
+    },
+    {
+     "key": "SERVER-003",
+     "english": "Please wait {…} seconds before asking for a new code.",
+     "kind": "Message",
+     "where": "AuthService"
+    },
+    {
+     "key": "SERVER-004",
+     "english": "That authorization code was not recognised. Check it and try again.",
+     "kind": "Message",
+     "where": "AuthService"
+    },
+    {
+     "key": "SERVER-005",
+     "english": "Never share this code. Campaign staff will never ask for it.",
+     "kind": "Message",
+     "where": "AuthService"
+    },
+    {
+     "key": "SERVER-006",
+     "english": "We couldn't send your code right now. Please try again later or contact your administrator.",
+     "kind": "Message",
+     "where": "AuthService"
+    },
+    {
+     "key": "SERVER-007",
+     "english": "That authorization code was not recognised. Go back and enter it again.",
+     "kind": "Message",
+     "where": "AuthService"
+    },
+    {
+     "key": "SERVER-008",
+     "english": "This code is no longer valid. Go back and ask for a new code.",
+     "kind": "Message",
+     "where": "AuthService"
+    },
+    {
+     "key": "SERVER-009",
+     "english": "This code has expired. Go back and ask for a new code.",
+     "kind": "Message",
+     "where": "AuthService"
+    },
+    {
+     "key": "SERVER-010",
+     "english": "Too many wrong codes. Go back and ask for a new code.",
+     "kind": "Message",
+     "where": "AuthService"
+    },
+    {
+     "key": "SERVER-011",
+     "english": "OTP verified successfully.",
+     "kind": "Message",
+     "where": "AuthService"
+    },
+    {
+     "key": "SERVER-012",
+     "english": "Constituency code and name are both required.",
+     "kind": "Message",
+     "where": "ConstituencyService"
+    },
+    {
+     "key": "SERVER-013",
+     "english": "A constituency with the same code or name already exists.",
+     "kind": "Message",
+     "where": "ConstituencyService"
+    },
+    {
+     "key": "SERVER-014",
+     "english": "Another constituency with the same code or name already exists.",
+     "kind": "Message",
+     "where": "ConstituencyService"
+    },
+    {
+     "key": "SERVER-015",
+     "english": "The constituency cannot be deleted because it is linked to one or more islands.",
+     "kind": "Message",
+     "where": "ConstituencyService"
+    },
+    {
+     "key": "SERVER-016",
+     "english": "Choose an encounter type from the list.",
+     "kind": "Message",
+     "where": "EncounterService"
+    },
+    {
+     "key": "SERVER-017",
+     "english": "Choose the voter's response: Supports, Undecided or Does not support.",
+     "kind": "Message",
+     "where": "EncounterService"
+    },
+    {
+     "key": "SERVER-018",
+     "english": "Notes can be at most {…} characters.",
+     "kind": "Message",
+     "where": "EncounterService"
+    },
+    {
+     "key": "SERVER-019",
+     "english": "Enter the date the encounter happened (not in the future).",
+     "kind": "Message",
+     "where": "EncounterService"
+    },
+    {
+     "key": "SERVER-020",
+     "english": "You must be signed in.",
+     "kind": "Message",
+     "where": "EncounterService, InfluencerService"
+    },
+    {
+     "key": "SERVER-021",
+     "english": "Encounter not found.",
+     "kind": "Message",
+     "where": "EncounterService"
+    },
+    {
+     "key": "SERVER-022",
+     "english": "You don't have permission to set encounter responses. Ask your Administrator.",
+     "kind": "Message",
+     "where": "EncounterService"
+    },
+    {
+     "key": "SERVER-023",
+     "english": "Influencer category",
+     "kind": "Message",
+     "where": "InfluencerCategoryService"
+    },
+    {
+     "key": "SERVER-024",
+     "english": "Please enter a category name.",
+     "kind": "Message",
+     "where": "InfluencerCategoryService"
+    },
+    {
+     "key": "SERVER-025",
+     "english": "Category names can be at most 60 characters.",
+     "kind": "Message",
+     "where": "InfluencerCategoryService"
+    },
+    {
+     "key": "SERVER-026",
+     "english": "There is already a category called \"{…}\".",
+     "kind": "Message",
+     "where": "InfluencerCategoryService"
+    },
+    {
+     "key": "SERVER-027",
+     "english": "Category not found.",
+     "kind": "Message",
+     "where": "InfluencerCategoryService"
+    },
+    {
+     "key": "SERVER-028",
+     "english": "Change their category first, or rename this one instead.",
+     "kind": "Message",
+     "where": "InfluencerCategoryService"
+    },
+    {
+     "key": "SERVER-029",
+     "english": "Please choose a valid constituency.",
+     "kind": "Message",
+     "where": "InfluencerService, IslandService"
+    },
+    {
+     "key": "SERVER-030",
+     "english": "The selected island does not belong to the selected constituency.",
+     "kind": "Message",
+     "where": "InfluencerService"
+    },
+    {
+     "key": "SERVER-031",
+     "english": "Please choose a category from the list.",
+     "kind": "Message",
+     "where": "InfluencerService"
+    },
+    {
+     "key": "SERVER-032",
+     "english": "An influencer with National ID {…} already exists.",
+     "kind": "Message",
+     "where": "InfluencerService"
+    },
+    {
+     "key": "SERVER-033",
+     "english": "Influencer not found.",
+     "kind": "Message",
+     "where": "InfluencerService"
+    },
+    {
+     "key": "SERVER-034",
+     "english": "National ID \"{…}\" → \"{…}\"",
+     "kind": "Message",
+     "where": "InfluencerService"
+    },
+    {
+     "key": "SERVER-035",
+     "english": "You don't have permission to delete influencers. Ask your Administrator.",
+     "kind": "Message",
+     "where": "InfluencerService"
+    },
+    {
+     "key": "SERVER-036",
+     "english": "To change the relationship, use Edit on the voter's profile.",
+     "kind": "Message",
+     "where": "InfluencerService"
+    },
+    {
+     "key": "SERVER-037",
+     "english": "Link To Voter",
+     "kind": "Message",
+     "where": "InfluencerService"
+    },
+    {
+     "key": "SERVER-038",
+     "english": "Relationship not found.",
+     "kind": "Message",
+     "where": "InfluencerService"
+    },
+    {
+     "key": "SERVER-039",
+     "english": "This constituency already has an island with that name.",
+     "kind": "Message",
+     "where": "IslandService"
+    },
+    {
+     "key": "SERVER-040",
+     "english": "This island has voters, so it cannot be moved to another constituency.",
+     "kind": "Message",
+     "where": "IslandService"
+    },
+    {
+     "key": "SERVER-041",
+     "english": "This island has voters and cannot be deleted.",
+     "kind": "Message",
+     "where": "IslandService"
+    },
+    {
+     "key": "SERVER-042",
+     "english": "JWT signing key is missing.",
+     "kind": "Message",
+     "where": "JwtTokenService"
+    },
+    {
+     "key": "SERVER-043",
+     "english": "Please choose a party from the list.",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-044",
+     "english": "Membership list could not be read",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-045",
+     "english": "The file could not be read as an Excel workbook. Check the file and try again.",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-046",
+     "english": "Membership list could not be applied",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-047",
+     "english": "The list could not be applied, so nothing was changed. Please try again.",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-048",
+     "english": "The file is empty.",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-049",
+     "english": "NATIONAL ID",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-050",
+     "english": "ID CARD",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-051",
+     "english": "DATE OF BIRTH",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-052",
+     "english": "BIRTH DATE",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-053",
+     "english": "MOBILE NUMBER",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-054",
+     "english": "CONTACT NUMBER",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-055",
+     "english": "The file needs a column headed \"NID\" (National ID) in the first row.",
+     "kind": "Message",
+     "where": "PartyMembershipImportService"
+    },
+    {
+     "key": "SERVER-056",
+     "english": "One of the chosen rights is not recognised. Please reload the page.",
+     "kind": "Message",
+     "where": "PermissionService"
+    },
+    {
+     "key": "SERVER-057",
+     "english": "Role not found.",
+     "kind": "Message",
+     "where": "PermissionService"
+    },
+    {
+     "key": "SERVER-058",
+     "english": "The Administrator role always has every right.",
+     "kind": "Message",
+     "where": "PermissionService"
+    },
+    {
+     "key": "SERVER-059",
+     "english": "Role names must be between 2 and 50 characters.",
+     "kind": "Message",
+     "where": "PermissionService"
+    },
+    {
+     "key": "SERVER-060",
+     "english": "Role names can't contain the | character.",
+     "kind": "Message",
+     "where": "PermissionService"
+    },
+    {
+     "key": "SERVER-061",
+     "english": "The description can be at most 200 characters.",
+     "kind": "Message",
+     "where": "PermissionService"
+    },
+    {
+     "key": "SERVER-062",
+     "english": "There is already a role called \"{…}\".",
+     "kind": "Message",
+     "where": "PermissionService"
+    },
+    {
+     "key": "SERVER-063",
+     "english": "Please choose where people with this role start: Dashboard or Quick entry.",
+     "kind": "Message",
+     "where": "PermissionService"
+    },
+    {
+     "key": "SERVER-064",
+     "english": "Please choose what opens when someone opens a voter.",
+     "kind": "Message",
+     "where": "PermissionService"
+    },
+    {
+     "key": "SERVER-065",
+     "english": "The Administrator always sees the full voter profile.",
+     "kind": "Message",
+     "where": "PermissionService"
+    },
+    {
+     "key": "SERVER-066",
+     "english": "Remove it from them first (Users → Roles).",
+     "kind": "Message",
+     "where": "PermissionService"
+    },
+    {
+     "key": "SERVER-067",
+     "english": "User not found.",
+     "kind": "Message",
+     "where": "PermissionService, UserService"
+    },
+    {
+     "key": "SERVER-068",
+     "english": "Pledge not found.",
+     "kind": "Message",
+     "where": "PledgeService"
+    },
+    {
+     "key": "SERVER-069",
+     "english": "Please choose a valid status.",
+     "kind": "Message",
+     "where": "PledgeService"
+    },
+    {
+     "key": "SERVER-070",
+     "english": "Resolution notes updated",
+     "kind": "Message",
+     "where": "PledgeService"
+    },
+    {
+     "key": "SERVER-071",
+     "english": "Status changed from \"{…}\" to \"{…}\"",
+     "kind": "Message",
+     "where": "PledgeService"
+    },
+    {
+     "key": "SERVER-072",
+     "english": "Please enter the party's name.",
+     "kind": "Message",
+     "where": "PoliticalPartyService"
+    },
+    {
+     "key": "SERVER-073",
+     "english": "Party names can be at most 100 characters.",
+     "kind": "Message",
+     "where": "PoliticalPartyService"
+    },
+    {
+     "key": "SERVER-074",
+     "english": "Please enter a short name, e.g. MDP.",
+     "kind": "Message",
+     "where": "PoliticalPartyService"
+    },
+    {
+     "key": "SERVER-075",
+     "english": "Short names can be at most 10 characters.",
+     "kind": "Message",
+     "where": "PoliticalPartyService"
+    },
+    {
+     "key": "SERVER-076",
+     "english": "Party not found.",
+     "kind": "Message",
+     "where": "PoliticalPartyService"
+    },
+    {
+     "key": "SERVER-077",
+     "english": "Rename: \"{…} ({…})\" → \"{…} ({…})\"",
+     "kind": "Message",
+     "where": "PoliticalPartyService"
+    },
+    {
+     "key": "SERVER-078",
+     "english": "You can rename it instead.",
+     "kind": "Message",
+     "where": "PoliticalPartyService"
+    },
+    {
+     "key": "SERVER-079",
+     "english": "DEVELOPMENT SMS (not really sent) to {…}: {…}",
+     "kind": "Message",
+     "where": "SmsSenders"
+    },
+    {
+     "key": "SERVER-080",
+     "english": "(no number)",
+     "kind": "Message",
+     "where": "SmsSenders"
+    },
+    {
+     "key": "SERVER-081",
+     "english": "Short name can have up to 8 letters, numbers, spaces or dashes (e.g. FT28). Leave it empty to use the campaign name's initials.",
+     "kind": "Message",
+     "where": "SystemSettingsService"
+    },
+    {
+     "key": "SERVER-082",
+     "english": "Tagline can be up to 80 characters.",
+     "kind": "Message",
+     "where": "SystemSettingsService"
+    },
+    {
+     "key": "SERVER-083",
+     "english": "The logo is too large. Please choose one under 1 MB.",
+     "kind": "Message",
+     "where": "SystemSettingsService, SettingsController"
+    },
+    {
+     "key": "SERVER-084",
+     "english": "That logo could not be read.",
+     "kind": "Message",
+     "where": "SystemSettingsService"
+    },
+    {
+     "key": "SERVER-085",
+     "english": "All constituencies and islands",
+     "kind": "Message",
+     "where": "SystemSettingsService"
+    },
+    {
+     "key": "SERVER-086",
+     "english": "There is already a user with National ID {…}.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-087",
+     "english": "Reset by an administrator",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-088",
+     "english": "Please enter the full name.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-089",
+     "english": "National ID {…} → {…}",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-090",
+     "english": "If you did not ask for this, contact your administrator.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-091",
+     "english": "Give {…} at least one role before activating the account (Users → Roles).",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-092",
+     "english": "Sent by SMS when the account was first activated",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-093",
+     "english": "Your authorization code is {…}. Sign in with it and the code we send you by SMS.{…}",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-094",
+     "english": "Never share your codes. Campaign staff will never ask for them.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-095",
+     "english": "You can't deactivate your own account.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-096",
+     "english": "This is the only active Administrator, so the account must stay active.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-097",
+     "english": "You can't delete your own account.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-098",
+     "english": "This is the only active Administrator, so the account can't be deleted.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-099",
+     "english": "Choose at least one role.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-100",
+     "english": "One of the chosen roles is not valid. Please reload the page.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-101",
+     "english": "This is the only Administrator. Make another user an Administrator first.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-102",
+     "english": "That island is not part of the chosen constituency.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-103",
+     "english": "Area not found.",
+     "kind": "Message",
+     "where": "UserService"
+    },
+    {
+     "key": "SERVER-104",
+     "english": "Voter import stopped while saving",
+     "kind": "Message",
+     "where": "VoterImportService"
+    },
+    {
+     "key": "SERVER-105",
+     "english": "The import stopped while saving. Rows saved before that point are kept. Please try again.",
+     "kind": "Message",
+     "where": "VoterImportService"
+    },
+    {
+     "key": "SERVER-106",
+     "english": "Voter import file could not be read",
+     "kind": "Message",
+     "where": "VoterImportService"
+    },
+    {
+     "key": "SERVER-107",
+     "english": "The file could not be read as an Excel workbook. Check it is the voter list template and try again.",
+     "kind": "Message",
+     "where": "VoterImportService"
+    },
+    {
+     "key": "SERVER-108",
+     "english": "The uploaded Excel stream could not be read.",
+     "kind": "Message",
+     "where": "VoterImportService"
+    },
+    {
+     "key": "SERVER-109",
+     "english": "Row {…}: missing National ID.",
+     "kind": "Message",
+     "where": "VoterImportService"
+    },
+    {
+     "key": "SERVER-110",
+     "english": "Row {…}: invalid gender",
+     "kind": "Message",
+     "where": "VoterImportService"
+    },
+    {
+     "key": "SERVER-111",
+     "english": "Row {…}: missing constituency",
+     "kind": "Message",
+     "where": "VoterImportService"
+    },
+    {
+     "key": "SERVER-112",
+     "english": "Row {…}: {…}",
+     "kind": "Message",
+     "where": "VoterImportService"
+    },
+    {
+     "key": "SERVER-113",
+     "english": "Row {…}: could not be read.",
+     "kind": "Message",
+     "where": "VoterImportService"
+    },
+    {
+     "key": "SERVER-114",
+     "english": "No constituency mapping for",
+     "kind": "Message",
+     "where": "VoterImportService"
+    },
+    {
+     "key": "SERVER-115",
+     "english": "You don't have permission to do that with voter photos. Ask your Administrator.",
+     "kind": "Message",
+     "where": "VoterPhotoService"
+    },
+    {
+     "key": "SERVER-116",
+     "english": "Please choose a photo.",
+     "kind": "Message",
+     "where": "VoterPhotoService, VotersController"
+    },
+    {
+     "key": "SERVER-117",
+     "english": "The photo is too large. Please choose one under 2 MB.",
+     "kind": "Message",
+     "where": "VoterPhotoService, VotersController"
+    },
+    {
+     "key": "SERVER-118",
+     "english": "That photo could not be read.",
+     "kind": "Message",
+     "where": "VoterPhotoService"
+    },
+    {
+     "key": "SERVER-119",
+     "english": "You can only add voters within your assigned area.",
+     "kind": "Message",
+     "where": "VoterService"
+    },
+    {
+     "key": "SERVER-120",
+     "english": "A voter with National ID {…} already exists.",
+     "kind": "Message",
+     "where": "VoterService"
+    },
+    {
+     "key": "SERVER-121",
+     "english": "Please choose Male or Female for gender.",
+     "kind": "Message",
+     "where": "VoterService"
+    },
+    {
+     "key": "SERVER-122",
+     "english": "Please enter a real date of birth (not in the future).",
+     "kind": "Message",
+     "where": "VoterService"
+    },
+    {
+     "key": "SERVER-123",
+     "english": "That island is not in the chosen constituency. Please choose the island again.",
+     "kind": "Message",
+     "where": "VoterService"
+    },
+    {
+     "key": "SERVER-124",
+     "english": "Please choose a party from the list, or \"Not known\".",
+     "kind": "Message",
+     "where": "VoterService"
+    },
+    {
+     "key": "SERVER-125",
+     "english": "Only an Administrator can move a voter to another constituency or island.",
+     "kind": "Message",
+     "where": "VoterService"
+    },
+    {
+     "key": "SERVER-126",
+     "english": "You can only move voters within your assigned area.",
+     "kind": "Message",
+     "where": "VoterService"
+    },
+    {
+     "key": "SERVER-127",
+     "english": "Another voter already has National ID {…}.",
+     "kind": "Message",
+     "where": "VoterService"
+    },
+    {
+     "key": "SERVER-128",
+     "english": "Choose one of:",
+     "kind": "Message",
+     "where": "VoterService"
+    },
+    {
+     "key": "SERVER-129",
+     "english": "Please choose a photo in JPG or PNG format.",
+     "kind": "Message",
+     "where": "PhotoSanitizer"
+    },
+    {
+     "key": "SERVER-130",
+     "english": "That photo could not be read. Please choose another JPG or PNG photo.",
+     "kind": "Message",
+     "where": "PhotoSanitizer"
+    },
+    {
+     "key": "SERVER-131",
+     "english": "OTP Generated.",
+     "kind": "Message",
+     "where": "AuthController"
+    },
+    {
+     "key": "SERVER-132",
+     "english": "This device is no longer remembered.",
+     "kind": "Message",
+     "where": "AuthController"
+    },
+    {
+     "key": "SERVER-133",
+     "english": "Please sign in again.",
+     "kind": "Message",
+     "where": "AuthController"
+    },
+    {
+     "key": "SERVER-134",
+     "english": "For your security, please sign in again.",
+     "kind": "Message",
+     "where": "AuthController"
+    },
+    {
+     "key": "SERVER-135",
+     "english": "Influencer linked to voter successfully.",
+     "kind": "Message",
+     "where": "InfluencersController"
+    },
+    {
+     "key": "SERVER-136",
+     "english": "The role \"{…}\" was deleted.",
+     "kind": "Message",
+     "where": "PermissionsController"
+    },
+    {
+     "key": "SERVER-137",
+     "english": "Support %",
+     "kind": "Message",
+     "where": "ReportsController"
+    },
+    {
+     "key": "SERVER-138",
+     "english": "Share %",
+     "kind": "Message",
+     "where": "ReportsController"
+    },
+    {
+     "key": "SERVER-139",
+     "english": "Assigned area only",
+     "kind": "Message",
+     "where": "ReportsController"
+    },
+    {
+     "key": "SERVER-140",
+     "english": "Generated (Maldives time)",
+     "kind": "Message",
+     "where": "ReportsController"
+    },
+    {
+     "key": "SERVER-141",
+     "english": "Scope assigned successfully.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "SERVER-142",
+     "english": "To end your own session, use Sign out.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "SERVER-143",
+     "english": "Role assigned successfully.",
+     "kind": "Message",
+     "where": "UsersController"
+    },
+    {
+     "key": "SERVER-144",
+     "english": "No voter with that ID card was found in your areas.",
+     "kind": "Message",
+     "where": "VotersController"
+    },
+    {
+     "key": "SERVER-145",
+     "english": "Voter updated successfully.",
+     "kind": "Message",
+     "where": "VotersController"
+    },
+    {
+     "key": "SERVER-146",
+     "english": "Voter deleted successfully.",
+     "kind": "Message",
+     "where": "VotersController"
+    },
+    {
+     "key": "SERVER-147",
+     "english": "This voter has no photo.",
+     "kind": "Message",
+     "where": "VotersController"
+    }
+   ]
+  }
+ ]
+}
