@@ -178,18 +178,20 @@
                 @* One photo per voter: upload only when there is none; otherwise only remove it. *@
                 @if (Model?.HasPhoto != true)
                 {
+                @* Same as Quick entry: one camera button (phones offer the camera or a picture); the
+                   picture is made smaller on the device and sent straight away (site.js). *@
                 <form asp-action="UploadPhoto" asp-route-id="@voterId" method="post" enctype="multipart/form-data" class="ui-photo-upload">
-                    <label for="voterPhoto" class="ui-label">Add a photo <span class="ui-optional">(optional)</span></label>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                        <input id="voterPhoto" name="photo" type="file" accept="image/jpeg,image/png" class="ui-input" style="max-width: 320px;" required
-                               data-max-bytes="2097152" aria-describedby="voterPhotoError" />
-                        <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm">
-                            <partial name="_Icon" model='"upload"' />
-                            Upload
-                        </button>
+                    <div class="ui-label">Photo <span class="ui-optional">(optional)</span></div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <label class="ui-btn ui-btn-secondary ui-btn-sm ui-photo-pick" for="voterPhoto">
+                            <partial name="_Icon" model='"camera"' />
+                            <span>Add photo</span>
+                        </label>
+                        <input id="voterPhoto" name="photo" type="file" accept="image/*" class="visually-hidden"
+                               data-photo-upload aria-describedby="voterPhotoNote" />
+                        <span id="voterPhotoNote" class="ui-hint" role="status" style="margin: 0;">Take one or choose a picture.</span>
                     </div>
-                    <div id="voterPhotoError" class="ui-error" role="alert" hidden></div>
-                    <div class="ui-hint">JPG or PNG, up to 2 MB. Location details inside the photo are removed when it is saved.</div>
+                    <div class="ui-hint">Location details inside the photo are removed when it is saved.</div>
                 </form>
                 }
                 else
