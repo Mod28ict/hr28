@@ -23,6 +23,7 @@ publish it on 0.0.0.0).
 | `scripts/rotate-sa-and-create-app-login.sh` | run **by the owner** in PuTTY | asks for the current sa password |
 | `scripts/backup-db.sh` + `hr28-backup.cron` | `/usr/local/sbin/hr28-backup`, `/etc/cron.d/hr28-backup` | nightly 02:30 MVT, 14 days |
 | `scripts/deploy-release.sh` | `/usr/local/sbin/hr28-deploy` | backup, update, health check, roll back |
+| `scripts/reset-code.sh` | `/usr/local/sbin/hr28-reset-code` | new authorization code from the server |
 | `sql/cleanup-development-leftovers.sql` | run once | removes test accounts copied from development |
 
 Secrets live only in `/etc/hr28/` on the server: `sql-admin.env` (root, 600), `api.env`
@@ -41,7 +42,8 @@ Users → Reset code).
    Check: `curl http://127.0.0.1:5001/health` → `{"status":"ok"}`, and
    `curl -H 'X-Forwarded-Proto: https' -o /dev/null -w '%{http_code}' http://127.0.0.1:5000/Auth/Login` → `200`
    (without that header the web app answers 500: it only works over HTTPS).
-6. First Administrator code: `cd /var/www/hr28-api && sudo -u hr28api env $(cat /etc/hr28/api.env | xargs) dotnet HR28.API.dll reset-code <ID card>` (prints the code once).
+6. First Administrator code: install `scripts/reset-code.sh` as `/usr/local/sbin/hr28-reset-code`,
+   then `hr28-reset-code <ID card>` (prints the code once).
 7. Backups: install `hr28-backup` + cron, run once, check `/var/backups/hr28`.
 8. Cloudflare: Origin Certificate → `/etc/ssl/hr28/origin.pem` + `origin.key` (600);
    Nginx files; `nginx -t`; DNS `@` and `www` → droplet IP (proxied); SSL mode **Full (strict)**.
