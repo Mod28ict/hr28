@@ -21,7 +21,7 @@ publish it on 0.0.0.0).
 | `env/*.env.example` | `/etc/hr28/api.env`, `/etc/hr28/web.env` | made by `setup-accounts-and-secrets.sh`; never in Git |
 | `scripts/setup-accounts-and-secrets.sh` | run once | accounts, folders, **new** production keys (kept on re-run) |
 | `scripts/rotate-sa-and-create-app-login.sh` | run **by the owner** in PuTTY | asks for the current sa password |
-| `scripts/backup-db.sh` + `hr28-backup.cron` | `/usr/local/sbin/hr28-backup`, `/etc/cron.d/hr28-backup` | nightly 02:30 MVT, 14 days |
+| `scripts/backup-db.sh` + `hr28-backup.cron` | `/usr/local/sbin/hr28-backup`, `/etc/cron.d/hr28-backup` | nightly 00:30 MVT, 14 days (DigitalOcean daily droplet backups 01:00-05:00 MVT, 7 days) |
 | `scripts/deploy-release.sh` | `/usr/local/sbin/hr28-deploy` | backup, update, health check, roll back |
 | `scripts/save-origin-cert.sh` | `/usr/local/sbin/hr28-origin-cert` | owner pastes the Cloudflare Origin Certificate + key |
 | `scripts/cloudflare-only.sh` + `hr28-cloudflare-only.cron` | `/usr/local/sbin/hr28-cloudflare-only`, `/etc/cron.d/` | ports 80/443 from Cloudflare only + Nginx real-IP list; monthly |

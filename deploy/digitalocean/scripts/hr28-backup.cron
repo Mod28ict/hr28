@@ -1,2 +1,3 @@
-# /etc/cron.d/hr28-backup - nightly at 02:30 Maldives time (21:30 UTC).
-30 21 * * * root /usr/local/sbin/hr28-backup >> /var/log/hr28-backup.log 2>&1
+# /etc/cron.d/hr28-backup - nightly at 00:30 Maldives time (19:30 UTC), before the DigitalOcean
+# droplet backup window (01:00-05:00 MVT), so each droplet copy holds that night's database backup.
+30 19 * * * root /usr/local/sbin/hr28-backup >> /var/log/hr28-backup.log 2>&1
