@@ -36,7 +36,7 @@ Users → Reset code).
 2. Owner, in PuTTY: `rotate-sa-and-create-app-login.sh` — new sa password, login `hr28_app`.
 3. Clean `/var/www/hr28-api` and `/var/www/hr28`: replace `appsettings.json` with the
    committed one (no secrets) and delete `appsettings.Development.json`.
-4. `sql/cleanup-development-leftovers.sql` (as sa).
+4. `sql/cleanup-development-leftovers.sql` (as sa; sqlcmd needs `-I`, the tables have filtered indexes).
 5. Install both systemd units; remove the old `hr28.service`; start `hr28-api`, then `hr28-web`.
    Check: `curl http://127.0.0.1:5001/health` → `{"status":"ok"}`.
 6. First Administrator code: `cd /var/www/hr28-api && sudo -u hr28api env $(cat /etc/hr28/api.env | xargs) dotnet HR28.API.dll reset-code <ID card>` (prints the code once).

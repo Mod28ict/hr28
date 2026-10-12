@@ -24,7 +24,7 @@ echo "Backing up the database before the update..."
 if [ -f "$REL/migrate.sql" ]; then
     echo "Applying database changes..."
     source /etc/hr28/sql-admin.env
-    SQLCMDPASSWORD="$SA_PASSWORD" /opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1,1433 -U sa -C -b -d HR28Db -i "$REL/migrate.sql"
+    SQLCMDPASSWORD="$SA_PASSWORD" /opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1,1433 -U sa -C -I -b -d HR28Db -i "$REL/migrate.sql"
     unset SA_PASSWORD
 fi
 
