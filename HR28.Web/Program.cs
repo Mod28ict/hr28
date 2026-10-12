@@ -1,5 +1,7 @@
 using HR28.Web.Models;
 using HR28.Web.Services;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,11 +71,36 @@ builder.Services.AddHsts(options =>
 // from Cloudflare's networks (ReverseProxy:Cloudflare = true). Off by default.
 var cloudflareClientIp = HR28.Web.Middleware.CloudflareClientIp.CreateOptions(builder.Configuration);
 
+// Behind Nginx on the same server (ReverseProxy:BehindLocalProxy = true): Nginx passes the
+// visitor's address and "came over HTTPS"; trusted only from the server itself (loopback).
+// Nginx takes the visitor's address from Cloudflare, so ReverseProxy:Cloudflare stays off.
+var localProxy = builder.Configuration.GetValue<bool>("ReverseProxy:BehindLocalProxy")
+    ? new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+        ForwardLimit = 1
+    }
+    : null;
+
+// The keys that protect sign-in sessions and forms. On a server they must survive restarts
+// and updates, or everyone is signed out: kept in DataProtection:KeysPath (a folder only the
+// web app's account can read). Not set (development): the default per-user location.
+var keysPath = builder.Configuration["DataProtection:KeysPath"];
+
+if (!string.IsNullOrWhiteSpace(keysPath))
+{
+    builder.Services.AddDataProtection()
+        .SetApplicationName("HR28.Web")
+        .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+}
+
 var app = builder.Build();
 
 // First, so everything after it (including the address forwarded to the API) sees the visitor.
 if (cloudflareClientIp != null)
     app.UseForwardedHeaders(cloudflareClientIp);
+else if (localProxy != null)
+    app.UseForwardedHeaders(localProxy);
 
 app.UseMiddleware<HR28.Web.Middleware.SecurityHeadersMiddleware>();
 

@@ -221,6 +221,13 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// For the server's own checks (systemd, deploy script, monitoring): is the API up and can it
+// reach the database? Says nothing else. Only reachable on the server itself.
+app.MapGet("/health", async (HR28DbContext db) =>
+    await db.Database.CanConnectAsync()
+        ? Results.Ok(new { status = "ok" })
+        : Results.Json(new { status = "database unavailable" }, statusCode: StatusCodes.Status503ServiceUnavailable));
+
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider
@@ -252,6 +259,14 @@ using (var scope = app.Services.CreateScope())
         app.Logger.LogInformation(
             "Erased {Count} SMS codes stored before hashing.", clearedOtps);
     }
+}
+
+// Server-only maintenance: "dotnet HR28.API.dll reset-code A123456" gives that user a new
+// authorization code (printed once) and exits without starting the API.
+if (args.Length >= 2 && args[0] == HR28.API.Maintenance.ResetCodeCommand.Name)
+{
+    Environment.ExitCode = await HR28.API.Maintenance.ResetCodeCommand.RunAsync(app.Services, args[1]);
+    return;
 }
 
 app.Run();
