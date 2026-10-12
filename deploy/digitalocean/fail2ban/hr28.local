@@ -1,0 +1,12 @@
+# /etc/fail2ban/jail.d/hr28.local - bans an address for a day after 5 failed SSH attempts in 10 minutes.
+[DEFAULT]
+backend = systemd
+banaction = ufw
+
+[sshd]
+enabled  = true
+maxretry = 5
+findtime = 10m
+bantime  = 1d
+# Ubuntu 24.04 runs SSH as ssh.service (the default filter looks for sshd.service).
+journalmatch = _SYSTEMD_UNIT=ssh.service + _COMM=sshd

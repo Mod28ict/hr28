@@ -24,6 +24,9 @@ publish it on 0.0.0.0).
 | `scripts/backup-db.sh` + `hr28-backup.cron` | `/usr/local/sbin/hr28-backup`, `/etc/cron.d/hr28-backup` | nightly 02:30 MVT, 14 days |
 | `scripts/deploy-release.sh` | `/usr/local/sbin/hr28-deploy` | backup, update, health check, roll back |
 | `scripts/save-origin-cert.sh` | `/usr/local/sbin/hr28-origin-cert` | owner pastes the Cloudflare Origin Certificate + key |
+| `scripts/cloudflare-only.sh` + `hr28-cloudflare-only.cron` | `/usr/local/sbin/hr28-cloudflare-only`, `/etc/cron.d/` | ports 80/443 from Cloudflare only + Nginx real-IP list; monthly |
+| `ssh/10-hr28.conf` | `/etc/ssh/sshd_config.d/` | keys only, 3 tries, no X11 |
+| `fail2ban/hr28.local` | `/etc/fail2ban/jail.d/` | 5 failed SSH tries in 10 min = banned 1 day |
 | `scripts/sms-codes.sh` | `/usr/local/sbin/hr28-sms-codes` | TEMPORARY: read codes while SMS is not connected |
 | `scripts/reset-code.sh` | `/usr/local/sbin/hr28-reset-code` | new authorization code from the server |
 | `sql/cleanup-development-leftovers.sql` | run once | removes test accounts copied from development |
@@ -55,8 +58,12 @@ Users → Reset code).
    `Sms__ServerFile__Until=<last day>` (≤ 31 days ahead; after it, sending refuses again).
    Read codes as root with `hr28-sms-codes`. When SMS works: delete both lines, the folder
    and `hr28-sms-codes`, restart `hr28-api`.
-10. Hardening: admin user with sudo + key, then `PermitRootLogin no` / `PasswordAuthentication no`;
-    UFW 80/443 from Cloudflare networks only; DigitalOcean backups on.
+10. Hardening (done 2026-10-12): `ssh/10-hr28.conf` (`sshd -t`, reload, test a NEW connection
+    first); fail2ban (`hr28.local`; Ubuntu 24.04's unit is `ssh.service`); `hr28-cloudflare-only`
+    (+ cron); Authenticated Origin Pulls: CA at `/etc/ssl/hr28/cloudflare-origin-pull-ca.pem`, turn
+    it on in Cloudflare first, then the `ssl_verify_client` lines in `hr28.conf`;
+    `Logging__LogLevel__Default=Warning` in both `.env` files. Cloudflare Pro: Managed + OWASP WAF,
+    Super Bot Fight Mode, rate limit on `/Auth/`. Still to do: DigitalOcean backups / off-site copies.
 
 ## Updates
 

@@ -1,0 +1,2 @@
+# /etc/cron.d/hr28-cloudflare-only - keep the Cloudflare address list current (1st of the month, 03:15 MVT).
+15 22 1 * * root /usr/local/sbin/hr28-cloudflare-only >> /var/log/hr28-cloudflare-only.log 2>&1
