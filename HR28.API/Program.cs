@@ -72,8 +72,19 @@ builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 // Development: SMS is written to the log (never sent). Elsewhere, sending fails
 // safely until a real provider is connected; codes are never logged.
+// Temporary server test mode (owner, 2026-10-12): messages go to a root-only folder
+// until a set day, only when the server settings switch it on.
 if (builder.Environment.IsDevelopment())
     builder.Services.AddSingleton<ISmsSender, DevelopmentSmsSender>();
+else if (!string.IsNullOrWhiteSpace(builder.Configuration[ServerFileSmsSender.UntilSetting]))
+{
+    var smsFolder = builder.Configuration[ServerFileSmsSender.FolderSetting] ?? string.Empty;
+    var smsUntil = builder.Configuration[ServerFileSmsSender.UntilSetting]!;
+    // Checked now so bad settings stop the API from starting.
+    ServerFileSmsSender.FromSettings(smsFolder, smsUntil, Microsoft.Extensions.Logging.Abstractions.NullLogger<ServerFileSmsSender>.Instance);
+    builder.Services.AddSingleton<ISmsSender>(sp =>
+        ServerFileSmsSender.FromSettings(smsFolder, smsUntil, sp.GetRequiredService<ILogger<ServerFileSmsSender>>()));
+}
 else
     builder.Services.AddSingleton<ISmsSender, UnconfiguredSmsSender>();
 

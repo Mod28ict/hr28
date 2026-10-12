@@ -260,6 +260,13 @@ strong despite that:
   `Security:StoreReadableOtpCodes: true` in `appsettings.Development.json` keeps codes
   readable in `OtpRequests.OtpCode` so testers can sign in. The API refuses to start
   with it on outside Development. Remove the setting when SMS is integrated.
+  **Temporary live test mode (owner, 2026-10-12, ends 2026-10-19):** on the DigitalOcean
+  server, `ServerFileSmsSender` writes each SMS to `/var/lib/hr28/sms-outbox` (hr28api,
+  700; files 600) instead of sending it; root reads codes with `hr28-sms-codes`. Only the
+  server settings `Sms:ServerFile:Folder` + `Sms:ServerFile:Until` switch it on (last
+  Maldives day, ≤ 31 days ahead, the API refuses to start otherwise); after that day it
+  refuses like `UnconfiguredSmsSender`. Codes stay hashed in the database. Remove it
+  (settings, folder, script, and the class) when a real SMS provider is connected.
 - Rate limits (implemented): per IP 10 code requests and 20 code checks per 5 minutes;
   per account 60s between requests, 5 codes per hour, and 10 wrong codes in a row
   locks sign-in for 15 minutes. Per user: 120 searches/min, 20 report downloads/hour,

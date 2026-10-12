@@ -24,6 +24,7 @@ publish it on 0.0.0.0).
 | `scripts/backup-db.sh` + `hr28-backup.cron` | `/usr/local/sbin/hr28-backup`, `/etc/cron.d/hr28-backup` | nightly 02:30 MVT, 14 days |
 | `scripts/deploy-release.sh` | `/usr/local/sbin/hr28-deploy` | backup, update, health check, roll back |
 | `scripts/save-origin-cert.sh` | `/usr/local/sbin/hr28-origin-cert` | owner pastes the Cloudflare Origin Certificate + key |
+| `scripts/sms-codes.sh` | `/usr/local/sbin/hr28-sms-codes` | TEMPORARY: read codes while SMS is not connected |
 | `scripts/reset-code.sh` | `/usr/local/sbin/hr28-reset-code` | new authorization code from the server |
 | `sql/cleanup-development-leftovers.sql` | run once | removes test accounts copied from development |
 
@@ -49,6 +50,11 @@ Users → Reset code).
 8. Cloudflare: Origin Certificate → `/etc/ssl/hr28/origin.pem` + `origin.key` (600);
    Nginx files; `nginx -t`; DNS `@` and `www` → droplet IP (proxied); SSL mode **Full (strict)**.
 9. SMS provider (sign-in does not work in production until it is connected).
+   **Temporary test mode (owner, 2026-10-12, until 2026-10-19):** `/var/lib/hr28/sms-outbox`
+   (hr28api, 700) and in `api.env` `Sms__ServerFile__Folder=/var/lib/hr28/sms-outbox`,
+   `Sms__ServerFile__Until=<last day>` (≤ 31 days ahead; after it, sending refuses again).
+   Read codes as root with `hr28-sms-codes`. When SMS works: delete both lines, the folder
+   and `hr28-sms-codes`, restart `hr28-api`.
 10. Hardening: admin user with sudo + key, then `PermitRootLogin no` / `PasswordAuthentication no`;
     UFW 80/443 from Cloudflare networks only; DigitalOcean backups on.
 

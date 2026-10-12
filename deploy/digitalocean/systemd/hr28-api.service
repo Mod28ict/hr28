@@ -29,6 +29,8 @@ ProtectKernelModules=true
 ProtectControlGroups=true
 RestrictSUIDSGID=true
 LockPersonality=true
+# Temporary SMS test mode only ("-" = fine if the folder does not exist).
+ReadWritePaths=-/var/lib/hr28/sms-outbox
 
 [Install]
 WantedBy=multi-user.target
