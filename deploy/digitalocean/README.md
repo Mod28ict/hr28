@@ -77,6 +77,7 @@ Set in the dashboard; nothing on the server depends on them except where noted.
 | SSL/TLS → Origin Server | Origin Certificate (15 years) → `hr28-origin-cert`; **Authenticated Origin Pulls** on (zone-level) **before** `ssl_verify_client on` in Nginx |
 | Overview → Security quick start | Cloudflare Managed Ruleset, OWASP Core Ruleset, Super Bot Fight Mode, Client-side security: on |
 | Security rules → Rate limiting | `Sign-in limit`: `(http.request.method eq "POST" and (starts_with(lower(http.request.uri.path), "/auth/login") or starts_with(lower(http.request.uri.path), "/auth/verifyotp")))`, per IP, 20 / 1 minute, Managed Challenge (not `/Auth/KeepAlive`: shared mobile IPs) |
+| Security rules → Managed rules → Create rule (exception), **Place at: First** | `File uploads (photos, voter lists)`: `(http.request.method eq "POST" and (starts_with(lower(http.request.uri.path), "/voters/uploadphoto/") or starts_with(lower(http.request.uri.path), "/voterimport")))` → skip **OWASP 949110** (Inbound Anomaly Score Exceeded) only. JPEG/Excel bytes scored 105 and blocked photo uploads (2026-10-12); the Cloudflare Managed Ruleset still applies, and the app checks and rebuilds every file |
 | Security rules → Custom | `Challenge outside Maldives`: `(ip.src.country ne "MV")`, Managed Challenge (owner, 2026-10-12: users abroad pass once; adjust the country for a client elsewhere) |
 | Security → Settings | Challenge Passage **16 hours** (covers the 12-hour session, so background calls don't hit a new challenge) |
 
