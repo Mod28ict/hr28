@@ -62,8 +62,26 @@ Users → Reset code).
     first); fail2ban (`hr28.local`; Ubuntu 24.04's unit is `ssh.service`); `hr28-cloudflare-only`
     (+ cron); Authenticated Origin Pulls: CA at `/etc/ssl/hr28/cloudflare-origin-pull-ca.pem`, turn
     it on in Cloudflare first, then the `ssl_verify_client` lines in `hr28.conf`;
-    `Logging__LogLevel__Default=Warning` in both `.env` files. Cloudflare Pro: Managed + OWASP WAF,
-    Super Bot Fight Mode, rate limit on `/Auth/`. Still to do: DigitalOcean backups / off-site copies.
+    `Logging__LogLevel__Default=Warning` in both `.env` files. Cloudflare: see below.
+    DigitalOcean daily droplet backups (01:00-05:00 MVT, 7 days); off-site database copies: not yet.
+
+## Cloudflare settings (per client zone, Pro plan)
+
+Set in the dashboard; nothing on the server depends on them except where noted.
+
+| Where | Setting |
+|---|---|
+| DNS | `@` A → droplet IP (proxied); `www` CNAME → `@` (proxied); no other A/AAAA for `@`/`www` |
+| SSL/TLS → Overview | **Full (strict)** (Custom, not Automatic) |
+| SSL/TLS → Edge Certificates | Always Use HTTPS on; Minimum TLS 1.2; TLS 1.3 on; Automatic HTTPS Rewrites on; HSTS off (the app sends it) |
+| SSL/TLS → Origin Server | Origin Certificate (15 years) → `hr28-origin-cert`; **Authenticated Origin Pulls** on (zone-level) **before** `ssl_verify_client on` in Nginx |
+| Overview → Security quick start | Cloudflare Managed Ruleset, OWASP Core Ruleset, Super Bot Fight Mode, Client-side security: on |
+| Security rules → Rate limiting | `Sign-in limit`: `(http.request.method eq "POST" and (starts_with(lower(http.request.uri.path), "/auth/login") or starts_with(lower(http.request.uri.path), "/auth/verifyotp")))`, per IP, 20 / 1 minute, Managed Challenge (not `/Auth/KeepAlive`: shared mobile IPs) |
+| Security rules → Custom | `Challenge outside Maldives`: `(ip.src.country ne "MV")`, Managed Challenge (owner, 2026-10-12: users abroad pass once; adjust the country for a client elsewhere) |
+| Security → Settings | Challenge Passage **16 hours** (covers the 12-hour session, so background calls don't hit a new challenge) |
+
+Check after changes: from the PC `https://<domain>/cdn-cgi/trace` shows `loc=MV` and the sign-in page
+answers 200; a test SQL-injection query string answers 403.
 
 ## Updates
 
