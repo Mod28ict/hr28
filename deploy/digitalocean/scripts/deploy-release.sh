@@ -56,7 +56,8 @@ fi
 
 systemctl start hr28-web
 sleep 3
-code="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5000/Auth/Login)"
+# As Nginx calls it: the app refuses plain-HTTP requests (secure cookies).
+code="$(curl -s -o /dev/null -w '%{http_code}' -H 'X-Forwarded-Proto: https' http://127.0.0.1:5000/Auth/Login)"
 [ "$code" = "200" ] || { echo "Web app answered $code: check 'journalctl -u hr28-web'."; exit 1; }
 
 rm -rf "$REL"

@@ -38,7 +38,9 @@ Users → Reset code).
    committed one (no secrets) and delete `appsettings.Development.json`.
 4. `sql/cleanup-development-leftovers.sql` (as sa; sqlcmd needs `-I`, the tables have filtered indexes).
 5. Install both systemd units; remove the old `hr28.service`; start `hr28-api`, then `hr28-web`.
-   Check: `curl http://127.0.0.1:5001/health` → `{"status":"ok"}`.
+   Check: `curl http://127.0.0.1:5001/health` → `{"status":"ok"}`, and
+   `curl -H 'X-Forwarded-Proto: https' -o /dev/null -w '%{http_code}' http://127.0.0.1:5000/Auth/Login` → `200`
+   (without that header the web app answers 500: it only works over HTTPS).
 6. First Administrator code: `cd /var/www/hr28-api && sudo -u hr28api env $(cat /etc/hr28/api.env | xargs) dotnet HR28.API.dll reset-code <ID card>` (prints the code once).
 7. Backups: install `hr28-backup` + cron, run once, check `/var/backups/hr28`.
 8. Cloudflare: Origin Certificate → `/etc/ssl/hr28/origin.pem` + `origin.key` (600);
