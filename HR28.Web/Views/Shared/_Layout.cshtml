@@ -166,16 +166,20 @@
 
 .h28-loader-mark {
     position: absolute;
-    inset: 14px;
+    inset: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
     border-radius: 10px;
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 800;
-    background: linear-gradient(135deg, #2563eb, #60a5fa);
+    background: #ffffff;
 }
+
+    .h28-loader-mark img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
 
 .h28-loader-text {
     color: #334155;
@@ -199,7 +203,13 @@
 <body class="shell-body">
 <div class="h28-loader" id="h28Loader">
     <div class="h28-loader-ring">
-        <div class="h28-loader-mark">@brand.ShortName</div>
+        @* The client's logo in the middle; without a logo, just the spinning ring. *@
+        @if (brand.HasLogo)
+        {
+            <div class="h28-loader-mark">
+                <img src="@Url.Action("Logo", "Brand", new { v = brand.LogoVersion })" alt="" />
+            </div>
+        }
     </div>
     <div class="h28-loader-text">Loading campaign data…</div>
     <div class="h28-loader-sub">This may take a few seconds</div>
