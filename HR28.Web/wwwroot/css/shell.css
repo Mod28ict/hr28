@@ -302,11 +302,44 @@
 }
 
 .shell-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 16px;
     padding: 16px 28px;
     border-top: 1px solid var(--shell-border);
     color: #94a3b8;
     background: #ffffff;
     font-size: 13px;
+}
+
+/* "Powered by CIP": the platform credit shown for every client */
+.cip-credit {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+    .cip-credit strong {
+        font-weight: 700;
+    }
+
+.cip-credit-mark {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    color: #2563eb;
+}
+
+    .cip-credit-mark svg {
+        width: 100%;
+        height: 100%;
+    }
+
+html[data-theme="dark"] .cip-credit-mark {
+    color: #60a5fa;
 }
 
 .shell-backdrop {

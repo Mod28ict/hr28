@@ -13,6 +13,9 @@
           content="width=device-width, initial-scale=1.0" />
 
     <title>@ViewData["Title"] | @brand.ShortName</title>
+    <link rel="icon" href="~/favicon.ico" sizes="any" />
+    <link rel="icon" href="~/img/cip-icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="~/img/cip-apple-touch-icon.png" />
 
     <script>
         // Apply the saved theme before the page paints (no light flash in dark mode).
@@ -475,7 +478,8 @@
         </main>
 
         <footer class="shell-footer">
-            &copy; @HR28.Web.Services.Hr28Time.Now.Year @brand.CampaignName &middot; @brand.Tagline | Designed and Developed by: Ahmed Rasheed
+            <span>&copy; @HR28.Web.Services.Hr28Time.Now.Year @brand.CampaignName &middot; @brand.Tagline | Designed and Developed by: Ahmed Rasheed</span>
+            <partial name="_PoweredByCip" />
         </footer>
 
     </div>

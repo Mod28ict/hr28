@@ -74,6 +74,11 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   the CIP mark ("Insight C": a C with three rising bars; `_CipMark`, shown only while `Branding.IsPlatformDefault`: no client name
   and no logo). Once a client saves their own name or logo, CIP disappears from their
   screens (a client tagline left empty shows "Campaign Intelligence Platform").
+  **Product credit for every client** (owner decision, 2026-10-13, refines 2026-10-08): the
+  client's own name and logo stay the main brand, and every deployment also shows "Powered by
+  CIP · Campaign Intelligence Platform" with the mark (`_PoweredByCip`: sign-in and code
+  pages, and the footer of every page) plus the CIP browser-tab icon (`favicon.ico`,
+  `img/cip-icon.svg`, `img/cip-apple-touch-icon.png`). Brand files: `Docs/Brand/`.
   Internal names (code namespaces, cookie names, JWT issuer,
   Swagger) are not shown to users and stay. The footer keeps "Designed and Developed by:
   Ahmed Rasheed" for every client (owner decision, 2026-10-08: the developer's credit,
