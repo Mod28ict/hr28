@@ -9,13 +9,16 @@ namespace HR28.Web.Services;
 /// <summary>The client's branding as shown on every page (Settings → System → Branding).</summary>
 public class Branding
 {
+    /// <summary>The product's own name, shown until the client sets theirs (mirrors the API).</summary>
+    public const string PlatformName = "Campaign Intelligence Platform";
+
     /// <summary>e.g. "Hithaai Roohun 2028".</summary>
-    public string CampaignName { get; set; } = "Campaign Intelligence";
+    public string CampaignName { get; set; } = PlatformName;
 
     /// <summary>e.g. "HR28" — logo mark, page titles.</summary>
-    public string ShortName { get; set; } = "CI";
+    public string ShortName { get; set; } = "CIP";
 
-    public string Tagline { get; set; } = "Campaign Intelligence Platform";
+    public string Tagline { get; set; } = "Voter relationships and campaign operations";
 
     public bool HasLogo { get; set; }
 
@@ -36,6 +39,12 @@ public class Branding
         var initials = string.Concat(parts);
         return initials.Length > 0 ? initials : "HQ";
     }
+
+    /// <summary>
+    /// No client branding yet (new deployment): the CIP mark is shown instead of initials.
+    /// A client with their own name or logo never sees it.
+    /// </summary>
+    public bool IsPlatformDefault => !HasLogo && CampaignName == PlatformName;
 
     /// <summary>Shorter initials get bigger letters in the square logo mark.</summary>
     public string MarkSizeClass => ShortName.Length switch { <= 3 => "", <= 5 => "is-small", _ => "is-tiny" };

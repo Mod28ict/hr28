@@ -1,4 +1,4 @@
-﻿@model HR28.Web.Models.Auth.GenerateOtpRequest
+@model HR28.Web.Models.Auth.GenerateOtpRequest
 @inject HR28.Web.Services.BrandingService BrandingService
 
 @{
@@ -705,6 +705,10 @@
                     {
                         <img src="@Url.Action("Logo", "Brand", new { v = brand.LogoVersion })" alt="" />
                     }
+                    else if (brand.IsPlatformDefault)
+                    {
+                        <partial name="_CipMark" />
+                    }
                     else
                     {
                         @brand.ShortName
@@ -813,6 +817,10 @@
                         @if (brand.HasLogo)
                         {
                             <img src="@Url.Action("Logo", "Brand", new { v = brand.LogoVersion })" alt="" />
+                        }
+                        else if (brand.IsPlatformDefault)
+                        {
+                            <partial name="_CipMark" />
                         }
                         else
                         {

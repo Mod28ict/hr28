@@ -16,7 +16,15 @@ public class SystemSettingsService : ISystemSettingsService
     public const string ShortNameKey = "ShortName";
     public const string TaglineKey = "Tagline";
 
-    public const string DefaultTagline = "Campaign Intelligence Platform";
+    // The product's own brand (owner, 2026-10-13): Campaign Intelligence Platform (CIP).
+    // A new deployment shows it until the client's Administrator sets their own branding.
+    public const string PlatformName = "Campaign Intelligence Platform";
+
+    /// <summary>Tagline when a client has set their name but no tagline.</summary>
+    public const string DefaultTagline = PlatformName;
+
+    /// <summary>Tagline while the platform's own name is shown (so it doesn't repeat the name).</summary>
+    public const string PlatformTagline = "Voter relationships and campaign operations";
 
     /// <summary>Largest logo accepted.</summary>
     public const int MaxLogoBytes = 1024 * 1024;
@@ -24,7 +32,7 @@ public class SystemSettingsService : ISystemSettingsService
     /// <summary>
     /// Initials made from the campaign name when no short name was saved: the first
     /// letter of each word, and the last two digits of a number ("Hithaai Roohun 2028" →
-    /// "HR28", "Campaign Intelligence" → "CI").
+    /// "HR28", "Campaign Intelligence Platform" → "CIP").
     /// </summary>
     public static string InitialsOf(string campaignName)
     {
@@ -39,7 +47,7 @@ public class SystemSettingsService : ISystemSettingsService
     }
 
     // Defaults apply until an administrator saves a value.
-    public const string DefaultCampaignName = "Campaign Intelligence";
+    public const string DefaultCampaignName = PlatformName;
     public const int DefaultOtpExpiryMinutes = 5;
     public const int DefaultOtpMaxAttempts = 5;
     public const int DefaultRememberDeviceDays = 30;
@@ -162,7 +170,9 @@ public class SystemSettingsService : ISystemSettingsService
         {
             CampaignName = settings.CampaignName,
             ShortName = string.IsNullOrWhiteSpace(settings.ShortName) ? InitialsOf(settings.CampaignName) : settings.ShortName,
-            Tagline = string.IsNullOrWhiteSpace(settings.Tagline) ? DefaultTagline : settings.Tagline,
+            Tagline = !string.IsNullOrWhiteSpace(settings.Tagline) ? settings.Tagline
+                : settings.CampaignName == PlatformName ? PlatformTagline
+                : DefaultTagline,
             HasLogo = logo != null,
             LogoVersion = logo?.UpdatedAt.Ticks.ToString() ?? string.Empty
         };

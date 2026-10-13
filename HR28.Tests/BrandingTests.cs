@@ -46,10 +46,11 @@ public class BrandingTests
         {
             var anonymous = _factory.AnonymousClient();
 
-            // A new client: neutral defaults, nothing from any other client.
+            // A new client: the platform's own brand (CIP), nothing from any other client.
             var fresh = await anonymous.GetFromJsonAsync<Brand>("api/Settings/branding");
-            Assert.Equal("Campaign Intelligence", fresh!.CampaignName);
-            Assert.Equal("CI", fresh.ShortName);
+            Assert.Equal("Campaign Intelligence Platform", fresh!.CampaignName);
+            Assert.Equal("CIP", fresh.ShortName);
+            Assert.Equal("Voter relationships and campaign operations", fresh.Tagline);
             Assert.False(fresh.HasLogo);
 
             var admin = await _factory.ClientForAsync(await _factory.Data.UserAsync(["Super Administrator"]));

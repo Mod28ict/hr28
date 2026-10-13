@@ -68,8 +68,13 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   `GET api/settings/branding` and `api/settings/logo` (the sign-in pages show them);
   web `BrandingService` (cached 1 min) and `Brand/Logo`. Used by the sign-in and code
   pages, sidebar, page titles, loader, Dashboard, the sign-in SMS, the phone-change SMS,
-  and report CSV titles / file names. A new deployment starts neutral ("Campaign
-  Intelligence" / "CI"). Internal names (code namespaces, cookie names, JWT issuer,
+  and report CSV titles / file names. A new deployment starts as the product itself, **Campaign
+  Intelligence Platform (CIP)** (owner decision, 2026-10-13): name "Campaign Intelligence
+  Platform", short name "CIP", tagline "Voter relationships and campaign operations" and
+  the CIP mark (`_CipMark`, shown only while `Branding.IsPlatformDefault`: no client name
+  and no logo). Once a client saves their own name or logo, CIP disappears from their
+  screens (a client tagline left empty shows "Campaign Intelligence Platform").
+  Internal names (code namespaces, cookie names, JWT issuer,
   Swagger) are not shown to users and stay. The footer keeps "Designed and Developed by:
   Ahmed Rasheed" for every client (owner decision, 2026-10-08: the developer's credit,
   not a client brand). Migration `AddBrandLogo`; rollback
