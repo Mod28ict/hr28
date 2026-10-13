@@ -71,7 +71,7 @@ dotnet ef migrations remove --project HR28.Infrastructure --startup-project HR28
   and report CSV titles / file names. A new deployment starts as the product itself, **Campaign
   Intelligence Platform (CIP)** (owner decision, 2026-10-13): name "Campaign Intelligence
   Platform", short name "CIP", tagline "Voter relationships and campaign operations" and
-  the CIP mark (`_CipMark`, shown only while `Branding.IsPlatformDefault`: no client name
+  the CIP mark ("Insight C": a C with three rising bars; `_CipMark`, shown only while `Branding.IsPlatformDefault`: no client name
   and no logo). Once a client saves their own name or logo, CIP disappears from their
   screens (a client tagline left empty shows "Campaign Intelligence Platform").
   Internal names (code namespaces, cookie names, JWT issuer,
