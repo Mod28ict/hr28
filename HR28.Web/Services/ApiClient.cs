@@ -135,6 +135,20 @@ public class ApiClient
         }
     }
 
+    /// <summary>
+    /// The data of a successful answer. Some endpoints answer with plain text ("Voter updated
+    /// successfully.") or with nothing at all (204): still a success, just no data to read.
+    /// </summary>
+    private static async Task<T?> ReadDataAsync<T>(HttpResponseMessage response)
+    {
+        var isJson = response.Content.Headers.ContentType?.MediaType?.Contains("json", StringComparison.OrdinalIgnoreCase) == true;
+        var hasBody = isJson &&
+                      response.Content.Headers.ContentLength is null or > 0 &&
+                      response.StatusCode != HttpStatusCode.NoContent;
+
+        return hasBody ? await response.Content.ReadFromJsonAsync<T>(JsonOptions) : default;
+    }
+
     /// <summary>Uploads one file as multipart form data (field name "file").</summary>
     public async Task<ApiResult<T>> PostFileAsync<T>(string path, IFormFile file, string? token)
     {
@@ -165,11 +179,12 @@ public class ApiClient
 
             if (response.IsSuccessStatusCode)
             {
+                // e.g. the logo upload answers "204 No Content": a success with nothing to read.
                 return new ApiResult<T>
                 {
                     Success = true,
                     StatusCode = response.StatusCode,
-                    Data = await response.Content.ReadFromJsonAsync<T>(JsonOptions)
+                    Data = await ReadDataAsync<T>(response)
                 };
             }
 
@@ -232,20 +247,11 @@ public class ApiClient
 
             if (response.IsSuccessStatusCode)
             {
-                // Some endpoints answer with plain text ("Voter updated successfully."): that is
-                // still a success, there is just no data to read.
-                var isJson = response.Content.Headers.ContentType?.MediaType?.Contains("json", StringComparison.OrdinalIgnoreCase) == true;
-                var hasBody = isJson &&
-                              response.Content.Headers.ContentLength is null or > 0 &&
-                              response.StatusCode != HttpStatusCode.NoContent;
-
                 return new ApiResult<T>
                 {
                     Success = true,
                     StatusCode = response.StatusCode,
-                    Data = hasBody
-                        ? await response.Content.ReadFromJsonAsync<T>(JsonOptions)
-                        : default
+                    Data = await ReadDataAsync<T>(response)
                 };
             }
 
