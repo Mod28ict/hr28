@@ -88,6 +88,29 @@ Set in the dashboard; nothing on the server depends on them except where noted.
 Check after changes: from the PC `https://<domain>/cdn-cgi/trace` shows `loc=MV` and the sign-in page
 answers 200; a test SQL-injection query string answers 403.
 
+## Training site (tr.shamheed.com)
+
+Owner decision 2026-10-15. Same droplet, separate copy: database `HR28Train` (login `hr28_train`,
+no access to live; live login `hr28_app` has none to training), its own JWT key and services
+`hr28-train-api` (127.0.0.1:5011) / `hr28-train-web` (127.0.0.1:5010, accounts `hr28tapi` /
+`hr28tweb`), Nginx site `hr28-train` (same origin certificate and origin pulls). It uses the live
+authorization-code key, so people sign in with their normal code (SMS codes and sign-ins are
+separate). Every page shows a TRAINING strip (`App__EnvironmentLabel`) and every SMS starts with
+"TRAINING:" (`App__SmsPrefix`) — `/etc/hr28/train-*.env`.
+
+| File in `training/` | On the server |
+|---|---|
+| `setup-training.sh` | run once: accounts, env files, login, services, Nginx, installs the rest |
+| `refresh-training.sh` | `/usr/local/sbin/hr28-train-refresh`: fresh live backup → restored as `HR28Train`, sign-in codes and devices removed, training restarted (everything done on training is lost) |
+| `training-cleanup.sql` | `/usr/local/lib/hr28/training-cleanup.sql` (used by the refresh) |
+| `hr28-train-*.service`, `hr28-train.nginx` | `/etc/systemd/system/`, `/etc/nginx/sites-available/hr28-train` |
+
+`hr28-deploy` updates training after live (same files; `migrate.sql` applied to `HR28Train` too).
+Cloudflare: DNS `tr` → droplet IP, proxied; all zone rules (WAF, rate limit, outside-Maldives
+challenge, origin pulls) apply. Training is not backed up nightly (refresh from live instead) and
+not in `hr28-monitor`. Live was cleared of test influencers, pledges and encounters on 2026-10-15
+(audited); a refresh therefore brings none — trainees create their own.
+
 ## Updates
 
 On the PC: `dotnet publish` API and Web (`-c Release -r linux-x64 --self-contained false`),
