@@ -1,0 +1,13 @@
+# Tells the Administrators by SMS after every server start (/usr/local/sbin/hr28-boot-notify).
+[Unit]
+Description=HR28 SMS to administrators after a server start
+After=network-online.target docker.service nginx.service hr28-api.service hr28-web.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/hr28-boot-notify
+TimeoutStartSec=420
+
+[Install]
+WantedBy=multi-user.target

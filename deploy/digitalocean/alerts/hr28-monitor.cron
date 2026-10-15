@@ -1,0 +1,2 @@
+# /etc/cron.d/hr28-monitor - checks every 5 minutes; SMS to administrators on problems (hr28-monitor).
+*/5 * * * * root /usr/local/sbin/hr28-monitor >/dev/null 2>&1

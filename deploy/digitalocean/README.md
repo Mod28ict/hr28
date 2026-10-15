@@ -29,6 +29,10 @@ publish it on 0.0.0.0).
 | `fail2ban/hr28.local` | `/etc/fail2ban/jail.d/` | 5 failed SSH tries in 10 min = banned 1 day |
 | `scripts/save-sms-credentials.sh` | `/usr/local/sbin/hr28-sms-credentials` | owner stores the Dhiraagu Bulk SMS login in `/etc/hr28/sms.env` (password hidden) |
 | `scripts/sms-test.sh` | `/usr/local/sbin/hr28-sms-test 9607XXXXXX` | one test SMS through Dhiraagu (shows status only) |
+| `alerts/sms-lib.sh` | `/usr/local/lib/hr28/sms-lib.sh` | SMS to active Administrators (+ `ALERT_EXTRA_PHONES` in `/etc/hr28/alerts.env`) through Dhiraagu |
+| `alerts/boot-notify.sh` + `hr28-boot-notify.service` | `/usr/local/sbin/hr28-boot-notify`, `/etc/systemd/system/` | after every start: "server restarted at HH:MM and is back online" (or NOT responding); `dry-run` to preview |
+| `alerts/monitor.sh` + `hr28-monitor.cron` | `/usr/local/sbin/hr28-monitor`, `/etc/cron.d/` | every 5 min: API/DB, web, Nginx, SQL container, disk < 85%, backup < 26 h; SMS when a problem is seen twice in a row and when it clears; `status` to check; log `/var/log/hr28-alerts.log` |
+| `alerts/52hr28-auto-reboot` | `/etc/apt/apt.conf.d/` | security updates restart the server when needed at 00:30 UTC = 05:30 MVT |
 | `scripts/reset-code.sh` | `/usr/local/sbin/hr28-reset-code` | new authorization code from the server |
 | `sql/cleanup-development-leftovers.sql` | run once | removes test accounts copied from development |
 

@@ -1,0 +1,6 @@
+// /etc/apt/apt.conf.d/52hr28-auto-reboot - security updates already install automatically;
+// when one needs a restart, restart at 00:30 UTC = 05:30 Maldives time (after the DigitalOcean
+// backup window 01:00-05:00 MVT, before work). hr28-boot-notify then tells the Administrators.
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
+Unattended-Upgrade::Automatic-Reboot-Time "00:30";
