@@ -26,8 +26,8 @@ public class UsersController : Controller
     }
 
     /// <summary>
-    /// Issues a new authorization code: sent to the person by SMS and shown once here.
-    /// The old code stops working immediately. The API records this in the audit trail.
+    /// Stops the person's code and sends a new one only to them by SMS. Administrators never
+    /// see it (owner, 2026-10-15). The API records this in the audit trail.
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -51,35 +51,24 @@ public class UsersController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        if (!result.Success || string.IsNullOrWhiteSpace(result.Data?.AuthorizationCode))
-        {
+        var who = string.IsNullOrWhiteSpace(name) ? "This person" : name;
+
+        if (!result.Success || result.Data == null)
             TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
                 ? "The code could not be reset. Please try again."
                 : result.Message;
+        else if (result.Data.AccountInactive)
+            TempData["SuccessMessage"] = $"{who}'s old code no longer works. When you activate the account, a welcome SMS with a new code is sent to them.";
+        else if (result.Data.SmsSent)
+            TempData["SuccessMessage"] = $"{who}'s old code no longer works. A new code was sent to them by SMS ({result.Data.MaskedMobile}). Only they can see it.";
+        else
+            TempData["FlashError"] = $"{who}'s old code no longer works, but the SMS with the new code could not be sent ({result.Data.MaskedMobile}), so the account has no code now. Check the phone number in Edit, then use Reset code again.";
 
-            return RedirectToAction(nameof(Index));
-        }
-
-        ViewBag.IsReset = true;
-        ViewBag.UserName = name;
-        ViewBag.SmsSent = result.Data.SmsSent;
-        ViewBag.AccountInactive = result.Data.AccountInactive;
-        ViewBag.MaskedMobile = result.Data.MaskedMobile;
-
-        // The code is shown once; don't let the browser cache this page.
-        Response.Headers.CacheControl = "no-store";
-
-        return View(
-            "CreateSuccess",
-            new UserCreateViewModel
-            {
-                GeneratedAuthorizationCode = result.Data.AuthorizationCode
-            });
+        return BackToList();
     }
 
     private class ResetCodeResult
     {
-        public string AuthorizationCode { get; set; } = string.Empty;
         public bool SmsSent { get; set; }
         public bool AccountInactive { get; set; }
         public string MaskedMobile { get; set; } = string.Empty;

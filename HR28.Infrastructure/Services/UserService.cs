@@ -126,10 +126,9 @@ public class UserService : IUserService
         if (user == null)
             return null;
 
-        var (code, hash) = await NewUniqueCodeAsync();
-
         var now = DateTime.UtcNow;
 
+        // The old code stops working in every case.
         var previous = await _dbContext.AuthorizationCodeHistories
             .Where(h => h.UserId == userId && h.RevokedAt == null)
             .ToListAsync();
@@ -137,17 +136,8 @@ public class UserService : IUserService
         foreach (var entry in previous)
             entry.RevokedAt = now;
 
-        user.AuthorizationCodeHash = hash;
         user.AuthorizationCode = null;
-
-        _dbContext.AuthorizationCodeHistories.Add(new AuthorizationCodeHistory
-        {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            AuthorizationCodeHash = hash,
-            CreatedAt = now,
-            Reason = "Reset by an administrator"
-        });
+        user.AuthorizationCodeHash = null;
 
         // Any code already sent by SMS for the old authorization code stops working too.
         var openOtps = await _dbContext.OtpRequests
@@ -164,15 +154,42 @@ public class UserService : IUserService
 
         _dbContext.TrustedDevices.RemoveRange(devices);
 
+        // Active account: a new code that only the person receives, by SMS. Inactive: none
+        // yet; activating the account makes one and sends it in the welcome SMS.
+        AuthorizationCodeHistory? issued = null;
+        string? code = null;
+
+        if (user.IsActive)
+        {
+            (code, var hash) = await NewUniqueCodeAsync();
+            user.AuthorizationCodeHash = hash;
+            issued = new AuthorizationCodeHistory
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                AuthorizationCodeHash = hash,
+                CreatedAt = now,
+                Reason = "Reset by an administrator (sent by SMS)"
+            };
+            _dbContext.AuthorizationCodeHistories.Add(issued);
+        }
+
         await _dbContext.SaveChangesAsync();
 
-        // The new code goes to the person by SMS (active accounts only: an inactive one gets
-        // it in the welcome SMS when activated). It is also shown once to the administrator.
-        var sent = user.IsActive && await _smsSender.SendAsync(user.MobileNumber, await ResetCodeSmsAsync(user, code));
+        var sent = code != null && await _smsSender.SendAsync(user.MobileNumber, await ResetCodeSmsAsync(user, code));
 
-        var smsNote = !user.IsActive ? "; account inactive, no SMS"
+        if (code != null && !sent)
+        {
+            // Nobody received it, so it must not work: the account has no code until the
+            // number is fixed and the code is reset again.
+            user.AuthorizationCodeHash = null;
+            issued!.RevokedAt = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
+        }
+
+        var smsNote = !user.IsActive ? "; account inactive, new code comes with activation"
             : sent ? "; new code sent by SMS"
-            : "; SMS could not be sent";
+            : "; SMS could not be sent, account has no code";
 
         await _auditService.LogAsync(
             GetCurrentUserId(),
@@ -186,7 +203,6 @@ public class UserService : IUserService
 
         return new ResetCodeResultDto
         {
-            AuthorizationCode = code,
             SmsSent = sent,
             AccountInactive = !user.IsActive,
             MaskedMobile = digits.Length >= 3 ? "•••" + digits[^3..] : string.Empty

@@ -287,7 +287,8 @@
                                         @if (user.NeverActivated)
                                         {
                                             <div class="ui-muted" style="font-size: 12px; margin-top: 4px;">
-                                                @(roles.Any() ? "Ready to activate" : "Needs a role first")
+                                                @* Active without a code: a reset whose SMS could not be sent. *@
+                                                @(user.IsActive ? "No code yet: use Reset code" : roles.Any() ? "Ready to activate" : "Needs a role first")
                                             </div>
                                         }
                                     }

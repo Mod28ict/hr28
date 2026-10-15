@@ -257,9 +257,11 @@ strong despite that:
      activation creates the code and sends it in a welcome SMS** (campaign name, first
      name, code, optional `App:SignInUrl`) — nobody else sees it. If that SMS can't be
      sent, the code is shown once to the administrator instead. Re-activating later sends
-     an "active again" SMS and keeps the code. "Reset code" (owner, 2026-10-15) sends the new
-     code to the person by SMS (active accounts only) **and** shows it once to the
-     administrator, saying whether the SMS went out (`ResetCodeResultDto`, audited). Older 5-character codes still work.
+     an "active again" SMS and keeps the code. "Reset code" (owner, 2026-10-15) stops the old
+     code and sends a new one **only to the person by SMS**: administrators never see it
+     (prevents misuse of someone else's credentials). If that SMS fails the new code is
+     revoked too (the list shows "No code yet: use Reset code"); an inactive account gets
+     its new code in the welcome SMS when activated (`ResetCodeResultDto`, audited). Older 5-character codes still work.
   2. **SMS OTP** (something the user has).
   Do not add passwords or PINs without the owner's approval.
 - SMS codes (implemented): 6 digits from `RandomNumberGenerator`, expiry set by the

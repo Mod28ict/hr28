@@ -101,8 +101,8 @@ public class UsersController : ControllerBase
         return Ok("Scope assigned successfully.");
     }
     /// <summary>
-    /// Issues a new authorization code, sends it to the person by SMS (active accounts) and
-    /// returns it once for the administrator. It is not stored in readable form.
+    /// Stops the person's code and sends a new one ONLY to them by SMS (active accounts).
+    /// The code is never returned: administrators can't see it.
     /// </summary>
     [HttpPost("{userId}/reset-code")]
     public async Task<IActionResult> ResetAuthorizationCode(Guid userId)
