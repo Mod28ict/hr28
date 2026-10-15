@@ -11,6 +11,8 @@ Group=hr28api
 WorkingDirectory=/var/www/hr28-api
 ExecStart=/usr/bin/dotnet /var/www/hr28-api/HR28.API.dll
 EnvironmentFile=/etc/hr28/api.env
+# Dhiraagu Bulk SMS login (hr28-sms-credentials); "-" = fine if missing (SMS then refuses).
+EnvironmentFile=-/etc/hr28/sms.env
 Environment=DOTNET_NOLOGO=1 DOTNET_CLI_TELEMETRY_OPTOUT=1
 Restart=always
 RestartSec=5
@@ -29,8 +31,6 @@ ProtectKernelModules=true
 ProtectControlGroups=true
 RestrictSUIDSGID=true
 LockPersonality=true
-# Temporary SMS test mode only ("-" = fine if the folder does not exist).
-ReadWritePaths=-/var/lib/hr28/sms-outbox
 
 [Install]
 WantedBy=multi-user.target

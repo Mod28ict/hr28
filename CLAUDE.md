@@ -270,19 +270,19 @@ strong despite that:
   `Security:StoreReadableOtpCodes: true` in `appsettings.Development.json` keeps codes
   readable in `OtpRequests.OtpCode` so testers can sign in. The API refuses to start
   with it on outside Development. Remove the setting when SMS is integrated.
-  **Temporary live test mode (owner, 2026-10-12, ends 2026-10-19):** on the DigitalOcean
-  server, `ServerFileSmsSender` writes each SMS to `/var/lib/hr28/sms-outbox` (hr28api,
-  700; files 600) instead of sending it; root reads codes with `hr28-sms-codes`. Only the
-  server settings `Sms:ServerFile:Folder` + `Sms:ServerFile:Until` switch it on (last
-  Maldives day, ≤ 31 days ahead, the API refuses to start otherwise); after that day it
-  refuses like `UnconfiguredSmsSender`. Codes stay hashed in the database. Remove it
-  (settings, folder, script, and the class) when a real SMS provider is connected.
+  **Real SMS (2026-10-15):** `DhiraaguSmsSender` sends through Dhiraagu Bulk SMS (partner XML
+  interface `https://bulksms.dhiraagu.com.mv/partners/xmlMessage.jsp`, TeleMessage format;
+  `RESPONSE_STATUS` 100 = sent, anything else or no answer = not sent). Numbers go as
+  `960XXXXXXX` (`MaldivesPhone`; Dhiraagu 7…, Ooredoo 9…, both delivered); a number that isn't
+  a Maldivian mobile is never sent. Login only on the server (`DhiraaguSms:Username/Password`
+  in `/etc/hr28/sms.env`, `hr28-sms-credentials`). `PhoneLimitedSmsSender`: at most 8 SMS
+  to one number per hour. The temporary server test mode (`ServerFileSmsSender`) is removed.
 - Rate limits (implemented): per IP 10 code requests and 20 code checks per 5 minutes;
   per account 60s between requests, 5 codes per hour, and 10 wrong codes in a row
   locks sign-in for 15 minutes. Per user: 120 searches/min, 20 report downloads/hour,
   10 voter list uploads/hour. The web app forwards the visitor IP; the API trusts it
   only from `ReverseProxy:KnownProxies` (loopback by default; set the web app's
-  outbound IPs in Azure). Per phone number: not yet (there is no SMS sender yet).
+  outbound IPs in Azure). Per phone number: 8 SMS per hour (`PhoneLimitedSmsSender`).
 - SMS text includes a warning, e.g. "HR28 code: 482913. Never share this code.
   HR28 staff will never ask for it."
 - Use generic messages that don't reveal whether a user or phone number exists.
@@ -464,10 +464,9 @@ Status as of 2026-10-02 (update when an item changes):
 8. Regression tests — **not started; there is no test project yet.**
 
 Known open issues (fix or confirm with the owner):
-- No real SMS provider yet. `ISmsSender`: Development writes the message to the API
-  log (`DevelopmentSmsSender`); other environments use `UnconfiguredSmsSender`, which
-  refuses to send, so sign-in will not work outside Development until a provider is
-  connected.
+- SMS uses the client's Dhiraagu Bulk SMS **portal** login (`hr28-sms-credentials`): if
+  anyone changes that password, SMS stops until it is saved again. Ask Dhiraagu for a
+  separate API login. The partner XML interface is not in Dhiraagu's user guide.
 - The web Content-Security-Policy still allows `'unsafe-inline'` scripts and styles
   (sign-in pages and layout use inline blocks). Move them to files or nonces, then
   remove it. Other security headers and Secure/HttpOnly/SameSite cookies are in place.

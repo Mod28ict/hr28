@@ -70,20 +70,28 @@ builder.Services.AddScoped<IAuditTrailService, AuditTrailService>();
 builder.Services.AddScoped<ISystemSettingsService, SystemSettingsService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 
-// Development: SMS is written to the log (never sent). Elsewhere, sending fails
-// safely until a real provider is connected; codes are never logged.
-// Temporary server test mode (owner, 2026-10-12): messages go to a root-only folder
-// until a set day, only when the server settings switch it on.
+// SMS: Development writes to the log (never sent). The server sends through Dhiraagu Bulk SMS
+// when its login is set (/etc/hr28/sms.env), with a per phone number limit; without it,
+// sending fails safely. Codes are never logged outside Development.
 if (builder.Environment.IsDevelopment())
     builder.Services.AddSingleton<ISmsSender, DevelopmentSmsSender>();
-else if (!string.IsNullOrWhiteSpace(builder.Configuration[ServerFileSmsSender.UntilSetting]))
+else if (!string.IsNullOrWhiteSpace(builder.Configuration[DhiraaguSmsSender.UsernameSetting]))
 {
-    var smsFolder = builder.Configuration[ServerFileSmsSender.FolderSetting] ?? string.Empty;
-    var smsUntil = builder.Configuration[ServerFileSmsSender.UntilSetting]!;
-    // Checked now so bad settings stop the API from starting.
-    ServerFileSmsSender.FromSettings(smsFolder, smsUntil, Microsoft.Extensions.Logging.Abstractions.NullLogger<ServerFileSmsSender>.Instance);
-    builder.Services.AddSingleton<ISmsSender>(sp =>
-        ServerFileSmsSender.FromSettings(smsFolder, smsUntil, sp.GetRequiredService<ILogger<ServerFileSmsSender>>()));
+    var smsEndpoint = builder.Configuration[DhiraaguSmsSender.EndpointSetting] is { Length: > 0 } configured
+        ? configured
+        : DhiraaguSmsSender.DefaultEndpoint;
+    var smsUsername = builder.Configuration[DhiraaguSmsSender.UsernameSetting]!;
+    var smsPassword = builder.Configuration[DhiraaguSmsSender.PasswordSetting] ?? string.Empty;
+    var smsHttp = new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(5) })
+    {
+        Timeout = TimeSpan.FromSeconds(20)
+    };
+    // Checked now so a half-set login stops the API from starting.
+    _ = new DhiraaguSmsSender(smsHttp, smsEndpoint, smsUsername, smsPassword,
+        Microsoft.Extensions.Logging.Abstractions.NullLogger<DhiraaguSmsSender>.Instance);
+    builder.Services.AddSingleton<ISmsSender>(sp => new PhoneLimitedSmsSender(
+        new DhiraaguSmsSender(smsHttp, smsEndpoint, smsUsername, smsPassword, sp.GetRequiredService<ILogger<DhiraaguSmsSender>>()),
+        sp.GetRequiredService<ILogger<PhoneLimitedSmsSender>>()));
 }
 else
     builder.Services.AddSingleton<ISmsSender, UnconfiguredSmsSender>();

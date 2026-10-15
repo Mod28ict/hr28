@@ -27,7 +27,8 @@ publish it on 0.0.0.0).
 | `scripts/cloudflare-only.sh` + `hr28-cloudflare-only.cron` | `/usr/local/sbin/hr28-cloudflare-only`, `/etc/cron.d/` | ports 80/443 from Cloudflare only + Nginx real-IP list; monthly |
 | `ssh/10-hr28.conf` | `/etc/ssh/sshd_config.d/` | keys only, 3 tries, no X11 |
 | `fail2ban/hr28.local` | `/etc/fail2ban/jail.d/` | 5 failed SSH tries in 10 min = banned 1 day |
-| `scripts/sms-codes.sh` | `/usr/local/sbin/hr28-sms-codes` | TEMPORARY: read codes while SMS is not connected |
+| `scripts/save-sms-credentials.sh` | `/usr/local/sbin/hr28-sms-credentials` | owner stores the Dhiraagu Bulk SMS login in `/etc/hr28/sms.env` (password hidden) |
+| `scripts/sms-test.sh` | `/usr/local/sbin/hr28-sms-test 9607XXXXXX` | one test SMS through Dhiraagu (shows status only) |
 | `scripts/reset-code.sh` | `/usr/local/sbin/hr28-reset-code` | new authorization code from the server |
 | `sql/cleanup-development-leftovers.sql` | run once | removes test accounts copied from development |
 
@@ -52,12 +53,11 @@ Users → Reset code).
 7. Backups: install `hr28-backup` + cron, run once, check `/var/backups/hr28`.
 8. Cloudflare: Origin Certificate → `/etc/ssl/hr28/origin.pem` + `origin.key` (600);
    Nginx files; `nginx -t`; DNS `@` and `www` → droplet IP (proxied); SSL mode **Full (strict)**.
-9. SMS provider (sign-in does not work in production until it is connected).
-   **Temporary test mode (owner, 2026-10-12, until 2026-10-19):** `/var/lib/hr28/sms-outbox`
-   (hr28api, 700) and in `api.env` `Sms__ServerFile__Folder=/var/lib/hr28/sms-outbox`,
-   `Sms__ServerFile__Until=<last day>` (≤ 31 days ahead; after it, sending refuses again).
-   Read codes as root with `hr28-sms-codes`. When SMS works: delete both lines, the folder
-   and `hr28-sms-codes`, restart `hr28-api`.
+9. SMS (Dhiraagu Bulk SMS, connected 2026-10-15): owner runs `hr28-sms-credentials` (portal
+   username/password; better a separate API login from Dhiraagu), then `hr28-sms-test 9607XXXXXX`
+   (answer `RESPONSE_STATUS` 100 = sent). Restart `hr28-api` after changing the login. Interface:
+   `https://bulksms.dhiraagu.com.mv/partners/xmlMessage.jsp` (TeleMessage XML; not in Dhiraagu's
+   user guide, found and tested 2026-10-15). Delivers to Dhiraagu and Ooredoo numbers.
 10. Hardening (done 2026-10-12): `ssh/10-hr28.conf` (`sshd -t`, reload, test a NEW connection
     first); fail2ban (`hr28.local`; Ubuntu 24.04's unit is `ssh.service`); `hr28-cloudflare-only`
     (+ cron); Authenticated Origin Pulls: CA at `/etc/ssl/hr28/cloudflare-origin-pull-ca.pem`, turn
