@@ -30,6 +30,7 @@ public class PoliticalPartiesController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = AuthorizationPolicies.Administrator)]
+    [RequireStepUp]
     public async Task<IActionResult> Create([FromBody] SavePoliticalPartyDto request)
     {
         return Ok(await _service.CreateAsync(request));
@@ -37,6 +38,7 @@ public class PoliticalPartiesController : ControllerBase
 
     [HttpPut("{id:guid}")]
     [Authorize(Policy = AuthorizationPolicies.Administrator)]
+    [RequireStepUp]
     public async Task<IActionResult> Update(Guid id, [FromBody] SavePoliticalPartyDto request)
     {
         return Ok(await _service.UpdateAsync(id, request));
@@ -44,6 +46,7 @@ public class PoliticalPartiesController : ControllerBase
 
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = AuthorizationPolicies.Administrator)]
+    [RequireStepUp]
     public async Task<IActionResult> Delete(Guid id)
     {
         var name = await _service.DeleteAsync(id);
@@ -54,6 +57,7 @@ public class PoliticalPartiesController : ControllerBase
     /// <summary>The party the Voters list opens on; no id = all parties.</summary>
     [HttpPut("default-filter")]
     [Authorize(Policy = AuthorizationPolicies.Administrator)]
+    [RequireStepUp]
     public async Task<IActionResult> SetDefaultFilter([FromQuery] Guid? id)
     {
         await _service.SetDefaultFilterAsync(id);

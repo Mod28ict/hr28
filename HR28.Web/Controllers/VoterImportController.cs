@@ -8,6 +8,7 @@ namespace HR28.Web.Controllers;
 /// Upload the voter list spreadsheet. Administrators only (Administrator and
 /// National Administrator); the API enforces the same rule and audits every upload.
 /// </summary>
+[HR28.Web.Filters.RequireStepUp]
 public class VoterImportController : AppController
 {
     private const long MaxFileBytes = 20 * 1024 * 1024;

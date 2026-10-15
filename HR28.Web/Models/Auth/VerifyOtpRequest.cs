@@ -19,4 +19,8 @@ public class VerifyOtpRequest
     /// <summary>e.g. "Chrome on Windows", from the browser's user agent.</summary>
     [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever]
     public string? DeviceName { get; set; }
+
+    /// <summary>This browser's key for sign-in alerts, from its cookie; never from the form.</summary>
+    [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever]
+    public string? KnownDeviceToken { get; set; }
 }

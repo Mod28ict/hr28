@@ -116,18 +116,24 @@ public sealed class Hr28ApiFactory : WebApplicationFactory<Program>, IAsyncLifet
     }
 
     /// <summary>A client signed in as the user, with a token issued exactly as sign-in issues it.</summary>
-    public async Task<HttpClient> ClientForAsync(User user)
+    /// <summary>
+    /// A signed-in client. By default the person has just confirmed it's them (step-up), so
+    /// sensitive endpoints work; pass <paramref name="steppedUpAt"/> = null-ish via
+    /// <paramref name="stepUp"/> false to test the "confirm it's you" refusal.
+    /// </summary>
+    public async Task<HttpClient> ClientForAsync(User user, bool stepUp = true, DateTime? steppedUpAt = null)
     {
         var client = AnonymousClient();
         client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", await TokenForAsync(user));
+            new AuthenticationHeaderValue("Bearer", await TokenForAsync(user, stepUp, steppedUpAt));
         return client;
     }
 
-    public async Task<string> TokenForAsync(User user)
+    public async Task<string> TokenForAsync(User user, bool stepUp = true, DateTime? steppedUpAt = null)
     {
         using var scope = Services.CreateScope();
-        return await scope.ServiceProvider.GetRequiredService<ITokenService>().GenerateTokenAsync(user);
+        return await scope.ServiceProvider.GetRequiredService<ITokenService>()
+            .GenerateTokenAsync(user, null, stepUp ? steppedUpAt ?? DateTime.UtcNow : null);
     }
 
     public string HashAuthorizationCode(string code) =>

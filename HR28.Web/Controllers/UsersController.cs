@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace HR28.Web.Controllers;
 
 [SessionAuthorize]
+[RequireStepUp]
 public class UsersController : Controller
 {
     private readonly DashboardService _dashboardService;

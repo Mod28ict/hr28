@@ -21,6 +21,9 @@ public class VerifyOtpResponse
 
     public DateTime? DeviceExpiresAt { get; set; }
 
+    /// <summary>A new browser key for sign-in alerts (kept only in an HttpOnly cookie).</summary>
+    public string? KnownDeviceToken { get; set; }
+
     /// <summary>The remembered device isn't valid any more: forget the cookie.</summary>
     public bool DeviceNotRecognised { get; set; }
 }

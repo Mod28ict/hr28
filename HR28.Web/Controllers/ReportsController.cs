@@ -93,6 +93,7 @@ public class ReportsController : AppController
     };
 
     /// <summary>Downloads a report as CSV. Scope and auditing are handled by the API.</summary>
+    [HR28.Web.Filters.RequireStepUp]
     public async Task<IActionResult> Download(string report)
     {
         if (!Exports.TryGetValue(report ?? string.Empty, out var export))

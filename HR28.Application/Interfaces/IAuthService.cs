@@ -14,4 +14,13 @@ public interface IAuthService
     Task<RememberedDeviceDto?> GetRememberedDeviceAsync(string? deviceToken);
 
     Task ForgetDeviceAsync(string? deviceToken);
+
+    /// <summary>Sends a "confirm it's you" code by SMS to a signed-in user.</summary>
+    Task<StepUpSendResultDto> SendStepUpCodeAsync(Guid userId);
+
+    /// <summary>
+    /// Checks a "confirm it's you" code; on success a new token that covers sensitive actions
+    /// for <see cref="Common.StepUpRules.ValidFor"/>, keeping the original sign-in time.
+    /// </summary>
+    Task<StepUpVerifyResultDto> VerifyStepUpAsync(Guid userId, string? code, DateTime signedInAtUtc);
 }

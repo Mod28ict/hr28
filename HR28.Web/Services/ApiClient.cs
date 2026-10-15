@@ -99,6 +99,7 @@ public class ApiClient
             AddClientIp(request, _httpContextAccessor.HttpContext);
 
             using var response = await _httpClient.SendAsync(request);
+            NoteStepUpRequired(response);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -149,6 +150,20 @@ public class ApiClient
         return hasBody ? await response.Content.ReadFromJsonAsync<T>(JsonOptions) : default;
     }
 
+    /// <summary>
+    /// The API refused because no recent "confirm it's you" code was entered: flag it so the
+    /// page shows the confirmation instead of an error (<see cref="Filters.StepUpRedirectFilter"/>).
+    /// </summary>
+    private void NoteStepUpRequired(HttpResponseMessage response)
+    {
+        if (response.StatusCode == HttpStatusCode.Forbidden &&
+            response.Headers.Contains(StepUp.RequiredHeader) &&
+            _httpContextAccessor.HttpContext is { } context)
+        {
+            context.Items[StepUp.RequiredItem] = true;
+        }
+    }
+
     /// <summary>Uploads one file as multipart form data (field name "file").</summary>
     public async Task<ApiResult<T>> PostFileAsync<T>(string path, IFormFile file, string? token)
     {
@@ -176,6 +191,7 @@ public class ApiClient
             request.Content = content;
 
             using var response = await _httpClient.SendAsync(request);
+            NoteStepUpRequired(response);
 
             if (response.IsSuccessStatusCode)
             {
@@ -244,6 +260,7 @@ public class ApiClient
                 request.Content = JsonContent.Create(body, options: JsonOptions);
 
             using var response = await _httpClient.SendAsync(request);
+            NoteStepUpRequired(response);
 
             if (response.IsSuccessStatusCode)
             {

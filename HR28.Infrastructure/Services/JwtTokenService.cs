@@ -23,7 +23,7 @@ public class JwtTokenService : ITokenService
         _dbContext = dbContext;
     }
 
-    public async Task<string> GenerateTokenAsync(User user, DateTime? signedInAtUtc = null)
+    public async Task<string> GenerateTokenAsync(User user, DateTime? signedInAtUtc = null, DateTime? steppedUpAtUtc = null)
     {
         var roles = await _dbContext.UserRoles
             .Where(ur => ur.UserId == user.Id)
@@ -41,6 +41,13 @@ public class JwtTokenService : ITokenService
                     .ToUnixTimeSeconds().ToString(),
                 ClaimValueTypes.Integer64),
         };
+
+        if (steppedUpAtUtc is { } steppedUp)
+        {
+            claims.Add(new Claim(HR28.Application.Common.StepUpRules.Claim,
+                new DateTimeOffset(DateTime.SpecifyKind(steppedUp, DateTimeKind.Utc)).ToUnixTimeSeconds().ToString(),
+                ClaimValueTypes.Integer64));
+        }
 
         foreach (var role in roles)
         {

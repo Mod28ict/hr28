@@ -16,5 +16,14 @@ public class OtpRequest
 
     public bool IsUsed { get; set; }
 
+    /// <summary>
+    /// What the code is for: <see cref="SignInPurpose"/> or <see cref="StepUpPurpose"/>
+    /// (confirming a sensitive action while signed in). A code only works for its purpose.
+    /// </summary>
+    public string Purpose { get; set; } = SignInPurpose;
+
+    public const string SignInPurpose = "SignIn";
+    public const string StepUpPurpose = "StepUp";
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

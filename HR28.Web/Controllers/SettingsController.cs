@@ -44,6 +44,10 @@ public class SettingsController : AppController
         if (SuperAdminTabs.Contains(tab) && !IsSuperAdministrator)
             tab = "appearance";
 
+        // System, places, lists and rights change how the whole campaign works: confirm it's you first.
+        if ((AdminTabs.Contains(tab) || SuperAdminTabs.Contains(tab)) && !StepUp.IsFresh(HttpContext))
+            return Redirect(StepUp.PageFor(StepUp.CurrentPage(Request)));
+
         var model = new SettingsViewModel
         {
             Tab = tab,

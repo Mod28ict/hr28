@@ -22,6 +22,9 @@ public class LoginResponseDto
 
     public DateTime? DeviceExpiresAt { get; set; }
 
+    /// <summary>A new browser key for sign-in alerts, when the browser had none (kept in a cookie).</summary>
+    public string? KnownDeviceToken { get; set; }
+
     /// <summary>True when sign-in used a device key that is no longer valid: forget it.</summary>
     public bool DeviceNotRecognised { get; set; }
 }

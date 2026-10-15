@@ -1,0 +1,84 @@
+@{
+    // "Confirm it's you" (step-up): a fresh SMS code before sensitive actions.
+    ViewData["Title"] = "Confirm it's you";
+    var returnUrl = ViewBag.ReturnUrl as string ?? "/Dashboard";
+    var sentTo = ViewBag.CodeSent as string;
+    var error = TempData["StepUpError"] as string;
+    var note = TempData["StepUpNote"] as string;
+}
+
+<div class="ui-page is-narrow" style="max-width: 560px;">
+
+    <section class="ui-card ui-card-lg" style="text-align: center;">
+
+        <span class="ui-head-icon is-blue" style="width: 64px; height: 64px; margin: 4px auto 16px; border-radius: 50%;">
+            <partial name="_Icon" model='"shield"' />
+        </span>
+
+        <h1 class="ui-title">Confirm it's you</h1>
+        <p class="ui-sub">
+            This part of the system can change accounts, rights or download data, so we check it's really you
+            with a code sent to your mobile. One confirmation lasts about 15 minutes.
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(note))
+        {
+            <div class="ui-alert is-amber" role="status" style="text-align: left; margin-top: 16px;">
+                <partial name="_Icon" model='"info"' />
+                <span>@note</span>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(error))
+        {
+            <div class="ui-alert is-red" role="alert" style="text-align: left; margin-top: 16px;">
+                <partial name="_Icon" model='"alert"' />
+                <span>@error</span>
+            </div>
+        }
+
+        @if (string.IsNullOrWhiteSpace(sentTo))
+        {
+            <form asp-action="Send" method="post" style="margin-top: 22px;">
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <div class="ui-form-actions" style="justify-content: center;">
+                    <button type="submit" class="ui-btn ui-btn-primary">
+                        <partial name="_Icon" model='"message"' />
+                        <span>Send me a code</span>
+                    </button>
+                    <a href="/Dashboard" class="ui-btn ui-btn-ghost">Cancel</a>
+                </div>
+            </form>
+        }
+        else
+        {
+            <p class="ui-muted" style="margin-top: 18px;">We sent a 6-digit code by SMS to <strong>@sentTo</strong>.</p>
+
+            <form asp-action="Verify" method="post" style="margin-top: 10px; text-align: left;">
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <div class="ui-field">
+                    <label class="ui-label" for="stepUpCode">Code from the SMS</label>
+                    <input id="stepUpCode" name="code" class="ui-input" inputmode="numeric" autocomplete="one-time-code"
+                           pattern="[0-9]{6}" maxlength="6" required autofocus
+                           style="font-size: 22px; letter-spacing: 6px; text-align: center;" />
+                </div>
+                <div class="ui-form-actions" style="justify-content: center;">
+                    <button type="submit" class="ui-btn ui-btn-primary">
+                        <partial name="_Icon" model='"check"' />
+                        <span>Confirm</span>
+                    </button>
+                    <a href="/Dashboard" class="ui-btn ui-btn-ghost">Cancel</a>
+                </div>
+            </form>
+
+            <form asp-action="Send" method="post" style="margin-top: 6px;">
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm">Didn't get it? Send a new code</button>
+            </form>
+        }
+
+        <p class="ui-muted" style="font-size: 12px; margin-top: 18px;">
+            Never share this code. Campaign staff will never ask for it.
+        </p>
+    </section>
+</div>

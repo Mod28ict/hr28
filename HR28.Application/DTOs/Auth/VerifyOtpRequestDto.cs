@@ -14,4 +14,7 @@ public class VerifyOtpRequestDto
 
     /// <summary>Readable label for the device, e.g. "Chrome on Windows".</summary>
     public string? DeviceName { get; set; }
+
+    /// <summary>This browser's key for sign-in alerts (from its cookie), if it has one.</summary>
+    public string? KnownDeviceToken { get; set; }
 }

@@ -307,10 +307,25 @@ strong despite that:
   use them. Remembering and forgetting are audited. The authorization code itself is
   never stored in the browser. Migration `AddTrustedDevices`; rollback
   `dotnet ef database update GrantReportRights`.
-- **Step-up verification**: require a fresh code before sensitive actions – data
-  exports, role/scope changes, user management, phone number changes – even within
-  a logged-in session.
-- **Login alerts**: SMS the user when someone signs in from a new device.
+- **Step-up verification — implemented (owner, 2026-10-15):** "Confirm it's you" — a fresh
+  SMS code before sensitive actions, even when signed in: everything in Users (incl. roles,
+  areas, extra rights, Reset code, activation, phone changes), Settings → System / places /
+  lists / Roles & rights (changes), report CSV downloads, voter and membership uploads.
+  One confirmation covers 15 minutes (`StepUpRules`): the API puts its time in the token
+  (`stepup_time`, kept on refresh) and `[RequireStepUp]` refuses older/missing ones with 403
+  + `X-Step-Up-Required` (after the role/right checks, so people without access still get a
+  plain 403). Codes: `OtpRequests.Purpose` = "StepUp" (a confirmation code never signs in and
+  vice versa), same expiry, attempts, cooldown and lockout as sign-in codes. API
+  `POST api/auth/step-up/send|verify`. Web: `StepUpController` page, `[RequireStepUp]` on
+  sensitive GET pages, `StepUpRedirectFilter` turns an API refusal into the page ("do it again").
+  Reading lists the voter forms need (constituencies, islands, parties) stays open. Audited.
+- **Login alerts — implemented (owner, 2026-10-15):** signing in from a browser the account
+  hasn't used before sends "new sign-in to your account at HH:MM on Chrome on Android… contact
+  your administrator" (`KnownDevices`: keyed hash of a random browser key kept in the
+  HttpOnly cookie `HR28.Known`; browser label only, no location; 20 per user). The first
+  browser an account ever uses is recorded quietly. Audited. Migration
+  `AddStepUpAndKnownDevices` (KnownDevices + OtpRequests.Purpose); rollback
+  `dotnet ef database update AddBrandLogo`.
 - **Sessions** — idle and absolute timeouts implemented (owner, 2026-10-08):
   1 hour without activity ends the session; at 59 minutes the page asks "Are you still
   there?" with a 60-second countdown (Stay signed in / Sign out) and, unanswered, signs
@@ -388,8 +403,8 @@ strong despite that:
   the device to 1280 px JPEG before upload, so phone photos fit the 2 MB limit. Migration
   `AddVoterPhotos`; rollback `dotnet ef database update AddRoleRights` (photos lost).
 - Data exports are restricted by role and scope, require step-up verification, and
-  are audited. (Today: report CSVs are scoped, rate-limited and audited; step-up
-  verification is not built yet.)
+  are audited. (Report CSVs: scoped, rate-limited, audited, and need step-up since
+  2026-10-15.)
 - Out of scope unless explicitly requested: public self-service portal, automated
   persuasion or behavioral targeting, offline sync, GIS tracking, biometrics stored
   by HR28, government-database integrations.
@@ -458,10 +473,9 @@ Status as of 2026-10-02 (update when an item changes):
    authorization codes, attempt limits, cooldown, lockout, per-IP rate limits,
    inactive users blocked, anti-forgery on every form, SMS text with the
    "never share" warning (dev sender only), voter area changes limited to
-   administrators in API and UI. Still to do: real SMS provider (with per-phone
-   limits), step-up codes for exports/user
-   management, trusted devices, login alerts, session timeouts/admin sign-out,
-   passkeys (deferred).
+   administrators in API and UI, real SMS (Dhiraagu, per-phone limit), trusted devices,
+   session timeouts and admin sign-out, step-up codes and sign-in alerts (2026-10-15).
+   Still to do: passkeys (deferred).
 6. OWASP ASVS L2 review — **not started** as a formal pass.
 7. Audit coverage — **partly done:** voters, influencers, encounters, pledges,
    users (create, code reset, roles, areas), constituencies, islands, settings and
@@ -476,7 +490,6 @@ Known open issues (fix or confirm with the owner):
 - The web Content-Security-Policy still allows `'unsafe-inline'` scripts and styles
   (sign-in pages and layout use inline blocks). Move them to files or nonces, then
   remove it. Other security headers and Secure/HttpOnly/SameSite cookies are in place.
-- Report downloads are scoped, rate-limited and audited but have no step-up code.
 - Influencer edit/delete with granted rights is built but not yet tested end to end
   with a signed-in non-Administrator. No right is granted to any role yet.
 - `Users.AuthorizationCode` (plain, now always empty) can be dropped in a migration.

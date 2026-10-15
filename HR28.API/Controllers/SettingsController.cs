@@ -50,6 +50,7 @@ public class SettingsController : ControllerBase
     /// <summary>Uploads or replaces the logo (JPG or PNG, up to 1 MB; cleaned like voter photos).</summary>
     [HttpPost("logo")]
     [Authorize(Policy = AuthorizationPolicies.Administrator)]
+    [RequireStepUp]
     [RequestSizeLimit(HR28.Infrastructure.Services.SystemSettingsService.MaxLogoBytes + 64 * 1024)]
     [RequestFormLimits(MultipartBodyLengthLimit = HR28.Infrastructure.Services.SystemSettingsService.MaxLogoBytes + 64 * 1024)]
     public async Task<IActionResult> UploadLogo(IFormFile? file)
@@ -75,6 +76,7 @@ public class SettingsController : ControllerBase
 
     [HttpDelete("logo")]
     [Authorize(Policy = AuthorizationPolicies.Administrator)]
+    [RequireStepUp]
     public async Task<IActionResult> RemoveLogo()
     {
         var userId = User.GetUserId();
@@ -88,6 +90,7 @@ public class SettingsController : ControllerBase
 
     [HttpPut("system")]
     [Authorize(Policy = AuthorizationPolicies.Administrator)]
+    [RequireStepUp]
     public async Task<IActionResult> UpdateSystem([FromBody] SystemSettingsDto request)
     {
         var userId = User.GetUserId();

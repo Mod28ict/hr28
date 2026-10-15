@@ -10,6 +10,7 @@ namespace HR28.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = AuthorizationPolicies.SuperAdministrator)]
+[RequireStepUp]
 public class PermissionsController : ControllerBase
 {
     private readonly IPermissionService _permissionService;

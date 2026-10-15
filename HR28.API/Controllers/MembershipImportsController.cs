@@ -14,6 +14,7 @@ namespace HR28.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = AuthorizationPolicies.Administrator)]
+[RequireStepUp]
 public class MembershipImportsController : ControllerBase
 {
     public const long MaxFileBytes = 20 * 1024 * 1024;

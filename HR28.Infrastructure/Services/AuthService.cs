@@ -160,11 +160,15 @@ public class AuthService : IAuthService
     }
 
     // Per-account protection. These work no matter which IP the requests come from;
-    // per-IP limits are applied separately by the API rate limiter.
+    // per-IP limits are applied separately by the API rate limiter. Sign-in and
+    // "confirm it's you" codes share them.
     public const int ResendCooldownSeconds = 60;
     public const int MaxCodesPerHour = 5;
     public const int LockoutAfterFailedCodes = 10;
     public const int LockoutMinutes = 15;
+
+    /// <summary>At most this many known browsers per user for sign-in alerts; the least recent are forgotten.</summary>
+    public const int MaxKnownDevices = 20;
 
     private static string WaitMessage(int seconds) =>
         seconds >= 90
@@ -173,6 +177,70 @@ public class AuthService : IAuthService
 
     private static int SecondsUntil(DateTime utc) =>
         Math.Max(1, (int)Math.Ceiling((utc - DateTime.UtcNow).TotalSeconds));
+
+    private static string Masked(string? mobile)
+    {
+        var digits = new string((mobile ?? string.Empty).Where(char.IsDigit).ToArray());
+        return digits.Length >= 3 ? "•••" + digits[^3..] : string.Empty;
+    }
+
+    /// <summary>Seconds to wait before this account may get another code, or null if it may now.</summary>
+    private async Task<int?> CodeWaitSecondsAsync(User user)
+    {
+        var now = DateTime.UtcNow;
+
+        if (user.LockedUntilUtc > now)
+            return SecondsUntil(user.LockedUntilUtc.Value);
+
+        var recent = await _dbContext.OtpRequests
+            .Where(o => o.UserId == user.Id && o.CreatedAt > now.AddHours(-1))
+            .Select(o => o.CreatedAt)
+            .ToListAsync();
+
+        if (recent.Count > 0 && recent.Max() > now.AddSeconds(-ResendCooldownSeconds))
+            return SecondsUntil(recent.Max().AddSeconds(ResendCooldownSeconds));
+
+        if (recent.Count >= MaxCodesPerHour)
+            return SecondsUntil(recent.Min().AddHours(1));
+
+        return null;
+    }
+
+    /// <summary>Stores a new code for the purpose (keyed hash only) and sends the SMS; false if it couldn't be sent.</summary>
+    private async Task<bool> IssueCodeAsync(User user, string purpose, Func<string, int, Task<string>> message)
+    {
+        var otp = OtpGenerator.Generate();
+        var settings = await _settingsService.GetAsync();
+        var otpRequestId = Guid.NewGuid();
+
+        var otpRequest = new OtpRequest
+        {
+            Id = otpRequestId,
+            UserId = user.Id,
+            Purpose = purpose,
+
+            // Normally only a keyed hash is stored; the digits exist only in the SMS.
+            OtpCode = _storeReadableOtp ? otp : _codeHasher.HashOtp(otpRequestId, otp),
+            ExpiresAt = DateTime.UtcNow.AddMinutes(settings.OtpExpiryMinutes),
+            FailedAttempts = 0,
+            IsUsed = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.OtpRequests.Add(otpRequest);
+        await _dbContext.SaveChangesAsync();
+
+        var sent = await _smsSender.SendAsync(user.MobileNumber, await message(otp, settings.OtpExpiryMinutes));
+
+        if (!sent)
+        {
+            // A code nobody received must not stay usable.
+            otpRequest.IsUsed = true;
+            await _dbContext.SaveChangesAsync();
+        }
+
+        return sent;
+    }
 
     public async Task<GenerateOtpResultDto> GenerateOtpAsync(
         GenerateOtpRequestDto request)
@@ -193,65 +261,15 @@ public class AuthService : IAuthService
             };
         }
 
-        var now = DateTime.UtcNow;
-
-        if (user.LockedUntilUtc > now)
-        {
-            var wait = SecondsUntil(user.LockedUntilUtc.Value);
+        if (await CodeWaitSecondsAsync(user) is { } wait)
             return new GenerateOtpResultDto { IsThrottled = true, RetryAfterSeconds = wait, Message = WaitMessage(wait) };
-        }
 
-        var recent = await _dbContext.OtpRequests
-            .Where(o => o.UserId == user.Id && o.CreatedAt > now.AddHours(-1))
-            .Select(o => o.CreatedAt)
-            .ToListAsync();
-
-        if (recent.Count > 0 && recent.Max() > now.AddSeconds(-ResendCooldownSeconds))
-        {
-            var wait = SecondsUntil(recent.Max().AddSeconds(ResendCooldownSeconds));
-            return new GenerateOtpResultDto { IsThrottled = true, RetryAfterSeconds = wait, Message = WaitMessage(wait) };
-        }
-
-        if (recent.Count >= MaxCodesPerHour)
-        {
-            var wait = SecondsUntil(recent.Min().AddHours(1));
-            return new GenerateOtpResultDto { IsThrottled = true, RetryAfterSeconds = wait, Message = WaitMessage(wait) };
-        }
-
-        var otp = OtpGenerator.Generate();
-
-        var settings = await _settingsService.GetAsync();
-
-        var otpRequestId = Guid.NewGuid();
-
-        var otpRequest = new OtpRequest
-        {
-            Id = otpRequestId,
-            UserId = user.Id,
-
-            // Normally only a keyed hash is stored; the digits exist only in the SMS.
-            OtpCode = _storeReadableOtp ? otp : _codeHasher.HashOtp(otpRequestId, otp),
-            ExpiresAt = DateTime.UtcNow.AddMinutes(settings.OtpExpiryMinutes),
-            FailedAttempts = 0,
-            IsUsed = false,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _dbContext.OtpRequests.Add(otpRequest);
-
-        await _dbContext.SaveChangesAsync();
-
-        var sent = await _smsSender.SendAsync(
-            user.MobileNumber,
-            $"{(await _settingsService.GetBrandingAsync()).ShortName} code: {otp}. It expires in {settings.OtpExpiryMinutes} minutes. " +
+        var sent = await IssueCodeAsync(user, OtpRequest.SignInPurpose, async (otp, minutes) =>
+            $"{(await _settingsService.GetBrandingAsync()).ShortName} code: {otp}. It expires in {minutes} minutes. " +
             "Never share this code. Campaign staff will never ask for it.");
 
         if (!sent)
         {
-            // A code nobody received must not stay usable.
-            otpRequest.IsUsed = true;
-            await _dbContext.SaveChangesAsync();
-
             return new GenerateOtpResultDto
             {
                 Success = false,
@@ -262,7 +280,7 @@ public class AuthService : IAuthService
         return new GenerateOtpResultDto
         {
             Success = true,
-            ExpiresInSeconds = settings.OtpExpiryMinutes * 60
+            ExpiresInSeconds = (await _settingsService.GetAsync()).OtpExpiryMinutes * 60
         };
     }
 
@@ -285,36 +303,28 @@ public class AuthService : IAuthService
         return System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(expected, actual);
     }
 
-    public async Task<LoginResponseDto> VerifyOtpAsync(
-        VerifyOtpRequestDto request)
+    /// <summary>
+    /// Checks the entered code against the user's latest code for this purpose and uses it up
+    /// when it matches. Returns null on success, otherwise the message to show. A sign-in code
+    /// never works as a "confirm it's you" code, nor the other way round.
+    /// </summary>
+    private async Task<string?> UseCodeAsync(User user, string purpose, string? entered, string askAgain)
     {
-        LoginResponseDto Fail(string message) =>
-            new() { Success = false, Message = message };
-
-        var (user, device) = await FindSignInAsync(request.AuthorizationCode, request.DeviceToken);
-
-        if (user == null)
-        {
-            return string.IsNullOrWhiteSpace(request.DeviceToken)
-                ? Fail("That authorization code was not recognised. Go back and enter it again.")
-                : new LoginResponseDto { Success = false, DeviceNotRecognised = true, Message = DeviceNotRecognisedMessage };
-        }
-
         var now = DateTime.UtcNow;
 
         if (user.LockedUntilUtc > now)
-            return Fail(WaitMessage(SecondsUntil(user.LockedUntilUtc.Value)));
+            return WaitMessage(SecondsUntil(user.LockedUntilUtc.Value));
 
         var otpRequest = await _dbContext.OtpRequests
-            .Where(o => o.UserId == user.Id)
+            .Where(o => o.UserId == user.Id && o.Purpose == purpose)
             .OrderByDescending(o => o.CreatedAt)
             .FirstOrDefaultAsync();
 
         if (otpRequest == null || otpRequest.IsUsed)
-            return Fail("This code is no longer valid. Go back and ask for a new code.");
+            return $"This code is no longer valid. {askAgain}";
 
         if (otpRequest.ExpiresAt < now)
-            return Fail("This code has expired. Go back and ask for a new code.");
+            return $"This code has expired. {askAgain}";
 
         var maxAttempts = (await _settingsService.GetAsync()).OtpMaxAttempts;
 
@@ -337,14 +347,14 @@ public class AuthService : IAuthService
                 .Select(o => new { o.IsUsed, o.ExpiresAt })
                 .FirstAsync();
 
-            return Fail(state.IsUsed
-                ? "This code is no longer valid. Go back and ask for a new code."
+            return state.IsUsed
+                ? $"This code is no longer valid. {askAgain}"
                 : state.ExpiresAt < now
-                    ? "This code has expired. Go back and ask for a new code."
-                    : "Too many wrong codes. Go back and ask for a new code.");
+                    ? $"This code has expired. {askAgain}"
+                    : $"Too many wrong codes. {askAgain}";
         }
 
-        if (!CodesMatch(otpRequest, request.OtpCode))
+        if (!CodesMatch(otpRequest, entered))
         {
             // Account-wide count across codes (stops guessing by requesting fresh codes),
             // also in one statement; reaching the limit locks sign-in and restarts the count.
@@ -367,7 +377,7 @@ public class AuthService : IAuthService
                 .FirstAsync();
 
             if (lockedUntil > now)
-                return Fail(WaitMessage(SecondsUntil(lockedUntil.Value)));
+                return WaitMessage(SecondsUntil(lockedUntil.Value));
 
             var attemptsUsed = await _dbContext.OtpRequests
                 .AsNoTracking()
@@ -377,9 +387,9 @@ public class AuthService : IAuthService
 
             var left = maxAttempts - attemptsUsed;
 
-            return Fail(left > 0
+            return left > 0
                 ? $"That code is not correct. You have {left} {(left == 1 ? "try" : "tries")} left."
-                : "Too many wrong codes. Go back and ask for a new code.");
+                : $"Too many wrong codes. {askAgain}";
         }
 
         // Single use: only one request can flip IsUsed from false to true.
@@ -388,18 +398,41 @@ public class AuthService : IAuthService
             .ExecuteUpdateAsync(s => s.SetProperty(o => o.IsUsed, true));
 
         if (consumed != 1)
-            return Fail("This code is no longer valid. Go back and ask for a new code.");
+            return $"This code is no longer valid. {askAgain}";
 
-        var token = await _tokenService.GenerateTokenAsync(user);
-
-        // In one statement too: the counters were changed outside change tracking above,
-        // so saving the tracked user would not reliably reset them.
+        // In one statement too: the counters were changed outside change tracking above.
         await _dbContext.Users
             .Where(u => u.Id == user.Id)
             .ExecuteUpdateAsync(s => s
-                .SetProperty(u => u.LastLoginAt, DateTime.UtcNow)
                 .SetProperty(u => u.FailedLoginAttempts, 0)
                 .SetProperty(u => u.LockedUntilUtc, (DateTime?)null));
+
+        return null;
+    }
+
+    public async Task<LoginResponseDto> VerifyOtpAsync(
+        VerifyOtpRequestDto request)
+    {
+        LoginResponseDto Fail(string message) =>
+            new() { Success = false, Message = message };
+
+        var (user, device) = await FindSignInAsync(request.AuthorizationCode, request.DeviceToken);
+
+        if (user == null)
+        {
+            return string.IsNullOrWhiteSpace(request.DeviceToken)
+                ? Fail("That authorization code was not recognised. Go back and enter it again.")
+                : new LoginResponseDto { Success = false, DeviceNotRecognised = true, Message = DeviceNotRecognisedMessage };
+        }
+
+        if (await UseCodeAsync(user, OtpRequest.SignInPurpose, request.OtpCode, "Go back and ask for a new code.") is { } failure)
+            return Fail(failure);
+
+        var token = await _tokenService.GenerateTokenAsync(user);
+
+        await _dbContext.Users
+            .Where(u => u.Id == user.Id)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.LastLoginAt, DateTime.UtcNow));
 
         // Remembered device: note its use. "Remember me" ticked: remember this browser.
         string? newDeviceToken = null;
@@ -419,12 +452,14 @@ public class AuthService : IAuthService
                 (newDeviceToken, deviceExpiresAt) = await RememberDeviceAsync(user, request.DeviceName, days);
         }
 
+        // Sign-in alert when this browser hasn't been used for this account before.
+        var knownDeviceToken = await NoteKnownDeviceAsync(user, request.KnownDeviceToken, request.DeviceName);
+
         var roles = HR28.Application.DTOs.Users.RoleOrder.Sort(
             await _dbContext.UserRoles
                 .Where(x => x.UserId == user.Id)
                 .Select(x => x.Role.Name)
                 .ToListAsync());
-
 
         return new LoginResponseDto
         {
@@ -437,7 +472,116 @@ public class AuthService : IAuthService
             RoleName = roles.FirstOrDefault() ?? string.Empty,
             Roles = roles,
             DeviceToken = newDeviceToken,
-            DeviceExpiresAt = deviceExpiresAt
+            DeviceExpiresAt = deviceExpiresAt,
+            KnownDeviceToken = knownDeviceToken
+        };
+    }
+
+    /// <summary>
+    /// Sign-in alerts (owner, 2026-10-15): records the browser for this account and, if the
+    /// account has signed in elsewhere before but never from this browser, tells the person
+    /// by SMS. The first browser an account ever uses is recorded quietly. Returns a new
+    /// browser key when the browser had none (it goes only into an HttpOnly cookie).
+    /// </summary>
+    private async Task<string?> NoteKnownDeviceAsync(User user, string? key, string? deviceName)
+    {
+        string? newKey = null;
+
+        if (string.IsNullOrWhiteSpace(key) || key.Length != 64 || !key.All(Uri.IsHexDigit))
+            key = newKey = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+
+        var hash = _codeHasher.HashDeviceToken(key);
+        var now = DateTime.UtcNow;
+        var name = string.IsNullOrWhiteSpace(deviceName) ? "a web browser" : deviceName.Trim();
+        if (name.Length > 100) name = name[..100];
+
+        var known = await _dbContext.KnownDevices
+            .FirstOrDefaultAsync(d => d.UserId == user.Id && d.KeyHash == hash);
+
+        if (known != null)
+        {
+            known.LastSeenAt = now;
+            await _dbContext.SaveChangesAsync();
+            return newKey;
+        }
+
+        var others = await _dbContext.KnownDevices
+            .Where(d => d.UserId == user.Id)
+            .OrderByDescending(d => d.LastSeenAt)
+            .ToListAsync();
+
+        _dbContext.KnownDevices.RemoveRange(others.Skip(MaxKnownDevices - 1));
+        _dbContext.KnownDevices.Add(new KnownDevice
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            KeyHash = hash,
+            Name = name,
+            FirstSeenAt = now,
+            LastSeenAt = now
+        });
+        await _dbContext.SaveChangesAsync();
+
+        if (others.Count == 0)
+        {
+            await _auditService.LogAsync(user.Id, $"First sign-in recorded on {name}", "User", user.Id.ToString());
+            return newKey;
+        }
+
+        var sent = await _smsSender.SendAsync(user.MobileNumber,
+            $"{(await _settingsService.GetBrandingAsync()).ShortName}: new sign-in to your account at " +
+            $"{HR28.Application.Common.MaldivesTime.Now:HH:mm} (Maldives time) on {name}. " +
+            "If this wasn't you, contact your administrator now.");
+
+        await _auditService.LogAsync(user.Id,
+            $"Signed in from a new device: {name}" + (sent ? "; alert SMS sent" : "; alert SMS could not be sent"),
+            "User", user.Id.ToString());
+
+        return newKey;
+    }
+
+    public async Task<StepUpSendResultDto> SendStepUpCodeAsync(Guid userId)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+
+        if (user == null)
+            return new StepUpSendResultDto { Message = "Please sign in again." };
+
+        if (await CodeWaitSecondsAsync(user) is { } wait)
+            return new StepUpSendResultDto { IsThrottled = true, RetryAfterSeconds = wait, Message = WaitMessage(wait), MaskedMobile = Masked(user.MobileNumber) };
+
+        var sent = await IssueCodeAsync(user, OtpRequest.StepUpPurpose, async (otp, minutes) =>
+            $"{(await _settingsService.GetBrandingAsync()).ShortName} confirmation code: {otp}. " +
+            "Use it only to confirm a change you are making right now. Never share it.");
+
+        if (!sent)
+            return new StepUpSendResultDto { Message = "We couldn't send your code right now. Please try again later.", MaskedMobile = Masked(user.MobileNumber) };
+
+        return new StepUpSendResultDto
+        {
+            Success = true,
+            MaskedMobile = Masked(user.MobileNumber),
+            ExpiresInSeconds = (await _settingsService.GetAsync()).OtpExpiryMinutes * 60
+        };
+    }
+
+    public async Task<StepUpVerifyResultDto> VerifyStepUpAsync(Guid userId, string? code, DateTime signedInAtUtc)
+    {
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+
+        if (user == null)
+            return new StepUpVerifyResultDto { Message = "Please sign in again." };
+
+        if (await UseCodeAsync(user, OtpRequest.StepUpPurpose, code, "Please ask for a new code.") is { } failure)
+            return new StepUpVerifyResultDto { Message = failure };
+
+        await _auditService.LogAsync(user.Id, "Confirmed it's them for sensitive actions (step-up)", "User", user.Id.ToString());
+
+        return new StepUpVerifyResultDto
+        {
+            Success = true,
+            Token = await _tokenService.GenerateTokenAsync(user, signedInAtUtc, DateTime.UtcNow),
+            ValidForSeconds = (int)HR28.Application.Common.StepUpRules.ValidFor.TotalSeconds
         };
     }
 }

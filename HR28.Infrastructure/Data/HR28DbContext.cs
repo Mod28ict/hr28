@@ -54,6 +54,19 @@ public class HR28DbContext : DbContext
             e.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
+        // Sign-in alerts: browsers each user has signed in from (keyed hash of the key only).
+        modelBuilder.Entity<KnownDevice>(e =>
+        {
+            e.Property(d => d.KeyHash).HasMaxLength(64).IsRequired();
+            e.HasIndex(d => new { d.UserId, d.KeyHash }).IsUnique();
+            e.Property(d => d.Name).HasMaxLength(100);
+            e.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Sign-in codes and step-up (confirm it's you) codes share the table, never each other's use.
+        modelBuilder.Entity<OtpRequest>()
+            .Property(o => o.Purpose).HasMaxLength(16).HasDefaultValue(OtpRequest.SignInPurpose);
+
         // --------------------------------------------------
         // User scope relationships
         // --------------------------------------------------
@@ -378,6 +391,9 @@ public class HR28DbContext : DbContext
 
     public DbSet<OtpRequest> OtpRequests =>
         Set<OtpRequest>();
+
+    public DbSet<KnownDevice> KnownDevices =>
+        Set<KnownDevice>();
 
     public DbSet<TrustedDevice> TrustedDevices =>
         Set<TrustedDevice>();

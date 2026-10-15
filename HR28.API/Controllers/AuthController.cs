@@ -105,7 +105,55 @@ public class AuthController : ControllerBase
         if (user == null)
             return Unauthorized(new { message = "Please sign in again." });
 
-        return Ok(new { token = await tokenService.GenerateTokenAsync(user, signedInAt) });
+        // A recent "confirm it's you" stays valid for its 15 minutes across refreshes.
+        DateTime? steppedUpAt = long.TryParse(User.FindFirst(HR28.Application.Common.StepUpRules.Claim)?.Value, out var stepUpUnix)
+            ? DateTimeOffset.FromUnixTimeSeconds(stepUpUnix).UtcDateTime
+            : null;
+
+        return Ok(new { token = await tokenService.GenerateTokenAsync(user, signedInAt, steppedUpAt) });
+    }
+
+    /// <summary>
+    /// "Confirm it's you": sends a code by SMS to the signed-in person, before sensitive actions.
+    /// Same per-account limits as sign-in codes; rate-limited per IP like them.
+    /// </summary>
+    [HttpPost("step-up/send")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [EnableRateLimiting(RateLimitPolicies.OtpRequest)]
+    public async Task<IActionResult> SendStepUpCode()
+    {
+        var userId = User.GetUserId();
+
+        if (userId == null)
+            return Unauthorized(new { message = "Please sign in again." });
+
+        var result = await _authService.SendStepUpCodeAsync(userId.Value);
+
+        if (result.IsThrottled)
+        {
+            Response.Headers.RetryAfter = result.RetryAfterSeconds.ToString();
+            return StatusCode(StatusCodes.Status429TooManyRequests, result);
+        }
+
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>Checks the "confirm it's you" code; returns a new token covering sensitive actions for 15 minutes.</summary>
+    [HttpPost("step-up/verify")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [EnableRateLimiting(RateLimitPolicies.OtpVerify)]
+    public async Task<IActionResult> VerifyStepUp(StepUpVerifyRequestDto request)
+    {
+        var userId = User.GetUserId();
+
+        if (userId == null ||
+            !long.TryParse(User.FindFirst(ITokenService.SignedInAtClaim)?.Value, out var signedInUnix))
+            return Unauthorized(new { message = "Please sign in again." });
+
+        var result = await _authService.VerifyStepUpAsync(
+            userId.Value, request.Code, DateTimeOffset.FromUnixTimeSeconds(signedInUnix).UtcDateTime);
+
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpPost("verify-otp")]

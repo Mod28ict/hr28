@@ -30,6 +30,7 @@ public class InfluencerCategoriesController : ControllerBase
 
     [HttpPost]
     [Authorize(Policy = AuthorizationPolicies.Administrator)]
+    [RequireStepUp]
     public async Task<IActionResult> Create([FromBody] SaveInfluencerCategoryDto request)
     {
         return Ok(await _service.CreateAsync(request));
@@ -37,6 +38,7 @@ public class InfluencerCategoriesController : ControllerBase
 
     [HttpPut("{id:guid}")]
     [Authorize(Policy = AuthorizationPolicies.Administrator)]
+    [RequireStepUp]
     public async Task<IActionResult> Update(Guid id, [FromBody] SaveInfluencerCategoryDto request)
     {
         return Ok(await _service.UpdateAsync(id, request));
@@ -44,6 +46,7 @@ public class InfluencerCategoriesController : ControllerBase
 
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = AuthorizationPolicies.Administrator)]
+    [RequireStepUp]
     public async Task<IActionResult> Delete(Guid id)
     {
         var name = await _service.DeleteAsync(id);

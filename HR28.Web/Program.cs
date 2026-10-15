@@ -17,6 +17,9 @@ builder.Services.AddControllersWithViews(options =>
     // Every POST/PUT/DELETE must carry the anti-forgery token (forms add it automatically).
     options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
 
+    // The API asked for a "confirm it's you" code: show that page instead of an error.
+    options.Filters.Add<HR28.Web.Filters.StepUpRedirectFilter>();
+
     // A failed check goes back to the page with a plain message, not an empty 400 page.
     options.Filters.Add<HR28.Web.Filters.FriendlyAntiforgeryFailureFilter>();
 });

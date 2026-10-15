@@ -68,6 +68,9 @@ const modules = [
     ["A-08", "Sign out", "Click your name / Sign out.", "Back on the sign-in page. Pressing Back in the browser does not show the app.", "All"],
     ["A-09", "Idle session (optional, 1 hour)", "Stay signed in without touching the app for 59 minutes.", "\"Are you still there?\" with a 60-second countdown. Stay signed in keeps you in; no answer signs you out with a plain message.", "Any"],
     ["A-10", "Both mobile networks", "Repeat A-01 with one Dhiraagu (7xxxxxx) and one Ooredoo (9xxxxxx) phone.", "Both receive the SMS code.", "Two testers"],
+    ["A-11", "New-device sign-in alert", "Sign in on your usual phone. Then sign in on another browser or computer (or a private/incognito window).", "First device: no alert. The other browser: SMS \"new sign-in to your account at HH:MM on <browser>… contact your administrator\". Same browser again: no alert.", "All"],
+    ["A-12", "Confirm it's you", "As Administrator open Users (or Settings → System, or download a report).", "\"Confirm it's you\" page: Send me a code → SMS code → Confirm → back on the page you opened. For about 15 minutes no new code is asked; after that it asks again.", "Administrator"],
+    ["A-13", "Confirm it's you: wrong code", "On the Confirm page enter a wrong code, then the right one.", "\"That code is not correct. You have N tries left.\" The right code works. A confirmation code cannot be used to sign in.", "Administrator"],
   ]],
   ["B", "Dashboard and start page", [
     ["B-01", "Dashboard figures", "Sign in as Administrator. Look at the Dashboard.", "Greeting with your first name; totals for voters, supporters, undecided, opposition, neutral; constituency/island counts.", "Administrator"],
@@ -170,7 +173,7 @@ intro.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 1
 intro.push(p([t("User Acceptance Testing (UAT)", { size: 44, bold: true, color: DARK })], { align: AlignmentType.CENTER, after: 120 }));
 intro.push(p([t("and User Training Guide", { size: 32, color: BLUE })], { align: AlignmentType.CENTER, after: 600 }));
 intro.push(p([t("Deployment: Hithaai Roohun 2028 — https://shamheed.com", { size: 22, color: GREY })], { align: AlignmentType.CENTER }));
-intro.push(p([t("Version 1.0 — 15 October 2026", { size: 22, color: GREY })], { align: AlignmentType.CENTER }));
+intro.push(p([t("Version 1.1 — 15 October 2026", { size: 22, color: GREY })], { align: AlignmentType.CENTER }));
 intro.push(p([t("Prepared by: Ahmed Rasheed (Designed and Developed by)", { size: 22, color: GREY })], { align: AlignmentType.CENTER, after: 1200 }));
 intro.push(p([t("Confidential — contains no personal data. Do not write real voters' details, codes or passwords in this document.", { size: 18, italics: true, color: GREY })], { align: AlignmentType.CENTER }));
 intro.push(pb());
@@ -229,6 +232,7 @@ intro.push(table([1700, 7300], ["Mark", "Meaning"], [
   ["N/A", "Not relevant for this deployment."],
 ]));
 intro.push(p(""));
+intro.push(p("Sensitive areas (Users, Settings → System / places / lists / Roles & rights, report downloads, uploads) first ask you to \"Confirm it's you\" with a code sent by SMS; one confirmation lasts about 15 minutes."));
 intro.push(p("Rights mentioned in a test (e.g. \"Edit right\", \"photo rights\") are set by the Administrator in Settings → Roles & rights or for one person in Users → Roles → Extra rights. Where a test says \"with / without the right\", test both: the button should appear only for the person who has the right."));
 
 // ---------- test scripts (landscape) ----------
@@ -307,7 +311,7 @@ for (let i = 0; i < 4; i++) tail.push(p("…………………………………
 
 // ---------- document ----------
 const footer = new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
-  t("Campaign Intelligence Platform (CIP) — UAT & Training Guide v1.0 — page ", { size: 16, color: GREY }),
+  t("Campaign Intelligence Platform (CIP) — UAT & Training Guide v1.1 — page ", { size: 16, color: GREY }),
   new TextRun({ children: [PageNumber.CURRENT], font: FONT, size: 16, color: GREY }),
 ] })] });
 const A4 = { width: 11906, height: 16838 };

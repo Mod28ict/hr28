@@ -299,6 +299,39 @@ namespace HR28.Infrastructure.Migrations
                     b.ToTable("Islands");
                 });
 
+            modelBuilder.Entity("HR28.Domain.Entities.KnownDevice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("FirstSeenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("KeyHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "KeyHash")
+                        .IsUnique();
+
+                    b.ToTable("KnownDevices");
+                });
+
             modelBuilder.Entity("HR28.Domain.Entities.OtpRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -320,6 +353,13 @@ namespace HR28.Infrastructure.Migrations
                     b.Property<string>("OtpCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)")
+                        .HasDefaultValue("SignIn");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -948,6 +988,17 @@ namespace HR28.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Constituency");
+                });
+
+            modelBuilder.Entity("HR28.Domain.Entities.KnownDevice", b =>
+                {
+                    b.HasOne("HR28.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("HR28.Domain.Entities.OtpRequest", b =>

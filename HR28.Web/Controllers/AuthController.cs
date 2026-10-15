@@ -13,6 +13,12 @@ public class AuthController : Controller
     /// </summary>
     public const string DeviceCookie = "HR28.Device";
 
+    /// <summary>
+    /// Sign-in alerts: a random key identifying this browser (only its keyed hash is stored).
+    /// Signing in from a browser the account hasn't used before sends the person an SMS.
+    /// </summary>
+    public const string KnownDeviceCookie = "HR28.Known";
+
     private readonly AuthService _authService;
     private readonly SessionKeeper _sessionKeeper;
 
@@ -226,10 +232,9 @@ public class AuthController : Controller
             request.DeviceToken = DeviceToken;
             request.RememberDevice = false;
         }
-        else if (request.RememberDevice)
-        {
-            request.DeviceName = DeviceLabel(Request.Headers.UserAgent.ToString());
-        }
+        // The browser's label is used for "Remember me" and for the new-sign-in alert.
+        request.DeviceName = DeviceLabel(Request.Headers.UserAgent.ToString());
+        request.KnownDeviceToken = Request.Cookies[KnownDeviceCookie];
 
         var response =
             await _authService.VerifyOtpAsync(request);
@@ -263,6 +268,19 @@ public class AuthController : Controller
                 SameSite = SameSiteMode.Strict,
                 IsEssential = true,
                 Expires = new DateTimeOffset(DateTime.SpecifyKind(expires, DateTimeKind.Utc))
+            });
+        }
+
+        // Sign-in alerts: this browser's new key (the browser keeps it; the server only a hash).
+        if (!string.IsNullOrEmpty(response.KnownDeviceToken))
+        {
+            Response.Cookies.Append(KnownDeviceCookie, response.KnownDeviceToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                IsEssential = true,
+                Expires = DateTimeOffset.UtcNow.AddDays(400)
             });
         }
 
