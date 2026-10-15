@@ -108,8 +108,13 @@ separate). Every page shows a TRAINING strip (`App__EnvironmentLabel`) and every
 Releases go PC → training → live (owner, 2026-10-15): `hr28-deploy training`, test on tr.shamheed.com, then `hr28-deploy live` installs exactly the staged release (`/var/lib/hr28/release-staged`).
 Cloudflare: DNS `tr` → droplet IP, proxied; all zone rules (WAF, rate limit, outside-Maldives
 challenge, origin pulls) apply. Training is not backed up nightly (refresh from live instead) and
-not in `hr28-monitor`. Live was cleared of test influencers, pledges and encounters on 2026-10-15
-(audited); a refresh therefore brings none — trainees create their own.
+not in `hr28-monitor`. Live was given a fresh start on 2026-10-15 (owner-run `golive-cleanup`: test users,
+influencers, pledges, encounters, photos and the test-period audit trail removed; backup
+`HR28Db-20261015-084606`). **Training keeps its own practice data** (owner decision
+2026-10-15: the test users, influencers, pledges and encounters copied before the clean-up) —
+do NOT run `hr28-train-refresh` unless that practice data should be replaced by a copy of
+live. New training accounts are created on the training site itself (their codes arrive by
+SMS marked TRAINING:).
 
 ## Updates
 
