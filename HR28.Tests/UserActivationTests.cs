@@ -21,7 +21,7 @@ public class UserActivationTests
 
     private sealed record Created(Guid Id, bool IsActive, string? AuthorizationCode);
 
-    private sealed record Activation(bool Activated, bool FirstActivation, bool SmsSent, string? AuthorizationCode);
+    private sealed record Activation(bool Activated, bool FirstActivation, bool SmsSent, string MaskedMobile);
 
     private static int _next;
 
@@ -113,7 +113,7 @@ public class UserActivationTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(result!.Activated && result.FirstActivation && result.SmsSent);
-        Assert.Null(result.AuthorizationCode);   // sent by SMS, never shown to the administrator
+        Assert.Equal("•••" + mobile[^3..], result.MaskedMobile);
 
         var sms = _factory.Sms.MessagesTo(mobile).Last();
         Assert.Contains("Welcome, Aminath", sms);
@@ -126,6 +126,27 @@ public class UserActivationTests
 
         await using var db = _factory.NewDbContext();
         Assert.True(await db.AuditLogs.AnyAsync(a => a.EntityId == user.Id.ToString() && a.Action == "Welcome SMS with the authorization code sent"));
+    }
+
+    [Fact]
+    public async Task A_failed_welcome_SMS_leaves_no_code_and_shows_none()
+    {
+        var (admin, user, mobile) = await CreateAsync();
+        await GiveRoleAsync(user.Id, "Collector");
+        var userId = user.Id;
+        _factory.Sms.FailFor(mobile);
+
+        var response = await admin.PutAsJsonAsync($"api/Users/{userId}/active", new { isActive = true });
+        var raw = await response.Content.ReadAsStringAsync();
+        var result = await response.Content.ReadFromJsonAsync<Activation>();
+
+        Assert.True(result!.Activated && result.FirstActivation);
+        Assert.False(result.SmsSent);
+        Assert.DoesNotMatch(@"[A-Z2-9]{4}-?[A-Z2-9]{4}", raw);
+        Assert.DoesNotContain("authorizationCode", raw, StringComparison.OrdinalIgnoreCase);
+
+        await using var db = _factory.NewDbContext();
+        Assert.Null((await db.Users.SingleAsync(u => u.Id == userId)).AuthorizationCodeHash);
     }
 
     [Fact]

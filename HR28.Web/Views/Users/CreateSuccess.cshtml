@@ -1,17 +1,9 @@
 @model HR28.Web.Models.UserCreateViewModel
 
 @{
-    // Used after creating a user ("created": no code yet), after resetting a code
-    // (ViewBag.IsReset), and when an activation's welcome SMS could not be sent ("sms-failed").
-    var isReset = (bool)(ViewBag.IsReset ?? false);
-    var mode = isReset ? "reset" : ViewBag.Mode as string ?? "created";
-    var userName = ViewBag.UserName as string;
-
-    ViewData["Title"] = mode switch { "reset" => "New Authorization Code", "sms-failed" => "Authorization Code", _ => "User Created" };
-
-    var code =
-        Model?.GeneratedAuthorizationCode
-        ?? string.Empty;
+    // After creating a user. Authorization codes are never shown to administrators: they go
+    // only to the person by SMS (activation and Reset code, owner 2026-10-15).
+    ViewData["Title"] = "User Created";
 }
 
 <div class="ui-page is-narrow" style="max-width: 640px;">
@@ -22,90 +14,21 @@
             <partial name="_Icon" model='"check"' />
         </span>
 
-        @if (mode == "created")
-        {
-            <h1 class="ui-title">User created</h1>
-            <p class="ui-sub">@Model?.User.FullName can't sign in yet. The account is inactive until you finish these steps.</p>
+        <h1 class="ui-title">User created</h1>
+        <p class="ui-sub">@Model?.User.FullName can't sign in yet. The account is inactive until you finish these steps.</p>
 
-            <ol class="ui-steps-list">
-                <li><strong>Give a role.</strong> At least one role is needed before the account can be activated.</li>
-                <li><strong>Add an area</strong> (constituency or island), so they can see voters.</li>
-                <li><strong>Activate the account.</strong> A welcome SMS with their authorization code is sent to @Model?.User.MobileNumber. Nobody else sees the code.</li>
-            </ol>
-
-            <div class="ui-form-actions" style="justify-content: center;">
-                <a asp-action="AssignRole" asp-route-id="@Model?.EditId" class="ui-btn ui-btn-primary">Give a role</a>
-                <a asp-action="AssignScope" asp-route-id="@Model?.EditId" class="ui-btn ui-btn-secondary">Add an area</a>
-                <a asp-action="Index" class="ui-btn ui-btn-ghost">Back to Users</a>
-            </div>
-        }
-        else
-        {
-        @if (isReset)
-        {
-            @* Not used any more: a reset code goes only to the person by SMS (2026-10-15). *@
-        }
-        else
-        {
-            <h1 class="ui-title">Account activated</h1>
-            <p class="ui-sub">
-                The welcome SMS could not be sent, so here is @(string.IsNullOrWhiteSpace(userName) ? "the" : $"{userName}'s") authorization code.
-                Give it to them in person or by phone.
-            </p>
-        }
-
-        <div style="margin: 26px 0 8px;" class="ui-label">Authorization code</div>
-
-        <div id="authCode" class="ui-mono ui-code-box">@code</div>
-
-        <button type="button" id="copyBtn" class="ui-btn ui-btn-secondary" style="margin-top: 14px;">
-            <partial name="_Icon" model='"copy"' />
-            <span>Copy code</span>
-        </button>
-
-        <div class="ui-note is-amber" style="margin: 22px 0; text-align: left;">
-            <partial name="_Icon" model='"alert"' />
-            <div>
-                <strong>This code is shown only once</strong>
-                It is stored in a form nobody can read back, including administrators.
-                If it is lost, use "Reset code" on the Users page to issue a new one.
-                Users can type it with or without the dash, in capitals or lower case.
-            </div>
-        </div>
+        <ol class="ui-steps-list">
+            <li><strong>Give a role.</strong> At least one role is needed before the account can be activated.</li>
+            <li><strong>Add an area</strong> (constituency or island), so they can see voters.</li>
+            <li><strong>Activate the account.</strong> A welcome SMS with their authorization code is sent to @Model?.User.MobileNumber. Nobody else sees the code.</li>
+        </ol>
 
         <div class="ui-form-actions" style="justify-content: center;">
-            <a asp-action="Index" class="ui-btn ui-btn-primary">
-                <partial name="_Icon" model='"arrow-left"' />
-                Back to Users
-            </a>
-
+            <a asp-action="AssignRole" asp-route-id="@Model?.EditId" class="ui-btn ui-btn-primary">Give a role</a>
+            <a asp-action="AssignScope" asp-route-id="@Model?.EditId" class="ui-btn ui-btn-secondary">Add an area</a>
+            <a asp-action="Index" class="ui-btn ui-btn-ghost">Back to Users</a>
         </div>
-        }
 
     </section>
 
 </div>
-
-@section Scripts
-{
-    <script>
-        (function () {
-            const btn = document.getElementById("copyBtn");
-            if (!btn) return;
-            const label = btn.querySelector("span");
-            const code = document.getElementById("authCode");
-
-            btn.addEventListener("click", function () {
-                if (!navigator.clipboard) return;
-
-                navigator.clipboard.writeText(code.innerText.trim()).then(function () {
-                    label.textContent = "Copied";
-
-                    setTimeout(function () {
-                        label.textContent = "Copy code";
-                    }, 2000);
-                });
-            });
-        })();
-    </script>
-}

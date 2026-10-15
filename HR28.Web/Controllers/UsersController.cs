@@ -320,29 +320,21 @@ public class UsersController : Controller
     }
 
     /// <summary>
-    /// After switching an account on: a message saying the welcome SMS went out, or, if it
-    /// couldn't be sent, the new code shown once so it can be given to the person.
+    /// After switching an account on: a message saying whether the welcome SMS went out. The
+    /// code is never shown to administrators (owner, 2026-10-15).
     /// </summary>
     private IActionResult AfterActivation(ActivationResult result, string? name)
     {
         var who = string.IsNullOrWhiteSpace(name) ? "The account" : name.Trim();
 
-        if (!string.IsNullOrWhiteSpace(result.AuthorizationCode))
-        {
-            ViewBag.Mode = "sms-failed";
-            ViewBag.UserName = who;
-
-            // The code is shown once; don't let the browser cache this page.
-            Response.Headers.CacheControl = "no-store";
-
-            return View("CreateSuccess", new UserCreateViewModel { GeneratedAuthorizationCode = result.AuthorizationCode });
-        }
-
-        TempData["SuccessMessage"] = result.FirstActivation
-            ? $"{who} is active. A welcome SMS with their authorization code was sent to their mobile."
-            : result.SmsSent
-                ? $"{who} is active again and has been told by SMS. Their authorization code is unchanged."
-                : $"{who} is active again. Their authorization code is unchanged.";
+        if (result.FirstActivation && !result.SmsSent)
+            TempData["FlashError"] = $"{who} is active, but the welcome SMS could not be sent ({result.MaskedMobile}), so they have no code yet. Check the phone number in Edit, then use Reset code.";
+        else
+            TempData["SuccessMessage"] = result.FirstActivation
+                ? $"{who} is active. A welcome SMS with their authorization code was sent to their mobile. Only they can see it."
+                : result.SmsSent
+                    ? $"{who} is active again and has been told by SMS. Their authorization code is unchanged."
+                    : $"{who} is active again. Their authorization code is unchanged.";
 
         return BackToList();
     }

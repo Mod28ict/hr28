@@ -10,6 +10,6 @@ public class ActivationResult
 
     public bool SmsSent { get; set; }
 
-    /// <summary>Only when the welcome SMS could not be sent: the code, to show once.</summary>
-    public string? AuthorizationCode { get; set; }
+    /// <summary>Last digits of the person's number, e.g. "•••234" (never the code).</summary>
+    public string MaskedMobile { get; set; } = string.Empty;
 }

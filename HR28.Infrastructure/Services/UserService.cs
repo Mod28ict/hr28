@@ -542,8 +542,9 @@ public class UserService : IUserService
 
     /// <summary>
     /// After activation: the welcome SMS with the new code (first time), or a short
-    /// "active again" SMS. If the welcome SMS can't be sent, the code is returned once so
-    /// the administrator can give it to the person instead of it being lost.
+    /// "active again" SMS. The code goes only to the person; administrators never see it
+    /// (owner, 2026-10-15). If the welcome SMS can't be sent, the new code is revoked so no
+    /// code nobody received stays usable; the administrator fixes the number and resets.
     /// </summary>
     private async Task<ActivationResultDto> SendActivationSmsAsync(User user, string? newCode)
     {
@@ -559,20 +560,35 @@ public class UserService : IUserService
 
         var sent = await _smsSender.SendAsync(user.MobileNumber, message);
 
+        if (newCode != null && !sent)
+        {
+            var hash = user.AuthorizationCodeHash;
+            user.AuthorizationCodeHash = null;
+
+            foreach (var entry in await _dbContext.AuthorizationCodeHistories
+                         .Where(h => h.UserId == user.Id && h.AuthorizationCodeHash == hash && h.RevokedAt == null)
+                         .ToListAsync())
+                entry.RevokedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+        }
+
         await _auditService.LogAsync(
             GetCurrentUserId(),
             newCode == null
                 ? (sent ? "\"Active again\" SMS sent" : "\"Active again\" SMS could not be sent")
-                : (sent ? "Welcome SMS with the authorization code sent" : "Welcome SMS could not be sent; code shown once to the administrator"),
+                : (sent ? "Welcome SMS with the authorization code sent" : "Welcome SMS could not be sent; the account has no code until it is reset"),
             "User",
             user.Id.ToString());
+
+        var digits = new string((user.MobileNumber ?? string.Empty).Where(char.IsDigit).ToArray());
 
         return new ActivationResultDto
         {
             Activated = true,
             FirstActivation = newCode != null,
             SmsSent = sent,
-            AuthorizationCode = newCode != null && !sent ? newCode : null
+            MaskedMobile = digits.Length >= 3 ? "•••" + digits[^3..] : string.Empty
         };
     }
 

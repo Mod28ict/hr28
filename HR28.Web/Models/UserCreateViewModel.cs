@@ -6,8 +6,6 @@ public class UserCreateViewModel
 {
     public CreateUserDto User { get; set; } = new();
 
-    public string? GeneratedAuthorizationCode { get; set; }
-
     /// <summary>Set when editing an existing user (the same form adds and edits).</summary>
     public Guid? EditId { get; set; }
 

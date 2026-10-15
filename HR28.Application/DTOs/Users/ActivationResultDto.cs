@@ -13,8 +13,8 @@ public class ActivationResultDto
     public bool SmsSent { get; set; }
 
     /// <summary>
-    /// Only when the welcome SMS with the code could not be sent: the code, shown once to
-    /// the administrator so it isn't lost. Empty whenever the SMS was sent.
+    /// Last digits of the person's number, e.g. "•••234". The code itself is never returned:
+    /// it goes only to the person by SMS (owner, 2026-10-15).
     /// </summary>
-    public string? AuthorizationCode { get; set; }
+    public string MaskedMobile { get; set; } = string.Empty;
 }

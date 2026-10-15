@@ -255,8 +255,9 @@ strong despite that:
      nobody can sign in). **New accounts (owner decision, 2026-10-09) start inactive and
      without a code; activation needs at least one role (API and UI); the first
      activation creates the code and sends it in a welcome SMS** (campaign name, first
-     name, code, optional `App:SignInUrl`) — nobody else sees it. If that SMS can't be
-     sent, the code is shown once to the administrator instead. Re-activating later sends
+     name, code, optional `App:SignInUrl`) — nobody else sees it. Administrators never see a
+     user's code (owner, 2026-10-15): if that SMS can't be sent, the new code is revoked and
+     the administrator is told to fix the number and use Reset code. Re-activating later sends
      an "active again" SMS and keeps the code. "Reset code" (owner, 2026-10-15) stops the old
      code and sends a new one **only to the person by SMS**: administrators never see it
      (prevents misuse of someone else's credentials). If that SMS fails the new code is
