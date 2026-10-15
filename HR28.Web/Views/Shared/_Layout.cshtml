@@ -1,4 +1,5 @@
 @inject HR28.Web.Services.BrandingService BrandingService
+@inject Microsoft.Extensions.Configuration.IConfiguration EnvConfig
 @{
     // The client's own name, short name, tagline and logo (Settings → System → Branding).
     var brand = await BrandingService.GetAsync();
@@ -12,7 +13,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0" />
 
-    <title>@ViewData["Title"] | @brand.ShortName</title>
+    <title>@(string.IsNullOrWhiteSpace(EnvConfig["App:EnvironmentLabel"]) ? "" : "[TRAINING] ")@ViewData["Title"] | @brand.ShortName</title>
     <link rel="icon" href="~/favicon.ico" sizes="any" />
     <link rel="icon" href="~/img/cip-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="~/img/cip-apple-touch-icon.png" />
@@ -509,6 +510,8 @@
             </div>
 
         </header>
+
+        <partial name="_EnvironmentBanner" />
 
         <main role="main" class="shell-content">
             @if (!string.IsNullOrWhiteSpace(flashError))

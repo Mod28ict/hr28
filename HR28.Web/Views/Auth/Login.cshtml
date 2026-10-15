@@ -1,5 +1,6 @@
 @model HR28.Web.Models.Auth.GenerateOtpRequest
 @inject HR28.Web.Services.BrandingService BrandingService
+@inject Microsoft.Extensions.Configuration.IConfiguration EnvConfig
 
 @{
     Layout = null;
@@ -20,7 +21,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0" />
 
-    <title>@brand.ShortName | Secure Login</title>
+    <title>@(string.IsNullOrWhiteSpace(EnvConfig["App:EnvironmentLabel"]) ? "" : "[TRAINING] ")@brand.ShortName | Secure Login</title>
     <link rel="icon" href="~/favicon.ico" sizes="any" />
     <link rel="icon" href="~/img/cip-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="~/img/cip-apple-touch-icon.png" />
@@ -708,6 +709,8 @@
 </head>
 
 <body>
+    <partial name="_EnvironmentBanner" />
+
     <main class="auth-page">
 
         <section class="hero-panel">

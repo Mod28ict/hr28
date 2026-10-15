@@ -1,0 +1,13 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@* A non-live copy (e.g. the training site, owner 2026-10-15) says so on every page. Set only
+   by the server setting App:EnvironmentLabel; the live site has none. *@
+@{
+    var label = Configuration["App:EnvironmentLabel"];
+}
+@if (!string.IsNullOrWhiteSpace(label))
+{
+    <div class="env-banner" role="note">
+        <strong>TRAINING SITE</strong>
+        <span>@label</span>
+    </div>
+}

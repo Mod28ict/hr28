@@ -96,6 +96,17 @@ else if (!string.IsNullOrWhiteSpace(builder.Configuration[DhiraaguSmsSender.User
 else
     builder.Services.AddSingleton<ISmsSender, UnconfiguredSmsSender>();
 
+// Training site and other non-live copies: every SMS starts with a label (App:SmsPrefix).
+if (builder.Configuration[PrefixedSmsSender.PrefixSetting] is { Length: > 0 } smsPrefix)
+{
+    var chosen = builder.Services.Last(d => d.ServiceType == typeof(ISmsSender));
+    builder.Services.Remove(chosen);
+    builder.Services.AddSingleton<ISmsSender>(sp => new PrefixedSmsSender(
+        chosen.ImplementationFactory?.Invoke(sp) as ISmsSender
+            ?? (ISmsSender)ActivatorUtilities.CreateInstance(sp, chosen.ImplementationType!),
+        smsPrefix));
+}
+
 // Authorization codes are stored as a keyed hash. The key comes from User Secrets
 // (development) or Key Vault (production); startup fails if it is missing.
 builder.Services.AddSingleton<IAuthorizationCodeHasher>(

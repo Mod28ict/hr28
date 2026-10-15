@@ -104,6 +104,22 @@ public class DhiraaguSmsTests
         public Task<bool> SendAsync(string phoneNumber, string message) { Sent++; return Task.FromResult(true); }
     }
 
+    private sealed class Recorder : ISmsSender
+    {
+        public string? Last { get; private set; }
+        public Task<bool> SendAsync(string phoneNumber, string message) { Last = message; return Task.FromResult(true); }
+    }
+
+    [Fact]
+    public async Task A_training_copy_labels_every_SMS()
+    {
+        var inner = new Recorder();
+
+        await new PrefixedSmsSender(inner, " TRAINING: ").SendAsync("7771234", "HR28 code: 482913.");
+
+        Assert.Equal("TRAINING: HR28 code: 482913.", inner.Last);
+    }
+
     [Fact]
     public async Task One_number_gets_at_most_8_messages_an_hour_however_it_is_written()
     {

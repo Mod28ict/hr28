@@ -449,3 +449,26 @@ html[data-accent="gold"] .link-button {
 html[data-accent="gold"] .cip-credit-mark {
     color: #c8900b;
 }
+
+
+/* Non-live copy (training site): a bright strip on every page (App:EnvironmentLabel) */
+.env-banner {
+    position: sticky;
+    top: 0;
+    z-index: 1100;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 4px 10px;
+    padding: 7px 16px;
+    color: #ffffff;
+    background: repeating-linear-gradient(135deg, #c2410c 0 18px, #b93a08 18px 36px);
+    font-size: 13px;
+    line-height: 1.35;
+    text-align: center;
+}
+
+    .env-banner strong {
+        letter-spacing: 1px;
+    }

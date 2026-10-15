@@ -58,3 +58,25 @@ public class PhoneLimitedSmsSender : ISmsSender
         return _inner.SendAsync(phoneNumber!, message);
     }
 }
+
+/// <summary>
+/// A non-live copy (e.g. the training site, owner 2026-10-15) starts every SMS with a label
+/// such as "TRAINING:", so nobody mistakes a training code for a live one. Set only by the
+/// server setting App:SmsPrefix; the live site has none.
+/// </summary>
+public class PrefixedSmsSender : ISmsSender
+{
+    public const string PrefixSetting = "App:SmsPrefix";
+
+    private readonly ISmsSender _inner;
+    private readonly string _prefix;
+
+    public PrefixedSmsSender(ISmsSender inner, string prefix)
+    {
+        _inner = inner;
+        _prefix = prefix.Trim();
+    }
+
+    public Task<bool> SendAsync(string phoneNumber, string message) =>
+        _inner.SendAsync(phoneNumber, $"{_prefix} {message}");
+}
