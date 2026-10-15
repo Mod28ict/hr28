@@ -60,6 +60,23 @@ sleep 3
 code="$(curl -s -o /dev/null -w '%{http_code}' -H 'X-Forwarded-Proto: https' http://127.0.0.1:5000/Auth/Login)"
 [ "$code" = "200" ] || { echo "Web app answered $code: check 'journalctl -u hr28-web'."; exit 1; }
 
+# The training site (if set up) runs the same release: same files, same database changes.
+if [ -d /var/www/hr28-train-api ] && systemctl list-unit-files hr28-train-api.service >/dev/null 2>&1; then
+    echo "Updating the training site..."
+    if [ -f "$REL/migrate.sql" ]; then
+        source /etc/hr28/sql-admin.env
+        SQLCMDPASSWORD="$SA_PASSWORD" /opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1,1433 -U sa -C -I -b -d HR28Train -i "$REL/migrate.sql" >/dev/null             || echo "WARNING: database changes failed on training (live is fine). Run hr28-train-refresh."
+        unset SA_PASSWORD
+    fi
+    systemctl stop hr28-train-web hr28-train-api
+    rsync -a --delete /var/www/hr28-api/ /var/www/hr28-train-api/
+    rsync -a --delete /var/www/hr28/ /var/www/hr28-train/
+    systemctl start hr28-train-api
+    for i in $(seq 1 30); do curl -fsS http://127.0.0.1:5011/health >/dev/null 2>&1 && break; sleep 2; done
+    systemctl start hr28-train-web
+    curl -fsS http://127.0.0.1:5011/health >/dev/null 2>&1         && echo "Training site updated."         || echo "WARNING: the training site did not start (live is fine): journalctl -u hr28-train-api"
+fi
+
 rm -rf "$REL"
 find /var/www/.previous -mindepth 1 -maxdepth 1 -type d -mtime +30 -exec rm -rf {} +
 echo "Release ${STAMP} is live. Previous version kept in ${KEEP}."
