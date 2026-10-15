@@ -493,7 +493,9 @@ Status as of 2026-10-02 (update when an item changes):
    administrators in API and UI, real SMS (Dhiraagu, per-phone limit), trusted devices,
    session timeouts and admin sign-out, step-up codes and sign-in alerts (2026-10-15).
    Still to do: passkeys (deferred).
-6. OWASP ASVS L2 review — **not started** as a formal pass.
+6. OWASP ASVS L2 review — **done (2026-10-15, ASVS 5.0):** `Docs/Security/ASVS-L2-Review-2026-10-15.md`.
+   No high findings; open: M1 bulk voter reading cap, M2 sign-in/refusal logging,
+   M3 input length limits, M4 self-host Select2, and lows L1–L6.
 7. Audit coverage — **partly done:** voters, influencers, encounters, pledges,
    users (create, code reset, roles, areas), constituencies, islands, settings and
    report downloads are audited. Voter, influencer and encounter edits record which
