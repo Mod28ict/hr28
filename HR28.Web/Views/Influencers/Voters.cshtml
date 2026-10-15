@@ -100,7 +100,7 @@
                 <button type="submit" class="ui-btn ui-btn-primary">Search</button>
 
                 <label for="linkedPageSize" class="visually-hidden">Rows per page</label>
-                <select name="pageSize" id="linkedPageSize" class="ui-select ui-select-auto" onchange="this.form.requestSubmit()">
+                <select name="pageSize" id="linkedPageSize" class="ui-select ui-select-auto" data-autosubmit>
                     @foreach (var size in new[] { 10, 20, 50, 100 })
                     {
                         if (filter.PageSize == size)
@@ -228,7 +228,7 @@
                             var voterName = string.IsNullOrWhiteSpace(v.FullName) ? "Unnamed voter" : v.FullName;
                             var profileUrl = Url.Action("Profile", "Voters", new { id = v.VoterId });
 
-                            <tr class="ui-row-link" onclick="window.location='@profileUrl'">
+                            <tr class="ui-row-link" data-href="@profileUrl">
                                 <td>
                                     <div class="ui-person">
                                         <span class="ui-avatar" aria-hidden="true">@InitialsOf(voterName)</span>
@@ -247,7 +247,7 @@
                                 <td>
                                     @if (!string.IsNullOrWhiteSpace(v.MobileNumber))
                                     {
-                                        <a href="tel:@v.MobileNumber" class="ui-link ui-num" onclick="event.stopPropagation()">@v.MobileNumber</a>
+                                        <a href="tel:@v.MobileNumber" class="ui-link ui-num" data-no-row-click>@v.MobileNumber</a>
                                     }
                                     else
                                     {
@@ -284,7 +284,7 @@
 
                                 <td class="is-right">
                                     <a asp-controller="Voters" asp-action="Profile" asp-route-id="@v.VoterId"
-                                       class="ui-btn ui-btn-secondary ui-btn-sm" onclick="event.stopPropagation()">View</a>
+                                       class="ui-btn ui-btn-secondary ui-btn-sm" data-no-row-click>View</a>
                                 </td>
                             </tr>
                         }

@@ -13,7 +13,7 @@
     <button type="button"
             class="ui-status-btn h28-response-btn"
             title="Set the response"
-            onclick="event.stopPropagation()"
+            data-no-row-click
             data-id="@Model.Id"
             data-response="@Model.Response">
         @if (hasResponse)

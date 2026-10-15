@@ -85,7 +85,7 @@
                 </div>
 
                 <label for="encounterType" class="visually-hidden">Encounter type</label>
-                <select name="type" id="encounterType" class="ui-select ui-select-auto" onchange="this.form.requestSubmit()">
+                <select name="type" id="encounterType" class="ui-select ui-select-auto" data-autosubmit>
                     <option value="">All types</option>
                     @foreach (var t in HR28.Web.Models.EncounterListFilterModel.Types)
                     {
@@ -103,7 +103,7 @@
                 <button type="submit" class="ui-btn ui-btn-primary">Search</button>
 
                 <label for="encounterPageSize" class="visually-hidden">Rows per page</label>
-                <select name="pageSize" id="encounterPageSize" class="ui-select ui-select-auto" onchange="this.form.requestSubmit()">
+                <select name="pageSize" id="encounterPageSize" class="ui-select ui-select-auto" data-autosubmit>
                     @foreach (var size in new[] { 10, 20, 50, 100 })
                     {
                         if (filter.PageSize == size)

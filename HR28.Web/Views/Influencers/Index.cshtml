@@ -105,7 +105,7 @@
                 <select name="pageSize"
                         id="influencerPageSize"
                         class="ui-select ui-select-auto"
-                        onchange="this.form.requestSubmit()">
+                        data-autosubmit>
                     @foreach (var size in new[] { 10, 20, 50, 100 })
                     {
                         <option value="@size" selected="@(filter.PageSize == size)">@size per page</option>

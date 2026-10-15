@@ -362,6 +362,14 @@ strong despite that:
 - Validate every input on the server; use EF Core / parameterized queries only.
   No string-built SQL.
 - Encode all output in Razor; never render user input as raw HTML.
+- **Content-Security-Policy without 'unsafe-inline' for code** (2026-10-15): every page gets
+  a random nonce (`SecurityHeadersMiddleware`); `CspNonceTagHelper` stamps it on every
+  `<script>`/`<style>` the views render, so inline blocks are fine. **Never** write inline
+  event handlers (`onclick=`, `onchange=`, `onerror=`) or `javascript:` links — they are
+  blocked (`script-src-attr 'none'`); use site.js attributes: `data-autosubmit`,
+  `tr data-href` (+ `data-no-row-click` on parts that must not open the row),
+  `img data-remove-on-error`, `data-print`, `data-history-back`. `style="…"` attributes
+  remain allowed (`style-src-attr 'unsafe-inline'`: no code). No eval/new Function.
 - Rate limiting on login, code verification, search and export endpoints so nobody
   can bulk-download the voter registry.
 - No stack traces, internal errors or technical identifiers shown to users.
@@ -496,9 +504,6 @@ Known open issues (fix or confirm with the owner):
 - SMS uses the client's Dhiraagu Bulk SMS **portal** login (`hr28-sms-credentials`): if
   anyone changes that password, SMS stops until it is saved again. Ask Dhiraagu for a
   separate API login. The partner XML interface is not in Dhiraagu's user guide.
-- The web Content-Security-Policy still allows `'unsafe-inline'` scripts and styles
-  (sign-in pages and layout use inline blocks). Move them to files or nonces, then
-  remove it. Other security headers and Secure/HttpOnly/SameSite cookies are in place.
 - Influencer edit/delete with granted rights is built but not yet tested end to end
   with a signed-in non-Administrator. No right is granted to any role yet.
 - `Users.AuthorizationCode` (plain, now always empty) can be dropped in a migration.

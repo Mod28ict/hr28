@@ -888,7 +888,7 @@
                 <form method="get" asp-action="Index" style="display: flex; gap: 10px; margin-bottom: 12px;">
                     <input type="hidden" name="tab" value="geography" />
                     <label for="iFilterConstituency" class="visually-hidden">Show islands for</label>
-                    <select id="iFilterConstituency" name="constituency" class="ui-select" onchange="this.form.submit()">
+                    <select id="iFilterConstituency" name="constituency" class="ui-select" data-autosubmit>
                         <option value="">All constituencies</option>
                         @foreach (var c in Model.Constituencies)
                         {

@@ -292,3 +292,34 @@
         });
     });
 })();
+
+// Behaviour that used to be written as inline handlers (onclick="…", onchange="…"). The
+// Content-Security-Policy no longer allows those, so pages use these attributes instead:
+//   data-autosubmit         on a select/input: send its form when it changes (filters)
+//   tr data-href="…"        a table row that opens a page when clicked anywhere but on its
+//                           links, buttons, form fields or [data-no-row-click] parts
+//   img data-remove-on-error  drop a picture that can't be loaded (no broken image icon)
+//   data-print / data-history-back  buttons for Print and Go back
+(function () {
+    document.addEventListener("change", function (e) {
+        var field = e.target.closest ? e.target.closest("[data-autosubmit]") : null;
+        if (!field || !field.form) return;
+        if (field.form.requestSubmit) field.form.requestSubmit(); else field.form.submit();
+    });
+
+    document.addEventListener("click", function (e) {
+        if (e.target.closest("[data-print]")) { window.print(); return; }
+        if (e.target.closest("[data-history-back]")) { history.back(); return; }
+
+        var row = e.target.closest("tr[data-href]");
+        if (!row || e.defaultPrevented) return;
+        if (e.target.closest("a, button, input, select, textarea, label, form, summary, dialog, [data-no-row-click]")) return;
+
+        window.location.href = row.getAttribute("data-href");
+    });
+
+    // Load errors don't bubble, so listen while they travel down (capture).
+    document.addEventListener("error", function (e) {
+        if (e.target && e.target.matches && e.target.matches("img[data-remove-on-error]")) e.target.remove();
+    }, true);
+})();

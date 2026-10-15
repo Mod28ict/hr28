@@ -102,7 +102,7 @@
                 <button type="submit" class="ui-btn ui-btn-primary">Search</button>
 
                 <label for="pledgePageSize" class="visually-hidden">Rows per page</label>
-                <select name="pageSize" id="pledgePageSize" class="ui-select ui-select-auto" onchange="this.form.requestSubmit()">
+                <select name="pageSize" id="pledgePageSize" class="ui-select ui-select-auto" data-autosubmit>
                     @foreach (var size in new[] { 10, 20, 50, 100 })
                     {
                         if (filter.PageSize == size)

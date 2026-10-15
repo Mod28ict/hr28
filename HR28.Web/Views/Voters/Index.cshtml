@@ -182,7 +182,7 @@
                         name="party"
                         class="ui-select ui-select-auto ui-party-select"
                         title="Party"
-                        onchange="this.form.requestSubmit()">
+                        data-autosubmit>
                     <option value="@HR28.Web.Models.VoterListFilterModel.AllParties" selected="@(filter.Party == HR28.Web.Models.VoterListFilterModel.AllParties)">All parties</option>
                     @foreach (var p in filter.Parties)
                     {
@@ -197,7 +197,7 @@
                 <select name="pageSize"
                         id="voterPageSize"
                         class="ui-select ui-select-auto"
-                        onchange="this.form.requestSubmit()">
+                        data-autosubmit>
                     @foreach (var size in new[] { 10, 20, 50, 100 })
                     {
                         if (filter.PageSize == size)
@@ -385,7 +385,7 @@
                             var name = string.IsNullOrWhiteSpace(voter.FullName) ? "Unnamed voter" : voter.FullName;
                             var profileUrl = Url.Action("Profile", new { id = voter.Id });
 
-                            <tr class="ui-row-link" onclick="window.location='@profileUrl'">
+                            <tr class="ui-row-link" data-href="@profileUrl">
                                 <td>
                                     <div class="ui-person">
                                         <span class="ui-avatar-wrap">
@@ -394,7 +394,7 @@
                                                 @if (voter.HasPhoto && canViewPhoto)
                                                 {
                                                     @* Covers the initials; if it can't load, the initials show. *@
-                                                    <img src="@Url.Action("Photo", new { id = voter.Id })" alt="" loading="lazy" class="ui-avatar-img" onerror="this.remove()" />
+                                                    <img src="@Url.Action("Photo", new { id = voter.Id })" alt="" loading="lazy" class="ui-avatar-img" data-remove-on-error />
                                                 }
                                             </span>
 
@@ -402,7 +402,7 @@
                                             @if (canEditPhoto && !voter.HasPhoto)
                                             {
                                                 <form asp-action="UploadPhoto" asp-route-id="@voter.Id" method="post" enctype="multipart/form-data"
-                                                      class="ui-avatar-action" onclick="event.stopPropagation()">
+                                                      class="ui-avatar-action" data-no-row-click>
                                                     <input type="hidden" name="returnUrl" value="@listUrl" />
                                                     <label for="photo-@voter.Id" class="ui-avatar-btn" title="Add a photo of @name">
                                                         <partial name="_Icon" model='"camera"' />
@@ -415,7 +415,7 @@
                                             {
                                                 <form asp-action="RemovePhoto" asp-route-id="@voter.Id" method="post"
                                                       class="ui-avatar-action h28-photo-remove" data-confirm="Remove the photo of @name?"
-                                                      onclick="event.stopPropagation()">
+                                                      data-no-row-click>
                                                     <input type="hidden" name="returnUrl" value="@listUrl" />
                                                     <button type="submit" class="ui-avatar-btn is-danger" title="Remove the photo of @name" aria-label="Remove the photo of @name">
                                                         <partial name="_Icon" model='"trash"' />
@@ -440,7 +440,7 @@
                                     {
                                         <a href="tel:@voter.MobileNumber"
                                            class="ui-link ui-num"
-                                           onclick="event.stopPropagation()">@voter.MobileNumber</a>
+                                           data-no-row-click>@voter.MobileNumber</a>
                                     }
                                     else
                                     {
@@ -455,7 +455,7 @@
                                             <a asp-action="Index"
                                                asp-all-route-data="PlaceRoute(voter.ConstituencyId, voter.IslandId)"
                                                class="ui-place-link"
-                                               onclick="event.stopPropagation()"
+                                               data-no-row-click
                                                title="Show only voters on @voter.IslandName">@voter.IslandName</a>
                                         </div>
                                     }
@@ -469,7 +469,7 @@
                                             <a asp-action="Index"
                                                asp-all-route-data="PlaceRoute(voter.ConstituencyId, null)"
                                                class="ui-place-link is-muted"
-                                               onclick="event.stopPropagation()"
+                                               data-no-row-click
                                                title="Show only voters in @voter.ConstituencyName">@voter.ConstituencyLabel</a>
                                         </div>
                                     }
@@ -481,7 +481,7 @@
                                         @* Everyone at this house, in the same constituency and island *@
                                         <a class="ui-link"
                                            title="Show everyone at @voter.Address"
-                                           onclick="event.stopPropagation()"
+                                           data-no-row-click
                                            href="@Url.Action("Index", new { constituencyId = voter.ConstituencyId, islandId = voter.IslandId, house = voter.Address, houseExact = true, party = HR28.Web.Models.VoterListFilterModel.AllParties, pageSize = filter.PageSize })">@voter.Address</a>
                                     }
                                 </td>
@@ -516,7 +516,7 @@
                                     <a asp-action="Profile"
                                        asp-route-id="@voter.Id"
                                        class="ui-btn ui-btn-secondary ui-btn-sm"
-                                       onclick="event.stopPropagation()">
+                                       data-no-row-click>
                                         View
                                     </a>
                                 </td>
