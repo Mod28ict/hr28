@@ -12,6 +12,12 @@ public class SystemSettingsDto
     /// <summary>Line under the name on the sign-in pages and in the sidebar.</summary>
     public string? Tagline { get; set; }
 
+    /// <summary>
+    /// Colour theme everyone starts with: "blue" (classic) or "gold" (golden). Each person can
+    /// still choose their own on their device (Settings → Appearance or the menu under their name).
+    /// </summary>
+    public string? ThemeAccent { get; set; }
+
     /// <summary>How long a login OTP stays valid.</summary>
     public int OtpExpiryMinutes { get; set; }
 

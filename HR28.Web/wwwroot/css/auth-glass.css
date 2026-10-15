@@ -329,3 +329,123 @@ body {
         animation: none;
     }
 }
+
+
+/* =========================================================
+   GOLDEN colour theme on the sign-in pages (<html data-accent="gold">):
+   a black-and-gold night scene behind the same frosted card.
+   ========================================================= */
+
+html[data-accent="gold"] {
+    --primary: #e4a915;
+    --primary-light: #f7cf5c;
+    --primary-dark: #c8900b;
+    --navy: #0d0a05;
+    --navy-light: #1f180c;
+}
+
+html[data-accent="gold"] body {
+    background: #0b0905;
+}
+
+html[data-accent="gold"] .auth-page {
+    background:
+        radial-gradient(circle at 18% 18%, rgba(242, 193, 78, 0.24), transparent 30%),
+        radial-gradient(circle at 78% 30%, rgba(214, 140, 20, 0.16), transparent 32%),
+        radial-gradient(circle at 80% 82%, rgba(247, 207, 92, 0.14), transparent 36%),
+        linear-gradient(145deg, #0b0905 0%, #17120a 52%, #3a2b0e 100%);
+}
+
+html[data-accent="gold"] .login-panel::before,
+html[data-accent="gold"] .verification-panel::before {
+    background: rgba(228, 169, 21, 0.45);
+}
+
+html[data-accent="gold"] .login-panel::after,
+html[data-accent="gold"] .verification-panel::after {
+    background: rgba(247, 207, 92, 0.25);
+}
+
+html[data-accent="gold"] .brand-mark {
+    color: #1e1604;
+    background: linear-gradient(135deg, #f7cf5c, #e4a915);
+    box-shadow: 0 12px 30px rgba(228, 169, 21, 0.35);
+}
+
+html[data-accent="gold"] .hero-title span {
+    color: #f2c14e;
+}
+
+html[data-accent="gold"] .eyebrow {
+    color: #f7dc94;
+    background: rgba(228, 169, 21, 0.12);
+}
+
+html[data-accent="gold"] .eyebrow-dot {
+    background: #f2c14e;
+    box-shadow: 0 0 14px #f2c14e;
+}
+
+html[data-accent="gold"] .feature-icon {
+    color: #f7dc94;
+    background: rgba(228, 169, 21, 0.16);
+}
+
+html[data-accent="gold"] .security-notice,
+html[data-accent="gold"] .code-reference {
+    border-color: #f3e2b3;
+    background: #fff8e6;
+}
+
+html[data-accent="gold"] .security-notice-icon {
+    box-shadow: 0 6px 16px rgba(228, 169, 21, 0.16);
+}
+
+html[data-accent="gold"] .security-notice-title,
+html[data-accent="gold"] .code-reference-value {
+    color: #6b4c05;
+}
+
+html[data-accent="gold"] .verification-icon {
+    border-color: #f3e2b3;
+    background: linear-gradient(135deg, #fffaf0, #fff4d6);
+    box-shadow: 0 12px 30px rgba(228, 169, 21, 0.14);
+}
+
+html[data-accent="gold"] .form-control:focus,
+html[data-accent="gold"] .otp-input:focus {
+    border-color: #e4a915;
+    box-shadow: 0 0 0 4px rgba(228, 169, 21, 0.16);
+}
+
+html[data-accent="gold"] .otp-input.filled {
+    border-color: #f2c14e;
+    color: #8a6205;
+}
+
+html[data-accent="gold"] .submit-button {
+    color: #1e1604;
+    background: linear-gradient(135deg, #f6cb52 0%, #e4a915 60%, #d49a0f 100%);
+    box-shadow: 0 14px 30px rgba(212, 154, 15, 0.28);
+}
+
+    html[data-accent="gold"] .submit-button:hover:not(:disabled) {
+        box-shadow: 0 18px 35px rgba(212, 154, 15, 0.36);
+    }
+
+html[data-accent="gold"] .remember-row input {
+    accent-color: #c8900b;
+}
+
+html[data-accent="gold"] .remember-row:focus-within,
+html[data-accent="gold"] .link-button:focus-visible {
+    outline-color: rgba(228, 169, 21, 0.45);
+}
+
+html[data-accent="gold"] .link-button {
+    color: #8a6205;
+}
+
+html[data-accent="gold"] .cip-credit-mark {
+    color: #c8900b;
+}

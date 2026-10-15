@@ -43,12 +43,33 @@
                 if (get() === 'system') apply('system');
             });
 
+            // Colour theme: classic blue or golden. The campaign's default (Settings → Branding)
+            // applies until the person chooses on this device.
+            var accentKey = 'hr28-accent';
+            var defaultAccent = '@brand.AccentOrDefault';
+
+            function getAccent() {
+                try { return localStorage.getItem(accentKey) || defaultAccent; } catch (e) { return defaultAccent; }
+            }
+
+            function applyAccent(accent) {
+                document.documentElement.setAttribute('data-accent', accent === 'gold' ? 'gold' : 'blue');
+            }
+
+            applyAccent(getAccent());
+
             window.hr28Theme = {
                 get: get,
                 resolved: function () { return resolve(get()); },
                 set: function (pref) {
                     try { localStorage.setItem(key, pref); } catch (e) { }
                     apply(pref);
+                    document.dispatchEvent(new CustomEvent('hr28:theme'));
+                },
+                accent: getAccent,
+                setAccent: function (accent) {
+                    try { localStorage.setItem(accentKey, accent); } catch (e) { }
+                    applyAccent(accent);
                     document.dispatchEvent(new CustomEvent('hr28:theme'));
                 }
             };
@@ -60,6 +81,7 @@
 <link rel="stylesheet" href="~/css/shell.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/ui.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/theme-dark.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/theme-gold.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/HR28.Web.styles.css" asp-append-version="true" />
 
     <style>
@@ -460,6 +482,19 @@
                             </label>
                         </div>
                     </li>
+                    <li>
+                        <div class="dropdown-item shell-accent-row" role="radiogroup" aria-label="Colour theme">
+                            <span class="shell-accent-label">Colour</span>
+                            <button type="button" class="shell-accent-choice" data-accent-choice="blue" aria-pressed="false" title="Classic blue">
+                                <span class="shell-accent-dot is-blue" aria-hidden="true"></span>
+                                <span>Classic</span>
+                            </button>
+                            <button type="button" class="shell-accent-choice" data-accent-choice="gold" aria-pressed="false" title="Golden">
+                                <span class="shell-accent-dot is-gold" aria-hidden="true"></span>
+                                <span>Golden</span>
+                            </button>
+                        </div>
+                    </li>
                     <li><hr class="dropdown-divider" /></li>
                     <li>
                         @* A form, not a link: another site cannot sign people out, and the anti-forgery token is checked. *@
@@ -560,6 +595,27 @@
 
             themeSwitch.addEventListener("change", function () {
                 window.hr28Theme.set(themeSwitch.checked ? "dark" : "light");
+            });
+        }
+
+        // Quick colour switch (Classic blue / Golden) in the user menu.
+        const accentChoices = document.querySelectorAll("[data-accent-choice]");
+        if (accentChoices.length && window.hr28Theme) {
+            const syncAccent = function () {
+                const current = window.hr28Theme.accent();
+                accentChoices.forEach(function (b) {
+                    b.setAttribute("aria-pressed", b.dataset.accentChoice === current ? "true" : "false");
+                });
+            };
+
+            syncAccent();
+            document.addEventListener("hr28:theme", syncAccent);
+
+            accentChoices.forEach(function (b) {
+                b.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    window.hr28Theme.setAccent(b.dataset.accentChoice);
+                });
             });
         }
 

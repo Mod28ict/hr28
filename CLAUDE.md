@@ -425,6 +425,15 @@ strong despite that:
 - Never show GUIDs, stack traces, raw API errors or technical identifiers to users.
 - Use searchable, cascading selectors (constituency → island) showing readable names.
 - Match the HR28 premium design (login, OTP and dashboard are the reference quality).
+- **Colour themes** (owner, 2026-10-15: the client wanted golden yellow): Classic (navy/blue,
+  default) and **Golden** (`wwwroot/css/theme-gold.css`, `<html data-accent="gold">`), each
+  with Light and Dark. Golden light: warm ivory, espresso-black sidebar, gold highlights; text
+  read on white uses the deep gold `#a6760a` (4.9:1), gold fills carry dark ink `#1e1604`.
+  Each person chooses on their device (Settings → Appearance → Colour, or the menu under
+  their name; `localStorage` `hr28-accent`); until then the campaign default applies
+  (Settings → System → Branding → Colour theme, `SystemSettings` key `ThemeAccent`, audited;
+  public in `api/settings/branding` so the sign-in pages use it). New colours go into the
+  CSS variables (`--ui-*`, `--shell-*`, `--hd-*`), never hard-coded, so both themes follow.
 - Responsive, keyboard accessible, proper labels and focus states.
 - Consistent loading, empty, success, warning and error states.
 

@@ -15,6 +15,9 @@ public class SystemSettingsDto
     /// <summary>Line under the name on the sign-in pages and in the sidebar.</summary>
     public string? Tagline { get; set; }
 
+    /// <summary>Colour theme everyone starts with: "blue" or "gold".</summary>
+    public string? ThemeAccent { get; set; }
+
     [Range(1, 15, ErrorMessage = "OTP expiry must be between 1 and 15 minutes.")]
     [Display(Name = "OTP expiry (minutes)")]
     public int OtpExpiryMinutes { get; set; }

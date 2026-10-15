@@ -16,6 +16,11 @@
     --ui-navy: #0f2d6b;
     --ui-navy-hover: #143a88;
     --ui-blue: #2563eb;
+    /* Colour-theme hooks (theme-gold.css overrides them; these are the classic blue values) */
+    --ui-on-navy: #ffffff;
+    --ui-focus: #60a5fa;
+    --ui-ring: rgba(37, 99, 235, 0.12);
+    --ui-gradient: linear-gradient(135deg, #2563eb, #60a5fa);
     --ui-blue-soft: #e8efff;
     --ui-green: #16a36a;
     --ui-green-soft: #e3f7ee;
@@ -47,7 +52,7 @@
     }
 
     .ui-page :focus-visible {
-        outline: 3px solid #60a5fa;
+        outline: 3px solid var(--ui-focus);
         outline-offset: 2px;
     }
 
@@ -165,13 +170,13 @@
     }
 
 .ui-btn-primary {
-    color: #ffffff;
+    color: var(--ui-on-navy);
     background: var(--ui-navy);
     box-shadow: 0 8px 18px rgba(15, 45, 107, 0.22);
 }
 
     .ui-btn-primary:hover {
-        color: #ffffff;
+        color: var(--ui-on-navy);
         background: var(--ui-navy-hover);
     }
 
@@ -554,7 +559,7 @@
     .ui-select:focus,
     .ui-textarea:focus {
         border-color: var(--ui-blue);
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        box-shadow: 0 0 0 4px var(--ui-ring);
     }
 
     .ui-input::placeholder,
@@ -948,7 +953,7 @@
     height: 64px;
     flex-basis: 64px;
     border-radius: 18px;
-    color: #ffffff;
+    color: var(--ui-on-navy);
     background: var(--ui-navy);
     font-size: 24px;
 }
@@ -1096,7 +1101,7 @@ a.ui-page-btn:hover {
 
 .ui-page-btn.is-current {
     border-color: transparent;
-    color: #ffffff;
+    color: var(--ui-on-navy);
     background: var(--ui-navy);
 }
 
@@ -1561,7 +1566,7 @@ a.ui-page-btn:hover {
     }
 
     .ui-check-card:has(input:focus-visible) {
-        outline: 3px solid #60a5fa;
+        outline: 3px solid var(--ui-focus);
         outline-offset: 2px;
     }
 
@@ -1684,7 +1689,7 @@ fieldset {
     }
 
     .ui-tab.is-active {
-        color: #ffffff;
+        color: var(--ui-on-navy);
         background: var(--ui-navy);
     }
 
@@ -1714,11 +1719,11 @@ fieldset {
 
     .ui-theme-option:has(input:checked) {
         border-color: var(--ui-blue);
-        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        box-shadow: 0 0 0 4px var(--ui-ring);
     }
 
     .ui-theme-option:has(input:focus-visible) {
-        outline: 3px solid #60a5fa;
+        outline: 3px solid var(--ui-focus);
         outline-offset: 2px;
     }
 
@@ -2353,7 +2358,7 @@ a.ui-pill-link {
     color: #ffffff;
     font-size: 15px;
     font-weight: 800;
-    background: linear-gradient(135deg, #2563eb, #60a5fa);
+    background: var(--ui-gradient);
 }
 
     .ui-logo-preview img {

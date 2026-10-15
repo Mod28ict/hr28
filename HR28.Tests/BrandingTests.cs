@@ -28,7 +28,7 @@ public class BrandingTests
     private async Task ResetAsync()
     {
         await using var db = _factory.NewDbContext();
-        await db.SystemSettings.Where(s => s.Key == "CampaignName" || s.Key == "ShortName" || s.Key == "Tagline").ExecuteDeleteAsync();
+        await db.SystemSettings.Where(s => s.Key == "CampaignName" || s.Key == "ShortName" || s.Key == "Tagline" || s.Key == "ThemeAccent").ExecuteDeleteAsync();
         await db.BrandLogos.ExecuteDeleteAsync();
     }
 
@@ -36,6 +36,43 @@ public class BrandingTests
     {
         var response = await admin.PutAsJsonAsync("api/Settings/system", new Settings(name, shortName, tagline, 5, 5, 30));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    private sealed record AccentBrand(string Accent);
+
+    [Fact]
+    public async Task The_campaign_chooses_the_default_colour_theme()
+    {
+        await ResetAsync();
+        try
+        {
+            var anonymous = _factory.AnonymousClient();
+            Assert.Equal("blue", (await anonymous.GetFromJsonAsync<AccentBrand>("api/Settings/branding"))!.Accent);
+
+            var admin = await _factory.ClientForAsync(await _factory.Data.UserAsync(["Super Administrator"]));
+            var gold = await admin.PutAsJsonAsync("api/Settings/system", new
+            {
+                campaignName = "Forward Together 2028", otpExpiryMinutes = 5, otpMaxAttempts = 5, rememberDeviceDays = 30, themeAccent = "gold"
+            });
+            Assert.Equal(HttpStatusCode.OK, gold.StatusCode);
+
+            // The sign-in pages (no account yet) read it from the public branding.
+            Assert.Equal("gold", (await anonymous.GetFromJsonAsync<AccentBrand>("api/Settings/branding"))!.Accent);
+
+            var other = await admin.PutAsJsonAsync("api/Settings/system", new
+            {
+                campaignName = "Forward Together 2028", otpExpiryMinutes = 5, otpMaxAttempts = 5, rememberDeviceDays = 30, themeAccent = "purple"
+            });
+            Assert.Equal(HttpStatusCode.BadRequest, other.StatusCode);
+            Assert.Equal("gold", (await anonymous.GetFromJsonAsync<AccentBrand>("api/Settings/branding"))!.Accent);
+
+            await using var db = _factory.NewDbContext();
+            Assert.True(await db.AuditLogs.AnyAsync(a => a.EntityId == "Colour theme" && a.Action.Contains("\"gold\"")));
+        }
+        finally
+        {
+            await ResetAsync();
+        }
     }
 
     [Fact]

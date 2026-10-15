@@ -15,6 +15,9 @@ public class BrandingDto
 
     public bool HasLogo { get; set; }
 
+    /// <summary>Default colour theme: "blue" or "gold" (sign-in pages and anyone who hasn't chosen).</summary>
+    public string Accent { get; set; } = "blue";
+
     /// <summary>Changes whenever the logo changes, so browsers fetch the new one.</summary>
     public string LogoVersion { get; set; } = string.Empty;
 }

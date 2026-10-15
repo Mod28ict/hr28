@@ -15,6 +15,10 @@ public class SystemSettingsService : ISystemSettingsService
     public const string RememberDeviceDaysKey = "RememberDeviceDays";
     public const string ShortNameKey = "ShortName";
     public const string TaglineKey = "Tagline";
+    public const string ThemeAccentKey = "ThemeAccent";
+
+    /// <summary>Colour themes (owner, 2026-10-15): classic blue, or golden (golden yellow).</summary>
+    public static readonly string[] ThemeAccents = { "blue", "gold" };
 
     // The product's own brand (owner, 2026-10-13): Campaign Intelligence Platform (CIP).
     // A new deployment shows it until the client's Administrator sets their own branding.
@@ -102,6 +106,7 @@ public class SystemSettingsService : ISystemSettingsService
             RememberDeviceDays = Number(RememberDeviceDaysKey, DefaultRememberDeviceDays),
             ShortName = stored.FirstOrDefault(x => x.Key == ShortNameKey)?.Value ?? string.Empty,
             Tagline = stored.FirstOrDefault(x => x.Key == TaglineKey)?.Value ?? string.Empty,
+            ThemeAccent = Text(ThemeAccentKey, "blue"),
             UpdatedAt = latest?.UpdatedAt,
             UpdatedByName = updatedByName
         };
@@ -133,6 +138,11 @@ public class SystemSettingsService : ISystemSettingsService
         if (settings.RememberDeviceDays is < 0 or > 90)
             throw new BusinessRuleException("Remember devices for must be between 0 (off) and 90 days.");
 
+        var accent = string.IsNullOrWhiteSpace(settings.ThemeAccent) ? "blue" : settings.ThemeAccent.Trim().ToLowerInvariant();
+
+        if (!ThemeAccents.Contains(accent))
+            throw new BusinessRuleException("Please choose a colour theme: Classic blue or Golden.");
+
         var current = await GetAsync();
 
         // Each changed value is saved and audited with its old and new value.
@@ -150,6 +160,9 @@ public class SystemSettingsService : ISystemSettingsService
 
         await SaveIfChangedAsync(TaglineKey, "Tagline",
             current.Tagline ?? string.Empty, tagline, userId);
+
+        await SaveIfChangedAsync(ThemeAccentKey, "Colour theme",
+            current.ThemeAccent ?? "blue", accent, userId);
 
         await SaveIfChangedAsync(RememberDeviceDaysKey, "Remember devices for (days)",
             current.RememberDeviceDays.ToString(), settings.RememberDeviceDays.ToString(), userId);
@@ -174,6 +187,7 @@ public class SystemSettingsService : ISystemSettingsService
                 : settings.CampaignName == PlatformName ? PlatformTagline
                 : DefaultTagline,
             HasLogo = logo != null,
+            Accent = settings.ThemeAccent ?? "blue",
             LogoVersion = logo?.UpdatedAt.Ticks.ToString() ?? string.Empty
         };
     }

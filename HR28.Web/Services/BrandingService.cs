@@ -22,6 +22,12 @@ public class Branding
 
     public bool HasLogo { get; set; }
 
+    /// <summary>Default colour theme for this campaign: "blue" or "gold".</summary>
+    public string Accent { get; set; } = "blue";
+
+    /// <summary>The default colour theme as a safe attribute value.</summary>
+    public string AccentOrDefault => Accent == "gold" ? "gold" : "blue";
+
     public string LogoVersion { get; set; } = string.Empty;
 
     /// <summary>

@@ -142,7 +142,8 @@ const modules = [
     ["J-13", "Phone number change", "Change the test user's mobile number.", "The old number gets a warning SMS; Audit Trail records the change.", "Administrator"],
   ]],
   ["K", "Settings", [
-    ["K-01", "Appearance", "Settings → Appearance → Dark.", "Whole app switches to dark; remembered next time.", "All"],
+    ["K-01", "Appearance", "Settings → Appearance → Dark; then Colour → Golden; then back. Also try the Dark mode switch and Classic / Golden in the menu under your name.", "Whole app switches at once (Light / Dark × Classic / Golden); remembered on this device next time.", "All"],
+    ["K-01b", "Campaign colour", "Settings → System → Branding → Colour theme → Golden → Save. Sign out.", "The sign-in pages and everyone who hasn't chosen their own colour see Golden. Audit Trail records the change.", "Administrator"],
     ["K-02", "Branding", "Settings → System → Branding: campaign name, short name, tagline, logo.", "Shown on sign-in pages, sidebar, page titles and the page loader. \"Powered by CIP\" stays in the footer.", "Administrator"],
     ["K-03", "Sign-in security", "Change OTP expiry, maximum attempts, remember-device days.", "Saved; applies to the next code / sign-in. Audit Trail records it.", "Administrator"],
     ["K-04", "Constituencies and islands", "Add a TEST island to a constituency; rename it; delete it.", "Each island belongs to one constituency; one with voters can't be moved.", "Administrator"],

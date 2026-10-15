@@ -101,6 +101,30 @@
                 </label>
             </div>
         </section>
+
+        <section class="ui-card ui-card-lg" style="margin-top: 18px;">
+            <div class="ui-card-head">
+                <h2>Colour</h2>
+            </div>
+            <p class="ui-muted" style="margin: -6px 0 16px; font-size: 13px;">
+                Works with Light and Dark. Saved on this device; also in the menu under your name.
+            </p>
+
+            <div class="ui-theme-options" role="radiogroup" aria-label="Colour">
+                <label class="ui-theme-option">
+                    <input type="radio" name="hr28Accent" value="blue" />
+                    <span class="ui-theme-preview is-blue-accent" aria-hidden="true"><i></i><b></b><b></b></span>
+                    <span class="ui-strong">Classic</span>
+                    <small class="ui-muted">Calm navy and blue</small>
+                </label>
+                <label class="ui-theme-option">
+                    <input type="radio" name="hr28Accent" value="gold" />
+                    <span class="ui-theme-preview is-gold-accent" aria-hidden="true"><i></i><b></b><b></b></span>
+                    <span class="ui-strong">Golden</span>
+                    <small class="ui-muted">Warm golden yellow with deep espresso</small>
+                </label>
+            </div>
+        </section>
     }
 
     @* ---------------- MY ACCOUNT ---------------- *@
@@ -225,6 +249,14 @@
                             <input id="Tagline" name="Tagline" class="ui-input" value="@s.Tagline" maxlength="80" placeholder="e.g. Voter relationships and campaign operations" />
                             <div class="ui-hint">The line under the name on the sign-in pages and in the sidebar.</div>
                         </div>
+                    </div>
+                    <div class="ui-field" style="max-width: 420px;">
+                        <label for="ThemeAccent" class="ui-label">Colour theme</label>
+                        <select id="ThemeAccent" name="ThemeAccent" class="ui-select">
+                            <option value="blue" selected="@(s.ThemeAccent != "gold")">Classic (navy and blue)</option>
+                            <option value="gold" selected="@(s.ThemeAccent == "gold")">Golden (golden yellow)</option>
+                        </select>
+                        <div class="ui-hint">What everyone sees, including the sign-in pages. Each person can still choose their own in Settings → Appearance.</div>
                     </div>
                 </div>
 
@@ -919,6 +951,22 @@
                     r.checked = r.value === current;
                     r.addEventListener('change', function () {
                         if (r.checked) window.hr28Theme.set(r.value);
+                    });
+                });
+            }
+
+            // Colour choice (appearance tab): Classic blue or Golden
+            var accents = document.querySelectorAll('input[name="hr28Accent"]');
+            if (accents.length && window.hr28Theme) {
+                var sync = function () {
+                    var accent = window.hr28Theme.accent();
+                    accents.forEach(function (r) { r.checked = r.value === accent; });
+                };
+                sync();
+                document.addEventListener('hr28:theme', sync);
+                accents.forEach(function (r) {
+                    r.addEventListener('change', function () {
+                        if (r.checked) window.hr28Theme.setAccent(r.value);
                     });
                 });
             }

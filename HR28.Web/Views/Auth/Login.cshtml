@@ -25,6 +25,15 @@
     <link rel="icon" href="~/img/cip-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="~/img/cip-apple-touch-icon.png" />
 
+    <script>
+        // Colour theme before the page draws: this device's choice, or the campaign's default.
+        (function () {
+            var accent = '@brand.AccentOrDefault';
+            try { accent = localStorage.getItem('hr28-accent') || accent; } catch (e) { }
+            document.documentElement.setAttribute('data-accent', accent === 'gold' ? 'gold' : 'blue');
+        })();
+    </script>
+
     <style>
 
         :root {

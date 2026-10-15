@@ -1,0 +1,306 @@
+/* =========================================================
+   GOLDEN colour theme (owner, 2026-10-15: the client's golden yellow)
+   Applied when <html data-accent="gold">, on top of Light or Dark
+   (data-theme). Classic blue is the default and needs nothing here.
+   Light: warm ivory pages, an espresso-black sidebar with gold
+   highlights, gold buttons with dark text (readable on gold).
+   Dark: near-black with warm gold accents.
+   Text that must be read on white uses the deeper gold (#a6760a,
+   4.9:1); bright gold is for fills, icons and highlights.
+   ========================================================= */
+
+/* ---------- Golden · Light ---------- */
+
+html[data-accent="gold"] .shell-body {
+    --shell-navy: #16120a;
+    --shell-navy-2: #241c0e;
+    --shell-accent: #c8900b;
+    --shell-border: #ece3cf;
+    --shell-glow: rgba(228, 169, 21, 0.28);
+    --shell-link: #ddd1b6;
+    --shell-mark: #f2c14e;
+    --shell-active-bg: linear-gradient(135deg, #f7cf5c 0%, #e4a915 55%, #cf9310 100%);
+    --shell-active-text: #1e1604;
+    --shell-active-shadow: 0 8px 20px rgba(228, 169, 21, 0.38);
+
+    --ui-text: #1f1a11;
+    --ui-text-2: #4a4131;
+    --ui-muted: #7b705b;
+    --ui-faint: #b3a88f;
+    --ui-border: #eee6d4;
+    --ui-border-strong: #e1d4b6;
+    --ui-surface: #ffffff;
+    --ui-subtle: #fbf8f1;
+    --ui-track: #f3ecdc;
+    --ui-navy: #e4a915;
+    --ui-navy-hover: #f0bb2c;
+    --ui-on-navy: #1e1604;
+    --ui-blue: #a6760a;
+    --ui-blue-soft: #fff4d6;
+    --ui-focus: #f2c14e;
+    --ui-ring: rgba(228, 169, 21, 0.22);
+    --ui-gradient: linear-gradient(135deg, #f7cf5c, #e4a915);
+    --ui-shadow: 0 6px 20px rgba(60, 44, 10, 0.06);
+    --cip-mark: #c8900b;
+
+    color: var(--ui-text);
+    background: #f8f5ee;
+}
+
+html[data-accent="gold"] .hd {
+    --hd-text: #1f1a11;
+    --hd-muted: #7b705b;
+    --hd-border: #eee6d4;
+    --hd-track: #f3ecdc;
+    --hd-blue: #c8900b;
+    --hd-blue-soft: #fff4d6;
+}
+
+/* Primary buttons: a soft gold gradient, dark text, warm shadow */
+html[data-accent="gold"] .ui-btn-primary {
+    background: linear-gradient(135deg, #f6cb52 0%, #e4a915 60%, #d49a0f 100%);
+    box-shadow: 0 8px 18px rgba(212, 154, 15, 0.28);
+}
+
+    html[data-accent="gold"] .ui-btn-primary:hover {
+        background: linear-gradient(135deg, #f9d66f 0%, #ecb526 60%, #dda412 100%);
+    }
+
+/* Dashboard: the main button and the gold KPI tiles */
+html[data-accent="gold"] .hd-btn-primary,
+html[data-accent="gold"] .hd-btn-primary:hover {
+    color: #1e1604;
+    background: linear-gradient(135deg, #f6cb52 0%, #e4a915 60%, #d49a0f 100%);
+    box-shadow: 0 8px 18px rgba(212, 154, 15, 0.3);
+}
+
+html[data-accent="gold"] .hd-kpi.is-blue {
+    --tone: #e4a915;
+    --tone-soft: #fff4d6;
+}
+
+    html[data-accent="gold"] .hd-kpi.is-blue .hd-kpi-icon {
+        color: #1e1604;
+        box-shadow: 0 8px 18px rgba(212, 154, 15, 0.25);
+    }
+
+/* Icons on gold tiles: dark ink reads better than white */
+html[data-accent="gold"] .ui-head-icon.is-blue,
+html[data-accent="gold"] .ui-stat-icon.is-blue {
+    --tone: #e4a915;
+    color: #1e1604;
+}
+
+html[data-accent="gold"] .shell-user:hover {
+    background: #f6f0e2;
+}
+
+html[data-accent="gold"] .shell-user-avatar {
+    color: #1e1604;
+    background: linear-gradient(135deg, #f7cf5c, #e4a915);
+}
+
+html[data-accent="gold"] .shell-search {
+    background: #fbf8f1;
+}
+
+html[data-accent="gold"] .shell-sidebar-tagline {
+    color: rgba(242, 193, 78, 0.55);
+}
+
+/* Page loader: a gold ring */
+html[data-accent="gold"] .h28-loader-ring::before {
+    border-color: #f5e7c2;
+}
+
+html[data-accent="gold"] .h28-loader-ring::after {
+    border-top-color: #e4a915;
+    border-right-color: #f2c14e;
+}
+
+/* Search lists (select2) */
+html[data-accent="gold"] .select2-container--default .select2-results__option--highlighted[aria-selected],
+html[data-accent="gold"] .select2-results__option--highlighted {
+    color: #1e1604 !important;
+    background: #f2c14e !important;
+}
+
+html[data-accent="gold"] .form-check-input:checked {
+    border-color: #e4a915;
+    background-color: #e4a915;
+}
+
+/* ---------- Golden · Dark ---------- */
+
+html[data-accent="gold"][data-theme="dark"] .shell-body {
+    --shell-navy: #0b0906;
+    --shell-navy-2: #151109;
+    --shell-border: #2c2618;
+    --shell-glow: rgba(242, 193, 78, 0.16);
+    --shell-link: #cfc3a8;
+    --shell-mark: #f2c14e;
+
+    --ui-text: #f3ecdc;
+    --ui-text-2: #d8ccb2;
+    --ui-muted: #a89c82;
+    --ui-faint: #786e59;
+    --ui-border: #2c2618;
+    --ui-border-strong: #3c3322;
+    --ui-surface: #17140d;
+    --ui-subtle: #1f1a11;
+    --ui-track: #2a2418;
+    --ui-navy: #e9b21c;
+    --ui-navy-hover: #f5c842;
+    --ui-on-navy: #1a1303;
+    --ui-blue: #f2c14e;
+    --ui-blue-soft: rgba(242, 193, 78, 0.14);
+    --ui-focus: #f2c14e;
+    --ui-ring: rgba(242, 193, 78, 0.22);
+    --ui-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    --cip-mark: #f2c14e;
+
+    background: #0e0c08;
+}
+
+html[data-accent="gold"][data-theme="dark"] .hd {
+    --hd-text: #f3ecdc;
+    --hd-muted: #a89c82;
+    --hd-border: #2c2618;
+    --hd-track: #2a2418;
+    --hd-blue: #f2c14e;
+    --hd-blue-soft: rgba(242, 193, 78, 0.14);
+}
+
+html[data-accent="gold"][data-theme="dark"] .shell-sidebar {
+    background:
+        radial-gradient(120% 40% at 0% 100%, rgba(242, 193, 78, 0.14), transparent 70%),
+        linear-gradient(180deg, #080604 0%, #120e07 100%);
+}
+
+html[data-accent="gold"][data-theme="dark"] .shell-topbar {
+    background: rgba(20, 17, 11, 0.92);
+}
+
+html[data-accent="gold"][data-theme="dark"] .shell-footer {
+    background: #120f09;
+}
+
+html[data-accent="gold"][data-theme="dark"] .shell-user:hover {
+    background: var(--ui-subtle);
+}
+
+html[data-accent="gold"][data-theme="dark"] .shell-search {
+    background: var(--ui-subtle);
+}
+
+html[data-accent="gold"][data-theme="dark"] .hd-kpi.is-blue {
+    --tone: #f2c14e;
+    --tone-soft: rgba(242, 193, 78, 0.14);
+}
+
+html[data-accent="gold"][data-theme="dark"] .cip-credit-mark {
+    color: #f2c14e;
+}
+
+html[data-accent="gold"][data-theme="dark"] .h28-loader {
+    background: rgba(14, 12, 8, 0.82);
+}
+
+html[data-accent="gold"][data-theme="dark"] .h28-loader-ring::before {
+    border-color: #3c3322;
+}
+
+/* Dark cards and lists: warm near-black instead of the navy of classic dark */
+html[data-accent="gold"][data-theme="dark"] .hd-card,
+html[data-accent="gold"][data-theme="dark"] .hd-date-icon,
+html[data-accent="gold"][data-theme="dark"] .hd-donut::before,
+html[data-accent="gold"][data-theme="dark"] .hd-select {
+    background-color: #17140d;
+}
+
+html[data-accent="gold"][data-theme="dark"] .hd-kpi {
+    background: linear-gradient(135deg, #17140d 55%, var(--tone-soft) 160%);
+}
+
+html[data-accent="gold"][data-theme="dark"] .hd-kpi-label,
+html[data-accent="gold"][data-theme="dark"] .hd-chip {
+    color: #d8ccb2;
+}
+
+html[data-accent="gold"][data-theme="dark"] .hd-action {
+    background: color-mix(in srgb, var(--tone) 12%, #17140d);
+}
+
+    html[data-accent="gold"][data-theme="dark"] .hd-action:hover {
+        background: color-mix(in srgb, var(--tone) 20%, #17140d);
+    }
+
+html[data-accent="gold"][data-theme="dark"] .hd-avatar,
+html[data-accent="gold"][data-theme="dark"] .ui-avatar,
+html[data-accent="gold"][data-theme="dark"] .ui-code-box {
+    color: #f7d27a;
+}
+
+html[data-accent="gold"][data-theme="dark"] .ui-avatar-lg {
+    color: #1a1303;
+}
+
+html[data-accent="gold"][data-theme="dark"] .ui-code-box {
+    border-color: #3c3322;
+}
+
+html[data-accent="gold"][data-theme="dark"] .ui-pill.is-blue,
+html[data-accent="gold"][data-theme="dark"] .hd-pill.is-blue {
+    color: #f7d27a;
+}
+
+html[data-accent="gold"][data-theme="dark"] .ui-pill,
+html[data-accent="gold"][data-theme="dark"] .hd-pill,
+html[data-accent="gold"][data-theme="dark"] .ui-pill.is-muted,
+html[data-accent="gold"][data-theme="dark"] .hd-pill.is-muted {
+    color: #cfc3a8;
+}
+
+html[data-accent="gold"][data-theme="dark"] .select2-container--default .select2-selection--single,
+html[data-accent="gold"][data-theme="dark"] .select2-dropdown,
+html[data-accent="gold"][data-theme="dark"] .select2-search--dropdown .select2-search__field {
+    border-color: #3c3322 !important;
+    background: #17140d;
+}
+
+html[data-accent="gold"][data-theme="dark"] .select2-container--default .select2-selection--single .select2-selection__rendered,
+html[data-accent="gold"][data-theme="dark"] .select2-results__option,
+html[data-accent="gold"][data-theme="dark"] .select2-search--dropdown .select2-search__field {
+    color: #f3ecdc;
+}
+
+html[data-accent="gold"][data-theme="dark"] .select2-container--default .select2-results__option[aria-selected=true],
+html[data-accent="gold"][data-theme="dark"] .select2-container--default.select2-container--disabled .select2-selection--single {
+    background: #1f1a11;
+}
+
+/* ---------- Theme picker previews (Settings → Appearance) ---------- */
+
+.ui-theme-preview.is-blue-accent {
+    background: #f4f7fc;
+}
+
+    .ui-theme-preview.is-blue-accent i {
+        background: linear-gradient(180deg, #0b1f45, #10295a);
+    }
+
+    .ui-theme-preview.is-blue-accent b {
+        background: #2563eb;
+    }
+
+.ui-theme-preview.is-gold-accent {
+    background: #f8f5ee;
+}
+
+    .ui-theme-preview.is-gold-accent i {
+        background: linear-gradient(180deg, #16120a, #241c0e);
+    }
+
+    .ui-theme-preview.is-gold-accent b {
+        background: linear-gradient(135deg, #f7cf5c, #e4a915);
+    }
