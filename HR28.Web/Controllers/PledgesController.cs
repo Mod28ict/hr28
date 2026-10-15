@@ -8,14 +8,11 @@ namespace HR28.Web.Controllers;
 [SessionAuthorize]
 public class PledgesController : Controller
 {
-    private readonly DashboardService _dashboardService;
     private readonly ApiClient _apiClient;
 
     public PledgesController(
-        DashboardService dashboardService,
         ApiClient apiClient)
     {
-        _dashboardService = dashboardService;
         _apiClient = apiClient;
     }
 
@@ -158,17 +155,21 @@ public class PledgesController : Controller
             return View(model);
         }
 
-        var success =
-            await _dashboardService
-                .CreatePledgeAsync(
-                    model,
-                    token);
+        var result = await _apiClient.PostAsync<object>("Pledges", model, token);
 
-        if (!success)
+        if (result.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!result.Success)
         {
             ModelState.AddModelError(
                 string.Empty,
-                "The pledge could not be saved.");
+                string.IsNullOrWhiteSpace(result.Message)
+                    ? "The pledge could not be saved."
+                    : result.Message);
 
             return View(model);
         }

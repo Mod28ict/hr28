@@ -10,14 +10,11 @@ namespace HR28.Web.Controllers;
 [SessionAuthorize]
 public class DashboardController : Controller
 {
-    private readonly DashboardService _dashboardService;
     private readonly ApiClient _apiClient;
 
     public DashboardController(
-        DashboardService dashboardService,
         ApiClient apiClient)
     {
-        _dashboardService = dashboardService;
         _apiClient = apiClient;
     }
 
@@ -40,11 +37,9 @@ public class DashboardController : Controller
                 "Auth");
         }
 
-        var dashboard =
-            await _dashboardService
-                .GetDashboardAsync(token);
+        var loaded = await _apiClient.GetAsync<DashboardDto>("Dashboard", token);
 
-        if (dashboard == null)
+        if (loaded.IsUnauthorized)
         {
             HttpContext.Session.Clear();
 
@@ -52,6 +47,13 @@ public class DashboardController : Controller
                 "Login",
                 "Auth");
         }
+
+        // Any other failure (busy server, too many requests) shows an empty dashboard with
+        // the reason, never the error page.
+        if (!loaded.Success)
+            TempData["FlashError"] = loaded.Message;
+
+        var dashboard = loaded.Data ?? new DashboardDto();
 
         await EnsureCampaignNameAsync(token);
 

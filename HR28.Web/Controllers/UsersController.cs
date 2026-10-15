@@ -10,7 +10,6 @@ namespace HR28.Web.Controllers;
 [RequireStepUp]
 public class UsersController : Controller
 {
-    private readonly DashboardService _dashboardService;
     private readonly ApiClient _apiClient;
     private bool IsSuperAdmin()
     {
@@ -19,10 +18,8 @@ public class UsersController : Controller
     }
 
     public UsersController(
-        DashboardService dashboardService,
         ApiClient apiClient)
     {
-        _dashboardService = dashboardService;
         _apiClient = apiClient;
     }
 
@@ -439,7 +436,7 @@ public class UsersController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        var roles = await _dashboardService.GetRolesAsync(token) ?? new();
+        var roles = (await _apiClient.GetAsync<List<RoleDto>>("Roles", token)).Data ?? new();
 
         var extra = await _apiClient.GetAsync<List<string>>($"Permissions/users/{id}", token);
 
@@ -518,8 +515,7 @@ public class UsersController : Controller
         }
 
         model.Roles =
-            await _dashboardService
-                .GetRolesAsync(token)
+            (await _apiClient.GetAsync<List<RoleDto>>("Roles", token)).Data
             ?? new();
 
         await LoadPermissionCatalogAsync(model, token);
@@ -567,8 +563,7 @@ public class UsersController : Controller
             Scopes = user.Data.Scopes,
             IsAdministrator = Hr28Roles.IsAdministrator(Hr28Roles.ToSession(user.Data.Roles)),
             Constituencies =
-                await _dashboardService
-                    .GetConstituenciesAsync(token)
+                (await _apiClient.GetAsync<List<LookupDto>>("Constituencies", token)).Data
                 ?? new()
         };
 
@@ -659,10 +654,8 @@ public class UsersController : Controller
         }
 
         var islands =
-            await _dashboardService
-                .GetIslandsByConstituencyAsync(
-                    constituencyId,
-                    token)
+            (await _apiClient.GetAsync<List<LookupDto>>(
+                $"Constituencies/{constituencyId}/islands", token)).Data
             ?? new();
 
         return Json(islands);

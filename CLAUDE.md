@@ -482,10 +482,10 @@ Status as of 2026-10-02 (update when an item changes):
    on every record endpoint, all resolved live. Custom roles and the full rights grid
    are in Settings → Roles & rights. Still open: report downloads/exports are not
    rights yet (scoped, rate-limited and audited).
-4. Central session / 401 handling — **partly done.** `ApiClient` + `AppController`
-   handle 401/403 for newer pages; `SessionRoleRefreshFilter` ends sessions of
-   deactivated users. Older pages still call `DashboardService` directly (raw errors
-   possible, including on 429).
+4. Central session / 401 handling — **done (2026-10-15).** Every page calls the API
+   through `ApiClient` (never throws; 401 → sign-in, 403/404/429 → plain message);
+   the old `DashboardService` was removed. `SessionRoleRefreshFilter` ends sessions of
+   deactivated users.
 5. Authentication hardening — **partly done:** 6-digit secure OTP, hashed
    authorization codes, attempt limits, cooldown, lockout, per-IP rate limits,
    inactive users blocked, anti-forgery on every form, SMS text with the
@@ -496,8 +496,9 @@ Status as of 2026-10-02 (update when an item changes):
 6. OWASP ASVS L2 review — **not started** as a formal pass.
 7. Audit coverage — **partly done:** voters, influencers, encounters, pledges,
    users (create, code reset, roles, areas), constituencies, islands, settings and
-   report downloads are audited. Voter/influencer updates do not yet record which
-   fields changed.
+   report downloads are audited. Voter, influencer and encounter edits record which
+   fields changed (names and IDs old → new; contact details and remarks by name only;
+   "saved without changes" when nothing changed); relationship edits too.
 8. Regression tests — **not started; there is no test project yet.**
 
 Known open issues (fix or confirm with the owner):

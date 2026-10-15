@@ -8,14 +8,11 @@ namespace HR28.Web.Controllers;
 [SessionAuthorize]
 public class InfluencersController : AppController
 {
-    private readonly DashboardService _dashboardService;
     private readonly ApiClient _apiClient;
 
     public InfluencersController(
-        DashboardService dashboardService,
         ApiClient apiClient)
     {
-        _dashboardService = dashboardService;
         _apiClient = apiClient;
     }
 
@@ -323,8 +320,7 @@ public class InfluencersController : AppController
         }
 
         var influencers =
-            await _dashboardService
-                .GetInfluencersAsync(token)
+            (await _apiClient.GetAsync<List<InfluencerDto>>("Influencers", token)).Data
             ?? new();
 
         var model =
@@ -414,8 +410,7 @@ public class InfluencersController : AppController
         string token)
     {
         model.Influencers =
-            await _dashboardService
-                .GetInfluencersAsync(token)
+            (await _apiClient.GetAsync<List<InfluencerDto>>("Influencers", token)).Data
             ?? new();
 
         model.Influencers =
@@ -446,14 +441,17 @@ public class InfluencersController : AppController
             HttpContext.Session
                 .GetString("JwtToken");
 
-        var success =
-            await _dashboardService
-                .UpdateRelationshipAsync(
-                    model,
-                    token);
+        var result = await _apiClient.PutAsync<object>("Influencers/relationship", model, token);
 
-        if (!success)
+        if (result.IsUnauthorized)
         {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
             return View(model);
         }
 

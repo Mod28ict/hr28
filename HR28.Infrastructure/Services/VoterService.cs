@@ -270,6 +270,27 @@ public class VoterService : IVoterService
                 .FirstOrDefaultAsync() ?? "Not known"
             : "Not known";
 
+    /// <summary>"Constituency / Island" (or just the constituency) for audit entries.</summary>
+    private async Task<string> AreaLabelAsync(Guid? constituencyId, Guid? islandId)
+    {
+        var constituency = constituencyId.HasValue
+            ? await _dbContext.Constituencies
+                .Where(c => c.Id == constituencyId.Value)
+                .Select(c => c.Name)
+                .FirstOrDefaultAsync()
+            : null;
+
+        var island = islandId.HasValue
+            ? await _dbContext.Islands
+                .Where(i => i.Id == islandId.Value)
+                .Select(i => i.Name)
+                .FirstOrDefaultAsync()
+            : null;
+
+        var label = constituency ?? "no constituency";
+        return island == null ? $"\"{label}\"" : $"\"{label} / {island}\"";
+    }
+
     public async Task<List<VoterDto>> SearchVotersAsync(
         Guid userId,
         string searchTerm)
@@ -357,10 +378,29 @@ public class VoterService : IVoterService
 
         await RequireKnownPartyAsync(request.PoliticalPartyId);
 
-        // Party changes are recorded with old and new value.
+        // The Audit Trail shows which fields changed: names, ID, area, party, gender and
+        // status with old and new value; contact details and remarks by name only.
         var action = "Update";
 
         var changes = new List<string>();
+
+        if (voter.NationalId != request.NationalId)
+            changes.Add($"National ID \"{voter.NationalId}\" → \"{request.NationalId}\"");
+
+        if (voter.FullName != request.FullName)
+            changes.Add($"name \"{voter.FullName}\" → \"{request.FullName}\"");
+
+        if ((voter.Address ?? string.Empty) != request.Address)
+            changes.Add("address");
+
+        if ((voter.MobileNumber ?? string.Empty) != request.MobileNumber)
+            changes.Add("mobile number");
+
+        if (movingArea)
+            changes.Add($"area {await AreaLabelAsync(voter.ConstituencyId, voter.IslandId)} → {await AreaLabelAsync(request.ConstituencyId, request.IslandId)}");
+
+        if ((voter.Remarks ?? string.Empty) != (request.Remarks ?? string.Empty))
+            changes.Add("remarks");
 
         if (voter.PoliticalPartyId != request.PoliticalPartyId)
             changes.Add($"party {await PartyLabelAsync(voter.PoliticalPartyId)} → {await PartyLabelAsync(request.PoliticalPartyId)}");
@@ -383,8 +423,9 @@ public class VoterService : IVoterService
         if (voter.SupportStatus != status)
             changes.Add($"status {voter.SupportStatus} → {status}");
 
-        if (changes.Count > 0)
-            action += ": " + string.Join(", ", changes);
+        action += changes.Count > 0
+            ? ": " + string.Join(", ", changes)
+            : " (saved without changes)";
 
         voter.Gender = gender;
         voter.DateOfBirth = request.DateOfBirth;

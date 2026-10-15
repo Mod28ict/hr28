@@ -9,14 +9,11 @@ namespace HR28.Web.Controllers;
 [SessionAuthorize]
 public class VotersController : Controller
 {
-    private readonly DashboardService _dashboardService;
     private readonly ApiClient _apiClient;
 
     public VotersController(
-        DashboardService dashboardService,
         ApiClient apiClient)
     {
-        _dashboardService = dashboardService;
         _apiClient = apiClient;
     }
 
@@ -166,6 +163,15 @@ public class VotersController : Controller
     }
 
     /// <summary>Political parties for the filter and the voter form (empty if they can't be loaded).</summary>
+    // Lists for the Add / Edit forms. A failed lookup gives an empty list, never an error page.
+    private async Task<List<LookupDto>> LoadConstituenciesAsync(string? token) =>
+        (await _apiClient.GetAsync<List<LookupDto>>("Constituencies", token)).Data ?? new();
+
+    private async Task<List<LookupDto>> LoadIslandsAsync(Guid? constituencyId, string? token) =>
+        (await _apiClient.GetAsync<List<LookupDto>>(
+            constituencyId.HasValue ? $"Constituencies/{constituencyId}/islands" : "Islands",
+            token)).Data ?? new();
+
     private async Task<List<PoliticalPartyDto>> LoadPartiesAsync(string? token)
     {
         var result = await _apiClient.GetAsync<List<PoliticalPartyDto>>("PoliticalParties", token);
@@ -214,24 +220,6 @@ public class VotersController : Controller
     }
 
 
-    [HttpPost]
-    public async Task<IActionResult>
-        Search(string searchTerm)
-    {
-        var token =
-            HttpContext.Session.GetString(
-                "JwtToken");
-
-        var voters =
-            await _dashboardService
-                .SearchVotersAsync(
-                    searchTerm,
-                    token);
-
-        return View(
-            "Index",
-            voters ?? new());
-    }
     public async Task<IActionResult>
         Profile(Guid id)
     {
@@ -270,13 +258,24 @@ public class VotersController : Controller
             HttpContext.Session.GetString(
                 "JwtToken");
 
-        var profile =
-            await _dashboardService
-                .GetVoterProfileAsync(
-                    id,
-                    token);
+        var profile = await _apiClient.GetAsync<VoterProfileDto>($"Voters/{id}/profile", token);
 
-        return View(profile);
+        if (profile.IsUnauthorized)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!profile.Success || profile.Data?.Voter == null)
+        {
+            // Outside the user's areas, deleted, or too many requests: say so on the list.
+            TempData["FlashError"] = profile.Message is "" or "The requested record was not found."
+                ? "That voter could not be found."
+                : profile.Message;
+            return LocalRedirect(LastVoterListUrl(Url, HttpContext.Session));
+        }
+
+        return View(profile.Data);
     }
     public async Task<IActionResult> Create()
     {
@@ -288,14 +287,10 @@ public class VotersController : Controller
             new VoterCreateViewModel
             {
                 Constituencies =
-                    await _dashboardService
-                        .GetConstituenciesAsync(token)
-                        ?? new(),
+                    await LoadConstituenciesAsync(token),
 
                 Islands =
-                    await _dashboardService
-                        .GetIslandsAsync(token)
-                        ?? new(),
+                    await LoadIslandsAsync(null, token),
 
                 Parties = await LoadPartiesAsync(token)
             };
@@ -329,9 +324,9 @@ public class VotersController : Controller
 
             // Reload the lists, or the constituency dropdown comes back empty.
             model.Constituencies =
-                await _dashboardService.GetConstituenciesAsync(token) ?? new();
+                await LoadConstituenciesAsync(token);
             model.Islands =
-                await _dashboardService.GetIslandsAsync(token) ?? new();
+                await LoadIslandsAsync(null, token);
             model.Parties = await LoadPartiesAsync(token);
 
             return View(model);
@@ -350,13 +345,7 @@ public class VotersController : Controller
             HttpContext.Session
                 .GetString("JwtToken");
 
-        var islands =
-            await _dashboardService
-                .GetIslandsByConstituencyAsync(
-                    constituencyId,
-                    token);
-
-        return Json(islands);
+        return Json(await LoadIslandsAsync(constituencyId, token));
     }
     [HttpGet]
     public async Task<IActionResult> Edit(Guid id)
@@ -365,15 +354,22 @@ public class VotersController : Controller
             HttpContext.Session.GetString(
                 "JwtToken");
 
-        var profile =
-            await _dashboardService
-                .GetVoterProfileAsync(
-                    id,
-                    token);
+        var loaded = await _apiClient.GetAsync<VoterProfileDto>($"Voters/{id}/profile", token);
 
-        if (profile?.Voter == null)
+        if (loaded.IsUnauthorized)
         {
-            return RedirectToAction("Index");
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var profile = loaded.Data;
+
+        if (!loaded.Success || profile?.Voter == null)
+        {
+            TempData["FlashError"] = loaded.Message is "" or "The requested record was not found."
+                ? "That voter could not be found."
+                : loaded.Message;
+            return LocalRedirect(LastVoterListUrl(Url, HttpContext.Session));
         }
 
         var model =
@@ -398,17 +394,11 @@ public class VotersController : Controller
                 Parties = await LoadPartiesAsync(token),
 
                 Constituencies =
-                    await _dashboardService
-                        .GetConstituenciesAsync(token)
-                        ?? new(),
+                    await LoadConstituenciesAsync(token),
                 Islands =
                     profile.Voter.ConstituencyId.HasValue
                     && profile.Voter.ConstituencyId.Value != Guid.Empty
-                        ? await _dashboardService
-                            .GetIslandsByConstituencyAsync(
-                                profile.Voter.ConstituencyId.Value,
-                                token)
-                            ?? new()
+                        ? await LoadIslandsAsync(profile.Voter.ConstituencyId.Value, token)
                         : new(),
 
             };
@@ -453,9 +443,9 @@ public class VotersController : Controller
             ViewBag.IsSuperAdmin = Hr28Roles.IsAdministrator(
                 HttpContext.Session.GetString("UserRole"));
 
-            model.Constituencies = await _dashboardService.GetConstituenciesAsync(token) ?? new();
+            model.Constituencies = await LoadConstituenciesAsync(token);
             model.Islands = model.Voter.ConstituencyId != Guid.Empty
-                ? await _dashboardService.GetIslandsByConstituencyAsync(model.Voter.ConstituencyId, token) ?? new()
+                ? await LoadIslandsAsync(model.Voter.ConstituencyId, token)
                 : new();
             model.Parties = await LoadPartiesAsync(token);
 

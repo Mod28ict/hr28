@@ -7,14 +7,11 @@ namespace HR28.Web.Controllers;
 
 public class EncountersController : AppController
 {
-    private readonly DashboardService _dashboardService;
     private readonly ApiClient _apiClient;
 
     public EncountersController(
-        DashboardService dashboardService,
         ApiClient apiClient)
     {
-        _dashboardService = dashboardService;
         _apiClient = apiClient;
     }
 

@@ -413,6 +413,16 @@ public class InfluencerService : IInfluencerService
                 "Relationship not found.");
         }
 
+        // Which voter, and the relationship before and after.
+        var voterName = await _dbContext.Voters
+            .Where(v => v.Id == request.VoterId)
+            .Select(v => v.FullName)
+            .FirstOrDefaultAsync() ?? "a voter";
+
+        var auditAction = relationship.RelationshipType == request.RelationshipType
+            ? $"Update Influencer Relationship with {voterName} (saved without changes)"
+            : $"Update Influencer Relationship with {voterName}: \"{relationship.RelationshipType}\" → \"{request.RelationshipType}\"";
+
         relationship.RelationshipType =
             request.RelationshipType;
 
@@ -423,7 +433,7 @@ public class InfluencerService : IInfluencerService
 
         await _auditService.LogAsync(
             GetCurrentUserId(),
-            "Update Influencer Relationship",
+            auditAction,
             "Influencer",
             request.InfluencerId.ToString());
     }
