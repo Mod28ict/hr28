@@ -22,7 +22,7 @@ publish it on 0.0.0.0).
 | `scripts/setup-accounts-and-secrets.sh` | run once | accounts, folders, **new** production keys (kept on re-run) |
 | `scripts/rotate-sa-and-create-app-login.sh` | run **by the owner** in PuTTY | asks for the current sa password |
 | `scripts/backup-db.sh` + `hr28-backup.cron` | `/usr/local/sbin/hr28-backup`, `/etc/cron.d/hr28-backup` | nightly 00:30 MVT, 14 days (DigitalOcean daily droplet backups 01:00-05:00 MVT, 7 days) |
-| `scripts/deploy-release.sh` | `/usr/local/sbin/hr28-deploy` | backup, update, health check, roll back |
+| `scripts/deploy-release.sh` | `/usr/local/sbin/hr28-deploy` | `training`: new release → training only, staged; `live`: the staged (tested) release → live with backup, health check, roll back; `status` |
 | `scripts/save-origin-cert.sh` | `/usr/local/sbin/hr28-origin-cert` | owner pastes the Cloudflare Origin Certificate + key |
 | `scripts/cloudflare-only.sh` + `hr28-cloudflare-only.cron` | `/usr/local/sbin/hr28-cloudflare-only`, `/etc/cron.d/` | ports 80/443 from Cloudflare only + Nginx real-IP list; monthly |
 | `ssh/10-hr28.conf` | `/etc/ssh/sshd_config.d/` | keys only, 3 tries, no X11 |
@@ -105,7 +105,7 @@ separate). Every page shows a TRAINING strip (`App__EnvironmentLabel`) and every
 | `training-cleanup.sql` | `/usr/local/lib/hr28/training-cleanup.sql` (used by the refresh) |
 | `hr28-train-*.service`, `hr28-train.nginx` | `/etc/systemd/system/`, `/etc/nginx/sites-available/hr28-train` |
 
-`hr28-deploy` updates training after live (same files; `migrate.sql` applied to `HR28Train` too).
+Releases go PC → training → live (owner, 2026-10-15): `hr28-deploy training`, test on tr.shamheed.com, then `hr28-deploy live` installs exactly the staged release (`/var/lib/hr28/release-staged`).
 Cloudflare: DNS `tr` → droplet IP, proxied; all zone rules (WAF, rate limit, outside-Maldives
 challenge, origin pulls) apply. Training is not backed up nightly (refresh from live instead) and
 not in `hr28-monitor`. Live was cleared of test influencers, pledges and encounters on 2026-10-15
@@ -115,4 +115,8 @@ not in `hr28-monitor`. Live was cleared of test influencers, pledges and encount
 
 On the PC: `dotnet publish` API and Web (`-c Release -r linux-x64 --self-contained false`),
 copy to `/tmp/hr28-release/{api,web}` (and `migrate.sql` from
-`dotnet ef migrations script --idempotent` when the schema changed), then `hr28-deploy`.
+`dotnet ef migrations script <last on live> <new> --idempotent` when the schema changed), then:
+1. `hr28-deploy training` — installs on tr.shamheed.com only (database changes on `HR28Train`);
+   live is not touched. Test there.
+2. `hr28-deploy live` — puts exactly that tested release on live (backup first, database
+   changes, health check, automatic roll back). `hr28-deploy status` shows what each runs.
