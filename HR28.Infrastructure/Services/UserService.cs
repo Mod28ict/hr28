@@ -119,7 +119,7 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<string?> ResetAuthorizationCodeAsync(Guid userId)
+    public async Task<ResetCodeResultDto?> ResetAuthorizationCodeAsync(Guid userId)
     {
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
@@ -166,15 +166,42 @@ public class UserService : IUserService
 
         await _dbContext.SaveChangesAsync();
 
+        // The new code goes to the person by SMS (active accounts only: an inactive one gets
+        // it in the welcome SMS when activated). It is also shown once to the administrator.
+        var sent = user.IsActive && await _smsSender.SendAsync(user.MobileNumber, await ResetCodeSmsAsync(user, code));
+
+        var smsNote = !user.IsActive ? "; account inactive, no SMS"
+            : sent ? "; new code sent by SMS"
+            : "; SMS could not be sent";
+
         await _auditService.LogAsync(
             GetCurrentUserId(),
-            devices.Count > 0
+            (devices.Count > 0
                 ? $"Reset authorization code (and forgot {devices.Count} remembered {(devices.Count == 1 ? "device" : "devices")})"
-                : "Reset authorization code",
+                : "Reset authorization code") + smsNote,
             "User",
             userId.ToString());
 
-        return code;
+        var digits = new string((user.MobileNumber ?? string.Empty).Where(char.IsDigit).ToArray());
+
+        return new ResetCodeResultDto
+        {
+            AuthorizationCode = code,
+            SmsSent = sent,
+            AccountInactive = !user.IsActive,
+            MaskedMobile = digits.Length >= 3 ? "•••" + digits[^3..] : string.Empty
+        };
+    }
+
+    /// <summary>The SMS with a reset authorization code.</summary>
+    private async Task<string> ResetCodeSmsAsync(User user, string code)
+    {
+        var brand = await _settingsService.GetBrandingAsync();
+        var firstName = (user.FullName ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
+        var signInAt = string.IsNullOrWhiteSpace(_signInUrl) ? string.Empty : $" Sign in at {_signInUrl}.";
+
+        return $"{brand.ShortName}: {(firstName.Length > 0 ? firstName + ", y" : "Y")}our new authorization code is {code}. " +
+               $"Your old code no longer works.{signInAt} Never share your codes. Campaign staff will never ask for them.";
     }
 
     /// <summary>

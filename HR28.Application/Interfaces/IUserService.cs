@@ -1,4 +1,4 @@
-﻿using HR28.Application.DTOs.Users;
+using HR28.Application.DTOs.Users;
 
 namespace HR28.Application.Interfaces;
 
@@ -35,7 +35,7 @@ public interface IUserService
     /// new code. This is the only time the code is available in plain text.
     /// Returns null if the user does not exist.
     /// </summary>
-    Task<string?> ResetAuthorizationCodeAsync(Guid userId);
+    Task<ResetCodeResultDto?> ResetAuthorizationCodeAsync(Guid userId);
 
     /// <summary>Ends every current sign-in of the user; false if the user doesn't exist.</summary>
     Task<bool> EndSessionsAsync(Guid userId);

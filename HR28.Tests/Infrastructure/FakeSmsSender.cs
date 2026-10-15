@@ -8,9 +8,16 @@ namespace HR28.Tests.Infrastructure;
 public sealed partial class FakeSmsSender : ISmsSender
 {
     private readonly ConcurrentQueue<(string Phone, string Message)> _sent = new();
+    private readonly ConcurrentDictionary<string, bool> _failing = new();
+
+    /// <summary>SMS to this number "fail" (the provider refused), as with a wrong number.</summary>
+    public void FailFor(string phone) => _failing[phone] = true;
 
     public Task<bool> SendAsync(string phoneNumber, string message)
     {
+        if (_failing.ContainsKey(phoneNumber))
+            return Task.FromResult(false);
+
         _sent.Enqueue((phoneNumber, message));
         return Task.FromResult(true);
     }

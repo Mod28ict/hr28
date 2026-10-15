@@ -1,4 +1,4 @@
-﻿using HR28.API.Extensions;
+using HR28.API.Extensions;
 using HR28.Application.DTOs.Users;
 using HR28.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -101,18 +101,18 @@ public class UsersController : ControllerBase
         return Ok("Scope assigned successfully.");
     }
     /// <summary>
-    /// Issues a new authorization code. The response is the only place the
-    /// new code ever appears; it is not stored in readable form.
+    /// Issues a new authorization code, sends it to the person by SMS (active accounts) and
+    /// returns it once for the administrator. It is not stored in readable form.
     /// </summary>
     [HttpPost("{userId}/reset-code")]
     public async Task<IActionResult> ResetAuthorizationCode(Guid userId)
     {
-        var code = await _userService.ResetAuthorizationCodeAsync(userId);
+        var result = await _userService.ResetAuthorizationCodeAsync(userId);
 
-        if (code == null)
+        if (result == null)
             return NotFound();
 
-        return Ok(new { authorizationCode = code });
+        return Ok(result);
     }
 
     /// <summary>

@@ -6,6 +6,9 @@
     var isReset = (bool)(ViewBag.IsReset ?? false);
     var mode = isReset ? "reset" : ViewBag.Mode as string ?? "created";
     var userName = ViewBag.UserName as string;
+    var smsSent = (bool)(ViewBag.SmsSent ?? false);
+    var accountInactive = (bool)(ViewBag.AccountInactive ?? false);
+    var maskedMobile = ViewBag.MaskedMobile as string;
 
     ViewData["Title"] = mode switch { "reset" => "New Authorization Code", "sms-failed" => "Authorization Code", _ => "User Created" };
 
@@ -46,7 +49,18 @@
             <h1 class="ui-title">New code issued</h1>
             <p class="ui-sub">
                 @(string.IsNullOrWhiteSpace(userName) ? "The user's" : $"{userName}'s") old code has stopped working.
-                Give them this new code in person or by phone.
+                @if (smsSent)
+                {
+                    <text>The new code was sent to them by SMS@(string.IsNullOrWhiteSpace(maskedMobile) ? "" : $" ({maskedMobile})").</text>
+                }
+                else if (accountInactive)
+                {
+                    <text>The account is inactive, so no SMS was sent. Give them this code yourself when the account is active again.</text>
+                }
+                else
+                {
+                    <text>The SMS could not be sent. Give them this new code in person or by phone, and check their phone number.</text>
+                }
             </p>
         }
         else

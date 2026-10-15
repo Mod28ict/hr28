@@ -1,4 +1,4 @@
-﻿using HR28.Web.Filters;
+using HR28.Web.Filters;
 using HR28.Web.Models;
 using HR28.Web.Models.Users;
 using HR28.Web.Services;
@@ -26,8 +26,8 @@ public class UsersController : Controller
     }
 
     /// <summary>
-    /// Issues a new authorization code and shows it once. The old code stops
-    /// working immediately. The API records this in the audit trail.
+    /// Issues a new authorization code: sent to the person by SMS and shown once here.
+    /// The old code stops working immediately. The API records this in the audit trail.
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -62,6 +62,9 @@ public class UsersController : Controller
 
         ViewBag.IsReset = true;
         ViewBag.UserName = name;
+        ViewBag.SmsSent = result.Data.SmsSent;
+        ViewBag.AccountInactive = result.Data.AccountInactive;
+        ViewBag.MaskedMobile = result.Data.MaskedMobile;
 
         // The code is shown once; don't let the browser cache this page.
         Response.Headers.CacheControl = "no-store";
@@ -77,6 +80,9 @@ public class UsersController : Controller
     private class ResetCodeResult
     {
         public string AuthorizationCode { get; set; } = string.Empty;
+        public bool SmsSent { get; set; }
+        public bool AccountInactive { get; set; }
+        public string MaskedMobile { get; set; } = string.Empty;
     }
 
     private const string LastListKey = "LastUserListQuery";
