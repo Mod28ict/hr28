@@ -315,7 +315,9 @@ public class UsersController : Controller
         if (result.Data?.Activated == true)
             return AfterActivation(result.Data, model.User.FullName);
 
-        TempData["SuccessMessage"] = $"{model.User.FullName} was updated.";
+        TempData["SuccessMessage"] = result.Data?.Deactivated == true
+            ? $"{model.User.FullName} was updated and can no longer sign in. {DeactivationSmsNote(result.Data)}"
+            : $"{model.User.FullName} was updated.";
         return BackToList();
     }
 
@@ -338,6 +340,12 @@ public class UsersController : Controller
 
         return BackToList();
     }
+
+    /// <summary>Whether the person was told by SMS that their account is off.</summary>
+    private static string DeactivationSmsNote(ActivationResult? result) =>
+        result?.Deactivated != true ? string.Empty
+        : result.SmsSent ? $"They were told by SMS ({result.MaskedMobile})."
+        : "The SMS to tell them could not be sent.";
 
     /// <summary>Status pop-up on the Users list: activate or deactivate an account.</summary>
     [HttpPost]
@@ -366,7 +374,7 @@ public class UsersController : Controller
         if (result.Success)
             TempData["SuccessMessage"] = isActive
                 ? $"{who} is active and can sign in."
-                : $"{who} is inactive and can no longer sign in.";
+                : $"{who} is inactive and can no longer sign in. {DeactivationSmsNote(result.Data)}";
         else
             TempData["FlashError"] = string.IsNullOrWhiteSpace(result.Message)
                 ? "The status could not be changed."

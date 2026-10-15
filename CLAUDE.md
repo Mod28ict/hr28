@@ -258,7 +258,9 @@ strong despite that:
      name, code, optional `App:SignInUrl`) — nobody else sees it. Administrators never see a
      user's code (owner, 2026-10-15): if that SMS can't be sent, the new code is revoked and
      the administrator is told to fix the number and use Reset code. Re-activating later sends
-     an "active again" SMS and keeps the code. "Reset code" (owner, 2026-10-15) stops the old
+     an "active again" SMS and keeps the code. **Deactivating** (status pop-up or Edit) sends
+     the person a "your account has been deactivated… contact your administrator" SMS
+     (owner, 2026-10-15; audited). "Reset code" (owner, 2026-10-15) stops the old
      code and sends a new one **only to the person by SMS**: administrators never see it
      (prevents misuse of someone else's credentials). If that SMS fails the new code is
      revoked too (the list shows "No code yet: use Reset code"); an inactive account gets

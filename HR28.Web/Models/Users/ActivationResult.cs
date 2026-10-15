@@ -8,6 +8,9 @@ public class ActivationResult
     /// <summary>First activation: a new authorization code was created and sent by SMS.</summary>
     public bool FirstActivation { get; set; }
 
+    /// <summary>The account was switched off (the person is told by SMS).</summary>
+    public bool Deactivated { get; set; }
+
     public bool SmsSent { get; set; }
 
     /// <summary>Last digits of the person's number, e.g. "•••234" (never the code).</summary>

@@ -491,8 +491,11 @@ public class UserService : IUserService
                 "If you did not ask for this, contact your administrator.");
         }
 
-        return activating
-            ? await SendActivationSmsAsync(user, newCode)
+        if (activating)
+            return await SendActivationSmsAsync(user, newCode);
+
+        return changes.Contains("account deactivated")
+            ? await SendDeactivationSmsAsync(user)
             : new ActivationResultDto();
     }
 
@@ -634,7 +637,35 @@ public class UserService : IUserService
 
         return isActive
             ? await SendActivationSmsAsync(user, newCode)
-            : new ActivationResultDto();
+            : await SendDeactivationSmsAsync(user);
+    }
+
+    /// <summary>
+    /// After an administrator switches an account off: tell the person by SMS, so they know
+    /// why they can't sign in (owner, 2026-10-15). Recorded in the audit trail.
+    /// </summary>
+    private async Task<ActivationResultDto> SendDeactivationSmsAsync(User user)
+    {
+        var brand = await _settingsService.GetBrandingAsync();
+
+        var sent = await _smsSender.SendAsync(user.MobileNumber,
+            $"{brand.CampaignName}: your account has been deactivated by an administrator, so you can no longer sign in. " +
+            "If you think this is a mistake, contact your administrator.");
+
+        await _auditService.LogAsync(
+            GetCurrentUserId(),
+            sent ? "\"Account deactivated\" SMS sent" : "\"Account deactivated\" SMS could not be sent",
+            "User",
+            user.Id.ToString());
+
+        var digits = new string((user.MobileNumber ?? string.Empty).Where(char.IsDigit).ToArray());
+
+        return new ActivationResultDto
+        {
+            Deactivated = true,
+            SmsSent = sent,
+            MaskedMobile = digits.Length >= 3 ? "•••" + digits[^3..] : string.Empty
+        };
     }
 
     public async Task<string> DeleteUserAsync(Guid userId)

@@ -196,5 +196,35 @@ public class UserActivationTests
         var result = await (await admin.PutAsJsonAsync($"api/Users/{user.Id}", WithNid(true))).Content.ReadFromJsonAsync<Activation>();
         Assert.True(result!.Activated && result.FirstActivation && result.SmsSent);
         Assert.Contains("Your authorization code is", _factory.Sms.MessagesTo(mobile).Last());
+
+        // Switching it off in the same form tells the person by SMS.
+        var off = await (await admin.PutAsJsonAsync($"api/Users/{user.Id}", WithNid(false))).Content.ReadFromJsonAsync<Deactivation>();
+        Assert.True(off!.Deactivated && off.SmsSent);
+        Assert.Contains("your account has been deactivated", _factory.Sms.MessagesTo(mobile).Last());
+    }
+
+    private sealed record Deactivation(bool Deactivated, bool SmsSent, string MaskedMobile);
+
+    [Fact]
+    public async Task Deactivating_tells_the_person_by_SMS()
+    {
+        var (admin, user, mobile) = await CreateAsync();
+        await GiveRoleAsync(user.Id, "Collector");
+        await admin.PutAsJsonAsync($"api/Users/{user.Id}/active", new { isActive = true });
+
+        var response = await admin.PutAsJsonAsync($"api/Users/{user.Id}/active", new { isActive = false });
+        var result = await response.Content.ReadFromJsonAsync<Deactivation>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(result!.Deactivated && result.SmsSent);
+        Assert.Equal("•••" + mobile[^3..], result.MaskedMobile);
+
+        var sms = _factory.Sms.MessagesTo(mobile).Last();
+        Assert.Contains("your account has been deactivated", sms);
+        Assert.Contains("contact your administrator", sms);
+        Assert.DoesNotMatch(@"[A-Z2-9]{4}-[A-Z2-9]{4}", sms);
+
+        await using var db = _factory.NewDbContext();
+        Assert.True(await db.AuditLogs.AnyAsync(a => a.EntityId == user.Id.ToString() && a.Action == "\"Account deactivated\" SMS sent"));
     }
 }

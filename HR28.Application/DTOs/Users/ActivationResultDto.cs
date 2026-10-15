@@ -9,7 +9,10 @@ public class ActivationResultDto
     /// <summary>First activation: a new authorization code was created for the person.</summary>
     public bool FirstActivation { get; set; }
 
-    /// <summary>The welcome (or "active again") SMS was sent.</summary>
+    /// <summary>True when the account was switched off by this request (the person is told by SMS).</summary>
+    public bool Deactivated { get; set; }
+
+    /// <summary>The welcome, "active again" or "deactivated" SMS was sent.</summary>
     public bool SmsSent { get; set; }
 
     /// <summary>
