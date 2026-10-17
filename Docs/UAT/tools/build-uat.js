@@ -58,8 +58,8 @@ function table(widths, header, rows, o = {}) {
 // [id, title, steps, expected, who]
 const modules = [
   ["A", "Signing in and account security", [
-    ["A-01", "Sign in with code and SMS", "1. Open https://shamheed.com.\n2. Enter your authorization code (with or without the dash).\n3. Click Send verification code.\n4. Enter the 6-digit SMS code.", "SMS arrives within a minute. After the code you land on your start page (Dashboard or Quick entry). The SMS says never to share the code.", "All"],
-    ["A-02", "Wrong authorization code", "Enter a made-up code and click Send verification code.", "A plain message; it does not say whether the code or person exists. No SMS is sent.", "All"],
+    ["A-01", "Sign in with code and SMS", "1. Open https://tr.shamheed.com (training site).\n2. Enter your authorization code (with or without the dash).\n3. Click Send verification code.\n4. Enter the 6-digit SMS code.", "SMS arrives within a minute. After the code you land on your start page (Dashboard or Quick entry). The SMS says never to share the code.", "All"],
+    ["A-02", "Wrong authorization code", "Enter a made-up code and click Send verification code. Also try an old 5-character code, if anyone still has one.", "A plain message; it does not say whether the code or person exists. No SMS is sent. Only 8-character codes (ABCD-EFGH) work.", "All"],
     ["A-03", "Wrong SMS code", "Request a code, then enter a wrong 6-digit code.", "A plain \"code is not correct\" message with attempts left. After 5 wrong tries that code stops working.", "All"],
     ["A-04", "Expired SMS code", "Request a code, wait longer than the expiry (default 5 minutes), then enter it.", "Message that the code has expired; a new one must be requested.", "All"],
     ["A-05", "Ask for a code too often", "Click Send verification code twice within a minute.", "Second request politely refused (wait 60 seconds). No extra SMS.", "All"],
@@ -71,6 +71,8 @@ const modules = [
     ["A-11", "New-device sign-in alert", "Sign in on your usual phone. Then sign in on another browser or computer (or a private/incognito window).", "First device: no alert. The other browser: SMS \"new sign-in to your account at HH:MM on <browser>… contact your administrator\". Same browser again: no alert.", "All"],
     ["A-12", "Confirm it's you", "As Administrator open Users (or Settings → System, or download a report).", "\"Confirm it's you\" page: Send me a code → SMS code → Confirm → back on the page you opened. For about 15 minutes no new code is asked; after that it asks again.", "Administrator"],
     ["A-13", "Confirm it's you: wrong code", "On the Confirm page enter a wrong code, then the right one.", "\"That code is not correct. You have N tries left.\" The right code works. A confirmation code cannot be used to sign in.", "Administrator"],
+    ["A-14", "Sign-ins are recorded", "Sign in, then (as Administrator) open Audit Trail and look for your name.", "An entry \"Signed in on <browser>\" for each sign-in (\"(remembered device)\" when Remember me was used). No codes appear.", "All + Administrator"],
+    ["A-15", "Lockout after many wrong codes (optional)", "With a TEST account, enter wrong SMS codes 10 times in a row (ask for a new code after every 5).", "Sign-in is locked for 15 minutes with a plain message. Audit Trail: \"Sign-in locked for 15 minutes after 10 wrong codes\". After 15 minutes the account works again.", "Administrator + TEST user"],
   ]],
   ["B", "Dashboard and start page", [
     ["B-01", "Dashboard figures", "Sign in as Administrator. Look at the Dashboard.", "Greeting with your first name; totals for voters, supporters, undecided, opposition, neutral; constituency/island counts.", "Administrator"],
@@ -92,6 +94,9 @@ const modules = [
     ["C-11", "Add / remove photo", "On the list, profile or Quick entry: Add photo (on a phone you may use the camera); then Remove photo.", "Photo appears; remove asks and removes it. Without the photo rights the buttons are hidden.", "Role with photo rights"],
     ["C-12", "Copy ID card number", "Hover a National ID and click the copy icon.", "The ID is copied (\"Copied\").", "All"],
     ["C-13", "Delete a voter", "Delete the test voter \"UAT TEST 1\".", "Asks to confirm; deleted permanently; Audit Trail keeps the name.", "Role with Delete right"],
+    ["C-14", "Too-long entries", "Edit the test voter and paste a very long name (more than 150 letters), then save.", "A plain message \"Full name can be at most 150 characters.\"; nothing is saved. (Addresses: 250, remarks: 1,000.)", "Collector (Edit right)"],
+    ["C-15", "Voter viewing limit", "Administrator: Settings → System → Protect the voter list → set \"per hour\" to 100 → Save. Tester: Voters → 100 per page → open page 1, then page 2. Administrator: set it back to 2,000 → Save.", "Page 2 says \"You have viewed 100 voters this hour, so viewing voters is paused until HH:00…\". Administrators get one SMS naming the tester; Audit Trail has the entry. After the limit is set back the list works again at once.", "Administrator + Collector"],
+    ["C-16", "Friendly \"not found\"", "Open a voter's profile, then in the address bar change the last few letters of the address and press Enter.", "Back on the Voters list with \"That voter could not be found.\" — never an error page.", "Any"],
   ]],
   ["D", "Quick entry", [
     ["D-01", "Fetch a voter by ID card", "Quick entry → type an ID card number in your area → Fetch voter.", "Photo (with right), details and status; Encounters, Pledges and Influencer forms shown in that order.", "Collector"],
@@ -149,9 +154,10 @@ const modules = [
     ["K-04", "Constituencies and islands", "Add a TEST island to a constituency; rename it; delete it.", "Each island belongs to one constituency; one with voters can't be moved.", "Administrator"],
     ["K-05", "Lists", "Lists → political parties and influencer categories: add / rename / delete a TEST entry.", "Works; an entry in use can't be deleted.", "Administrator"],
     ["K-06", "Roles & rights", "Create a custom role; tick rights in the grid; set start page and voter-profile view.", "Users with the role get exactly those rights within a minute; built-in roles can't be renamed or deleted.", "Administrator"],
+    ["K-07", "Protect the voter list: checks", "Settings → System → Protect the voter list: set per day lower than per hour (e.g. 3,000 / 1,000) → Save; then a correct pair (e.g. 3,000 / 15,000); then back to 2,000 / 10,000.", "Wrong pair refused: \"The daily limit can't be lower than the hourly limit.\" Correct values saved; Audit Trail records old and new values.", "Administrator"],
   ]],
   ["L", "Audit Trail", [
-    ["L-01", "Review actions", "Audit Trail → filter by date, record type, action.", "Every test action above is listed with who, when and what changed. No codes or passwords appear.", "Administrator"],
+    ["L-01", "Review actions", "Audit Trail → filter by date, record type, action.", "Every test action above is listed with who, when and what changed, including sign-ins, lockouts and voter-viewing pauses. No codes or passwords appear.", "Administrator"],
   ]],
   ["M", "Access control (cross-checks)", [
     ["M-01", "Reporter is read-only", "As Reporter try to add or edit anything.", "No add / edit buttons; direct attempts are refused.", "Reporter"],
@@ -173,8 +179,8 @@ intro.push(new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 1
   children: [new ImageRun({ type: "png", data: fs.readFileSync(LOGO), transformation: { width: 420, height: 79 } })] }));
 intro.push(p([t("User Acceptance Testing (UAT)", { size: 44, bold: true, color: DARK })], { align: AlignmentType.CENTER, after: 120 }));
 intro.push(p([t("and User Training Guide", { size: 32, color: BLUE })], { align: AlignmentType.CENTER, after: 600 }));
-intro.push(p([t("Deployment: Hithaai Roohun 2028 — https://shamheed.com", { size: 22, color: GREY })], { align: AlignmentType.CENTER }));
-intro.push(p([t("Version 1.1 — 15 October 2026", { size: 22, color: GREY })], { align: AlignmentType.CENTER }));
+intro.push(p([t("Deployment: Hithaai Roohun 2028 — testing on https://tr.shamheed.com (training site)", { size: 22, color: GREY })], { align: AlignmentType.CENTER }));
+intro.push(p([t("Version 1.2 — 17 October 2026", { size: 22, color: GREY })], { align: AlignmentType.CENTER }));
 intro.push(p([t("Prepared by: Ahmed Rasheed (Designed and Developed by)", { size: 22, color: GREY })], { align: AlignmentType.CENTER, after: 1200 }));
 intro.push(p([t("Confidential — contains no personal data. Do not write real voters' details, codes or passwords in this document.", { size: 18, italics: true, color: GREY })], { align: AlignmentType.CENTER }));
 intro.push(pb());
@@ -195,11 +201,12 @@ intro.push(h2("1.2 Not part of this UAT"));
   "Paid modules (Election-day operations, Bulk SMS campaigns, Case management, Field teams, Events, Advanced analytics, Security pack).",
   "Server, backup and Cloudflare settings — done and checked by the developer.",
 ].forEach((x) => intro.push(bullet(x)));
-intro.push(h2("1.3 Important: the system is live"));
-intro.push(p([t("Testing happens on the live system with the real voter registry. Please follow these rules:", { bold: true })]));
+intro.push(h2("1.3 Important: test on the training site"));
+intro.push(p([t("All testing and training happens on the training site, https://tr.shamheed.com — never on the live site (https://shamheed.com). Please follow these rules:", { bold: true })]));
 [
-  "Never change or delete a real voter, influencer or pledge to \"see what happens\". Create TEST records instead and name them clearly, e.g. \"UAT TEST 1\".",
-  "Delete every TEST record at the end of the day (tests C-13, G-04 and similar), and note it in the results.",
+  "The training site shows an orange TRAINING banner, and its SMS start with \"TRAINING:\". If you don't see the banner, you are on the live site: stop and switch.",
+  "It has a copy of the real voter list and practice influencers, pledges and encounters. Nothing done there changes the live site, so you can add, edit and delete freely.",
+  "Still name what you create clearly, e.g. \"UAT TEST 1\", so testers don't confuse each other's records.",
   "Every SMS is real and uses the SMS balance: don't repeat sign-in or reset tests more than needed.",
   "Never write authorization codes, SMS codes or anyone's personal details in this document or in chat groups.",
   "If something looks wrong, stop, write it in the Issue log (section 6) with the time, and carry on with the next test.",
@@ -208,8 +215,8 @@ intro.push(p([t("Testing happens on the live system with the real voter registry
 intro.push(h1("2. Before you start"));
 intro.push(h2("2.1 Checklist"));
 [
-  "Each tester has an account with the right role and area (section 2.2), and the correct 7-digit mobile number (starting 7 or 9).",
-  "Each tester has received their authorization code by SMS (activation or Reset code). Administrators never see codes.",
+  "Each tester has an account on the training site with the right role and area (section 2.2), and the correct 7-digit mobile number (starting 7 or 9).",
+  "Each tester has received their 8-character authorization code by SMS (activation or Reset code). Administrators never see codes. Older 5-character codes no longer work: use Reset code.",
   "Enough SMS balance in the Dhiraagu Bulk SMS account.",
   "A phone (Dhiraagu and Ooredoo if possible) and a computer with an up-to-date browser (Chrome, Edge, Safari or Firefox).",
   "A small TEST Excel file for the upload tests (a few made-up rows only).",
@@ -233,6 +240,7 @@ intro.push(table([1700, 7300], ["Mark", "Meaning"], [
   ["N/A", "Not relevant for this deployment."],
 ]));
 intro.push(p(""));
+intro.push(p("Voters shown on the Voters list, in searches and in Quick entry lookups are counted per person (default 2,000 an hour and 10,000 a day, Settings → System). Normal testing stays far below this; test C-15 shows what happens at the limit."));
 intro.push(p("Sensitive areas (Users, Settings → System / places / lists / Roles & rights, report downloads, uploads) first ask you to \"Confirm it's you\" with a code sent by SMS; one confirmation lasts about 15 minutes."));
 intro.push(p("Rights mentioned in a test (e.g. \"Edit right\", \"photo rights\") are set by the Administrator in Settings → Roles & rights or for one person in Users → Roles → Extra rights. Where a test says \"with / without the right\", test both: the button should appear only for the person who has the right."));
 
@@ -272,11 +280,11 @@ tail.push(pb());
 tail.push(h1("7. User training plan"));
 tail.push(p("Short, hands-on sessions per group. Each session ends with the trainees running the listed tests themselves on their own phones and accounts."));
 tail.push(table([2300, 1300, 5300, 3300, 1600], ["Group", "Length", "Topics", "Hands-on tests", "Trainer"], [
-  ["Everyone (start here)", "30 min", "Signing in with the authorization code and SMS code; Remember me (only on your own device); \"Not you?\"; signing out; the 1-hour idle question; never sharing codes; who to call when locked out.", "A-01, A-03, A-06, A-07, A-08", ""],
+  ["Everyone (start here)", "30 min", "Signing in with the authorization code and SMS code; Remember me (only on your own device); \"Not you?\"; signing out; the 1-hour idle question; never sharing codes; who to call when locked out; what the voter-viewing pause means.", "A-01, A-03, A-06, A-07, A-08", ""],
   ["Collectors", "60 min", "Quick entry by ID card; recording encounters (Meet / Call / Request) with short factual notes; pledges; linking influencers; changing support status; photos with the phone camera; searching voters in your areas.", "D-01 – D-05, C-01 – C-03, C-09, C-11, E-01, F-01, N-01, N-02", ""],
   ["Area administrators (Constituency / Island)", "60 min", "Everything for Collectors plus editing voters, updating pledges, reviewing encounters and the Dashboard for their areas.", "B-01, B-02, C-05 – C-10, E-03, E-04, F-02, F-03, G-01 – G-03", ""],
   ["Reporters", "30 min", "Opening reports, filtering, downloading CSV and printing; data stays inside your areas.", "H-01, H-02, M-01", ""],
-  ["Administrators", "2 hours", "Users (create, roles, areas, activate, Reset code, deactivate, end sessions, extra rights); Roles & rights and start pages; Settings (branding, sign-in security, constituencies and islands, lists); uploads; Audit Trail; what to do when someone loses their phone.", "Sections I, J, K, L, M", ""],
+  ["Administrators", "2 hours", "Users (create, roles, areas, activate, Reset code, deactivate, end sessions, extra rights); Roles & rights and start pages; Settings (branding, sign-in security, protect the voter list, constituencies and islands, lists); uploads; Audit Trail (sign-ins, lockouts, pauses); what to do when someone loses their phone or reaches the viewing limit.", "Sections I, J, K, L, M; A-14, C-15", ""],
 ]));
 tail.push(h2("7.1 Key messages for every trainee"));
 [
@@ -285,12 +293,13 @@ tail.push(h2("7.1 Key messages for every trainee"));
   "Remember me only on your own phone or computer, never on a shared or public one.",
   "Write short, factual notes only. Never record health, money, family matters, allegations or ID card copies.",
   "You only see voters in your own areas; that is by design.",
+  "Viewing very many voters in a short time pauses voter viewing for you (it protects the voter list from being copied). Ask your administrator if you really need more.",
   "Election-day records show only whether someone voted, never how.",
 ].forEach((x) => tail.push(bullet(x)));
 tail.push(pb());
 tail.push(h2("7.2 Quick reference card: signing in"));
-["Open https://shamheed.com on your phone or computer.",
- "Type your authorization code (from the SMS you received, e.g. ABCD-EFGH; the dash and capitals don't matter).",
+["Open https://shamheed.com on your phone or computer (for training: https://tr.shamheed.com).",
+ "Type your 8-character authorization code (from the SMS you received, e.g. ABCD-EFGH; the dash and capitals don't matter).",
  "Tap Send verification code and wait for the SMS.",
  "Type the 6-digit code within 5 minutes.",
  "On your own phone you may tick Remember me: next time you only need the SMS code.",
@@ -312,7 +321,7 @@ for (let i = 0; i < 4; i++) tail.push(p("…………………………………
 
 // ---------- document ----------
 const footer = new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
-  t("Campaign Intelligence Platform (CIP) — UAT & Training Guide v1.1 — page ", { size: 16, color: GREY }),
+  t("Campaign Intelligence Platform (CIP) — UAT & Training Guide v1.2 — page ", { size: 16, color: GREY }),
   new TextRun({ children: [PageNumber.CURRENT], font: FONT, size: 16, color: GREY }),
 ] })] });
 const A4 = { width: 11906, height: 16838 };
