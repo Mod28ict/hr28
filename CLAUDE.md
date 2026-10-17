@@ -515,8 +515,9 @@ Status as of 2026-10-02 (update when an item changes):
    `SECURITY:` API log lines for wrong/unknown codes and refused requests, alerted by
    `hr28-monitor` at 30 in 15 minutes); M1 voter viewing cap (see Rate limits); L3 5-character codes retired;
    L1 new session at sign-in (`Auth/Finish`, one-time key); L6 housekeeping; L5 SQL logins
-   (`hr28_ops` for scripts, `hr28_admin` for setup, `sa` disabled). Open: L4, the owner runs
-   `hr28-ssh-allow lock <address>` (firewall changes are the owner's to run).
+   (`hr28_ops` for scripts, `hr28_admin` for setup, `sa` disabled); L4 SSH only from the
+   owner's address and DigitalOcean's Droplet Console (`hr28-ssh-allow`; firewall changes are
+   the owner's to run). All review items closed.
 7. Audit coverage — **partly done:** voters, influencers, encounters, pledges,
    users (create, code reset, roles, areas), constituencies, islands, settings and
    report downloads are audited. Voter, influencer and encounter edits record which

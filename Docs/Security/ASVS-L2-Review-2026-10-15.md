@@ -21,7 +21,7 @@ small code changes.
 | L1 | Low | Session cookie is not renewed at sign-in | **Fixed 2026-10-17** |
 | L2 | Low | Token check does not pin the signing algorithm | **Fixed 2026-10-17** |
 | L3 | Low | Old 5-character authorization codes still accepted | **Fixed 2026-10-17** |
-| L4 | Low | SSH is reachable from the whole internet (keys only) | Ready; owner runs one command |
+| L4 | Low | SSH is reachable from the whole internet (keys only) | **Fixed 2026-10-17** |
 | L5 | Low | SQL `sa` login is enabled (local only, used by scripts) | **Fixed 2026-10-17** |
 | L6 | Low | Old/legacy packages and "Server: Kestrel" header | **Fixed 2026-10-17** (xUnit 2 kept) |
 
@@ -113,9 +113,10 @@ codes and need Reset code there. Test: `AuthorizationCodeLengthTests`.
 Port 22 accepts connections from anywhere. It is keys-only, `MaxAuthTries 3`, and
 fail2ban is active, so the risk is low. **Fix (optional):** a DigitalOcean cloud firewall
 allowing SSH only from your own addresses, keeping the DigitalOcean web console as a
-fallback. **Ready (2026-10-17):** `hr28-ssh-allow` is on the server; the owner runs
-`hr28-ssh-allow lock 124.195.218.145` (the only address that signed in by SSH in 30 days,
-plus DigitalOcean's Droplet Console addresses). A firewall change is the owner's to make.
+fallback. **Fixed (2026-10-17):** the owner ran `hr28-ssh-allow lock 124.195.218.145` (the
+only address that signed in by SSH in 30 days) on the live server; SSH now accepts only that
+address and DigitalOcean's Droplet Console, and a new session was checked before closing the
+old one. Address changed? DigitalOcean website → Droplet Console → `hr28-ssh-allow add <address>`.
 
 ### L5 — SQL `sa` login enabled (V13 Configuration)
 
