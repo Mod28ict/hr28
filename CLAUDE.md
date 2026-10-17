@@ -501,7 +501,9 @@ Status as of 2026-10-02 (update when an item changes):
 6. OWASP ASVS L2 review — **done (2026-10-15, ASVS 5.0):** `Docs/Security/ASVS-L2-Review-2026-10-15.md`.
    No high findings. Fixed 2026-10-17: M3 input length limits (`[MaxLength]` on input
    DTOs, 1 MB request limit), M4 Select2 self-hosted (no outside code in the CSP), L2 JWT
-   algorithm pinned. Open: M1 bulk voter reading cap, M2 sign-in/refusal logging, L1, L3–L6.
+   algorithm pinned; M2 sign-in and refusal logging (every sign-in and lockout audited;
+   `SECURITY:` API log lines for wrong/unknown codes and refused requests, alerted by
+   `hr28-monitor` at 30 in 15 minutes). Open: M1 bulk voter reading cap, L1, L3–L6.
 7. Audit coverage — **partly done:** voters, influencers, encounters, pledges,
    users (create, code reset, roles, areas), constituencies, islands, settings and
    report downloads are audited. Voter, influencer and encounter edits record which

@@ -27,6 +27,7 @@ public class ApiExceptionMiddleware
         }
         catch (AccessDeniedException ex)
         {
+            HR28.API.Extensions.SecurityLog.Refused(_logger, context, ex.Message);
             await WriteAsync(context, StatusCodes.Status403Forbidden, ex.Message);
         }
         catch (KeyNotFoundException)

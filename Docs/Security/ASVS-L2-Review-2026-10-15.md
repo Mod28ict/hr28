@@ -15,7 +15,7 @@ small code changes.
 | # | Severity | Finding | Effort |
 |---|----------|---------|--------|
 | M1 | Medium | One user can page through the whole voter registry in about 25 minutes | Owner decision + small change |
-| M2 | Medium | Ordinary sign-ins, wrong codes, lockouts and refused requests are not recorded | Small |
+| M2 | Medium | Ordinary sign-ins, wrong codes, lockouts and refused requests are not recorded | **Fixed 2026-10-17** |
 | M3 | Medium | No server-side length limits on many text fields | **Fixed 2026-10-17** |
 | M4 | Medium | Select2 is loaded from a CDN without an integrity check | **Fixed 2026-10-17** |
 | L1 | Low | Session cookie is not renewed at sign-in | Small |
@@ -47,9 +47,12 @@ recorded: ordinary successful sign-ins (only `LastLoginAt` is updated), wrong SM
 account lockouts, attempts with an unknown authorization code, and API refusals (403).
 Without these an attack on accounts is invisible after the fact.
 
-**Fix:** audit every successful sign-in and every lockout; write wrong codes, unknown
-codes (with IP, never the code) and 403 refusals to the server log, where `hr28-monitor`
-can alert on spikes.
+**Fixed (2026-10-17):** every successful sign-in ("Signed in on Chrome on Android",
+"(remembered device)") and every lockout are in the Audit Trail. Wrong codes, unknown
+authorization codes, unrecognised remembered devices and refused requests (missing right,
+outside the user's areas) go to the API log as `SECURITY:` lines with user and IP, never a
+code; request text is cleaned of line breaks. `hr28-monitor` SMSes the Administrators when
+there are 30 or more in 15 minutes. Tests: `SignInAuditTests`.
 
 ### M3 — Missing input length limits (V2 Validation)
 

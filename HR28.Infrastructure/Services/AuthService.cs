@@ -3,8 +3,10 @@ using HR28.Application.Interfaces;
 using HR28.Domain.Entities;
 using HR28.Infrastructure.Data;
 using HR28.Infrastructure.Helpers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace HR28.Infrastructure.Services;
 
@@ -25,6 +27,8 @@ public class AuthService : IAuthService
     public const string StoreReadableOtpSetting = "Security:StoreReadableOtpCodes";
 
     private readonly bool _storeReadableOtp;
+    private readonly ILogger<AuthService> _logger;
+    private readonly IHttpContextAccessor? _httpContextAccessor;
 
     public AuthService(
         HR28DbContext dbContext,
@@ -33,8 +37,12 @@ public class AuthService : IAuthService
         IAuthorizationCodeHasher codeHasher,
         ISmsSender smsSender,
         IAuditService auditService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger<AuthService> logger,
+        IHttpContextAccessor? httpContextAccessor = null)
     {
+        _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
         _auditService = auditService;
         _storeReadableOtp = bool.TryParse(configuration[StoreReadableOtpSetting], out var readable) && readable;
         _dbContext = dbContext;
@@ -43,6 +51,16 @@ public class AuthService : IAuthService
         _codeHasher = codeHasher;
         _smsSender = smsSender;
     }
+
+    /// <summary>
+    /// Security events for the server log (ASVS review M2, 2026-10-17). Every line starts with
+    /// "SECURITY:" so the server monitor can count them, and carries the visitor's address.
+    /// Codes and keys are never written.
+    /// </summary>
+    private void LogSecurity(string what, Guid? userId = null) =>
+        _logger.LogWarning("SECURITY: {What} (user {UserId}, from {Ip})",
+            what, userId?.ToString() ?? "unknown",
+            _httpContextAccessor?.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown");
 
     /// <summary>Finds an active user by authorization code (compared by keyed hash only).</summary>
     private async Task<User?> FindActiveUserAsync(string? authorizationCode)
@@ -251,6 +269,10 @@ public class AuthService : IAuthService
         {
             var byDevice = !string.IsNullOrWhiteSpace(request.DeviceToken);
 
+            LogSecurity(byDevice
+                ? "sign-in code asked for with an unrecognised remembered device"
+                : "sign-in code asked for with an unknown authorization code");
+
             return new GenerateOtpResultDto
             {
                 Success = false,
@@ -376,8 +398,20 @@ public class AuthService : IAuthService
                 .Select(u => u.LockedUntilUtc)
                 .FirstAsync();
 
+            var kind = purpose == OtpRequest.SignInPurpose ? "sign-in" : "confirmation";
+
             if (lockedUntil > now)
+            {
+                // This wrong code reached the limit (a locked account is refused before guessing).
+                LogSecurity($"wrong {kind} code; account locked for {LockoutMinutes} minutes", user.Id);
+                await _auditService.LogAsync(user.Id,
+                    $"Sign-in locked for {LockoutMinutes} minutes after {LockoutAfterFailedCodes} wrong codes",
+                    "User", user.Id.ToString());
+
                 return WaitMessage(SecondsUntil(lockedUntil.Value));
+            }
+
+            LogSecurity($"wrong {kind} code", user.Id);
 
             var attemptsUsed = await _dbContext.OtpRequests
                 .AsNoTracking()
@@ -420,6 +454,10 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
+            LogSecurity(string.IsNullOrWhiteSpace(request.DeviceToken)
+                ? "sign-in code entered with an unknown authorization code"
+                : "sign-in code entered with an unrecognised remembered device");
+
             return string.IsNullOrWhiteSpace(request.DeviceToken)
                 ? Fail("That authorization code was not recognised. Go back and enter it again.")
                 : new LoginResponseDto { Success = false, DeviceNotRecognised = true, Message = DeviceNotRecognisedMessage };
@@ -453,7 +491,16 @@ public class AuthService : IAuthService
         }
 
         // Sign-in alert when this browser hasn't been used for this account before.
-        var knownDeviceToken = await NoteKnownDeviceAsync(user, request.KnownDeviceToken, request.DeviceName);
+        var (knownDeviceToken, recorded) = await NoteKnownDeviceAsync(user, request.KnownDeviceToken, request.DeviceName);
+
+        // Every sign-in is in the Audit Trail (ASVS review M2); a new or first browser
+        // already wrote its own entry above.
+        if (!recorded)
+        {
+            await _auditService.LogAsync(user.Id,
+                $"Signed in on {CleanDeviceName(request.DeviceName)}" + (device != null ? " (remembered device)" : string.Empty),
+                "User", user.Id.ToString());
+        }
 
         var roles = HR28.Application.DTOs.Users.RoleOrder.Sort(
             await _dbContext.UserRoles
@@ -483,7 +530,14 @@ public class AuthService : IAuthService
     /// by SMS. The first browser an account ever uses is recorded quietly. Returns a new
     /// browser key when the browser had none (it goes only into an HttpOnly cookie).
     /// </summary>
-    private async Task<string?> NoteKnownDeviceAsync(User user, string? key, string? deviceName)
+    private static string CleanDeviceName(string? deviceName)
+    {
+        var name = string.IsNullOrWhiteSpace(deviceName) ? "a web browser" : deviceName.Trim();
+        return name.Length > 100 ? name[..100] : name;
+    }
+
+    /// <summary>Returns the browser's new key (if any) and whether an audit entry was written.</summary>
+    private async Task<(string? NewKey, bool Recorded)> NoteKnownDeviceAsync(User user, string? key, string? deviceName)
     {
         string? newKey = null;
 
@@ -492,8 +546,7 @@ public class AuthService : IAuthService
 
         var hash = _codeHasher.HashDeviceToken(key);
         var now = DateTime.UtcNow;
-        var name = string.IsNullOrWhiteSpace(deviceName) ? "a web browser" : deviceName.Trim();
-        if (name.Length > 100) name = name[..100];
+        var name = CleanDeviceName(deviceName);
 
         var known = await _dbContext.KnownDevices
             .FirstOrDefaultAsync(d => d.UserId == user.Id && d.KeyHash == hash);
@@ -502,7 +555,7 @@ public class AuthService : IAuthService
         {
             known.LastSeenAt = now;
             await _dbContext.SaveChangesAsync();
-            return newKey;
+            return (newKey, false);
         }
 
         var others = await _dbContext.KnownDevices
@@ -525,7 +578,7 @@ public class AuthService : IAuthService
         if (others.Count == 0)
         {
             await _auditService.LogAsync(user.Id, $"First sign-in recorded on {name}", "User", user.Id.ToString());
-            return newKey;
+            return (newKey, true);
         }
 
         var sent = await _smsSender.SendAsync(user.MobileNumber,
@@ -537,7 +590,7 @@ public class AuthService : IAuthService
             $"Signed in from a new device: {name}" + (sent ? "; alert SMS sent" : "; alert SMS could not be sent"),
             "User", user.Id.ToString());
 
-        return newKey;
+        return (newKey, true);
     }
 
     public async Task<StepUpSendResultDto> SendStepUpCodeAsync(Guid userId)

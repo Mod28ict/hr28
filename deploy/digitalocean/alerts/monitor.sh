@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Every 5 minutes (cron): checks the app, API, database, Nginx, disk and last night's backup.
+# Every 5 minutes (cron): checks the app, API, database, Nginx, disk, last night's backup and
+# security warnings (30+ failed sign-ins or refused requests in 15 minutes).
 # A problem seen twice in a row: one SMS to the Administrators; all clear again: one SMS.
 # Installed as /usr/local/sbin/hr28-monitor. "hr28-monitor status" prints the checks only.
 set -uo pipefail
@@ -8,6 +9,7 @@ set -uo pipefail
 
 STATE=/var/lib/hr28/monitor.state
 DISK_LIMIT=85
+SECURITY_LIMIT=30
 
 problems=()
 curl -fsS -m 10 http://127.0.0.1:5001/health 2>/dev/null | grep -q '"ok"' || problems+=("API or database not answering")
@@ -17,12 +19,16 @@ systemctl is-active --quiet nginx || problems+=("Nginx stopped")
 disk=$(df --output=pcent / | tail -1 | tr -dc '0-9')
 [ "${disk:-0}" -lt "$DISK_LIMIT" ] || problems+=("disk ${disk}% full")
 [ -n "$(find /var/backups/hr28 -name 'HR28Db-*.bak.gz' -mmin -1600 2>/dev/null | head -1)" ] || problems+=("no database backup in the last 26 hours")
+# Wrong or unknown sign-in codes and refused requests (the API's "SECURITY:" log lines,
+# ASVS review M2): many in 15 minutes looks like someone trying to get in.
+security=$(journalctl -u hr28-api --since "-15 min" --no-pager -q 2>/dev/null | grep -c "SECURITY:")
+[ "${security:-0}" -lt "$SECURITY_LIMIT" ] || problems+=("many failed sign-ins or refused requests (check the Audit Trail)")
 
 summary=""
 for p in "${problems[@]}"; do summary+="${summary:+; }$p"; done
 
 if [ "${1:-}" = "status" ]; then
-    echo "disk ${disk}%; problems: ${summary:-none}"
+    echo "disk ${disk}%; security warnings (15 min): ${security:-0}; problems: ${summary:-none}"
     exit 0
 fi
 
