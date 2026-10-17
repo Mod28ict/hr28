@@ -18,12 +18,12 @@ small code changes.
 | M2 | Medium | Ordinary sign-ins, wrong codes, lockouts and refused requests are not recorded | **Fixed 2026-10-17** |
 | M3 | Medium | No server-side length limits on many text fields | **Fixed 2026-10-17** |
 | M4 | Medium | Select2 is loaded from a CDN without an integrity check | **Fixed 2026-10-17** |
-| L1 | Low | Session cookie is not renewed at sign-in | Small |
+| L1 | Low | Session cookie is not renewed at sign-in | **Fixed 2026-10-17** |
 | L2 | Low | Token check does not pin the signing algorithm | **Fixed 2026-10-17** |
 | L3 | Low | Old 5-character authorization codes still accepted | **Fixed 2026-10-17** |
 | L4 | Low | SSH is reachable from the whole internet (keys only) | Server, owner |
 | L5 | Low | SQL `sa` login is enabled (local only, used by scripts) | Server, owner |
-| L6 | Low | Old/legacy packages and "Server: Kestrel" header | Small |
+| L6 | Low | Old/legacy packages and "Server: Kestrel" header | **Fixed 2026-10-17** (xUnit 2 kept) |
 
 ## Findings
 
@@ -89,8 +89,11 @@ the policy: no outside website may supply code or styles (test in
 
 The web session cookie (`HR28.Session`) keeps the same identifier from before sign-in to
 after. Abuse needs an attacker to plant a cookie in the victim's browser first, which
-HTTPS, HSTS with subdomains and HttpOnly cookies make hard. **Fix:** clear and replace
-the session cookie when the SMS code is accepted.
+HTTPS, HSTS with subdomains and HttpOnly cookies make hard. **Fixed (2026-10-17):** when
+the SMS code is accepted the old session is emptied and its cookie deleted; the sign-in
+waits on the server for at most a minute behind a one-time key (HttpOnly cookie limited to
+`/Auth/Finish`), and `Auth/Finish` stores it in a brand-new session. Checked by signing in
+twice in one browser: the cookie changed and the old one was no longer signed in.
 
 ### L2 — Signing algorithm not pinned (V9 Self-contained tokens)
 
@@ -124,7 +127,10 @@ backup and migration logins, then disable `sa`.
 `HR28.Infrastructure` references the old `Microsoft.AspNetCore.Http.Abstractions 2.3.13`
 (replace with the framework reference); the test project uses legacy xUnit 2; the apps
 send `Server: Kestrel` (Cloudflare replaces it publicly). No package has a known
-vulnerability (`dotnet list package --vulnerable`: none).
+vulnerability (`dotnet list package --vulnerable`: none). **Fixed (2026-10-17):** the shared
+framework reference replaces the old package and neither app sends a `Server` header. The
+test project stays on xUnit 2 (test-only, still supported; moving to xUnit 3 is routine
+upkeep, not a security issue).
 
 ## Accepted risks (owner decisions)
 

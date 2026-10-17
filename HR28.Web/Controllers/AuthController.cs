@@ -1,6 +1,8 @@
+using System.Security.Cryptography;
 using HR28.Web.Models.Auth;
 using HR28.Web.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace HR28.Web.Controllers;
 
@@ -19,13 +21,25 @@ public class AuthController : Controller
     /// </summary>
     public const string KnownDeviceCookie = "HR28.Known";
 
+    /// <summary>
+    /// Finishing a sign-in (ASVS review L1, 2026-10-17): a one-time key for the sign-in waiting
+    /// on the server, sent only to <see cref="Finish"/> and gone after a minute.
+    /// </summary>
+    private const string SignInCookie = "HR28.SignIn";
+
+    private const string SignInPath = "/Auth/Finish";
+
+    private sealed record PendingSignIn(string Token, string Roles, string FullName, string UserId);
+
     private readonly AuthService _authService;
     private readonly SessionKeeper _sessionKeeper;
+    private readonly IMemoryCache _cache;
 
-    public AuthController(AuthService authService, SessionKeeper sessionKeeper)
+    public AuthController(AuthService authService, SessionKeeper sessionKeeper, IMemoryCache cache)
     {
         _authService = authService;
         _sessionKeeper = sessionKeeper;
+        _cache = cache;
     }
 
     /// <summary>The session cookie's name (Program.cs).</summary>
@@ -286,24 +300,59 @@ public class AuthController : Controller
 
         ClearSignInState();
 
-        HttpContext.Session.SetString(
-            "JwtToken",
-            response.Token);
-        // All roles, so menus reflect the combination of the user's permissions.
-        HttpContext.Session.SetString(
-            "UserRole",
-            Hr28Roles.ToSession(
-                response.Roles.Count > 0
-                    ? response.Roles
-                    : new[] { response.RoleName }));
+        // A brand-new session for the signed-in person (ASVS review L1): whatever session
+        // cookie this browser had before - possibly one planted by someone else - is emptied
+        // and dropped, and the sign-in is stored only in the session Finish starts.
+        HttpContext.Session.Clear();
+        Response.Cookies.Delete(SessionCookie);
 
-        HttpContext.Session.SetString(
-            "UserName",
-            response.FullName);
+        var key = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
 
-        HttpContext.Session.SetString(
-            "UserId",
-            response.UserId.ToString());
+        _cache.Set(PendingKey(key), new PendingSignIn(
+            response.Token,
+            // All roles, so menus reflect the combination of the user's permissions.
+            Hr28Roles.ToSession(response.Roles.Count > 0 ? response.Roles : new[] { response.RoleName }),
+            response.FullName,
+            response.UserId.ToString()), TimeSpan.FromMinutes(1));
+
+        Response.Cookies.Append(SignInCookie, key, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            IsEssential = true,
+            Path = SignInPath,
+            MaxAge = TimeSpan.FromMinutes(1)
+        });
+
+        return Redirect(SignInPath);
+    }
+
+    private static string PendingKey(string key) => "pending-sign-in:" + key;
+
+    /// <summary>
+    /// Second half of a sign-in: this request carries no old session cookie, so the session
+    /// written here is new. The one-time key works once, for a minute, in this browser only.
+    /// </summary>
+    [HttpGet]
+    public IActionResult Finish()
+    {
+        var key = Request.Cookies[SignInCookie];
+        Response.Cookies.Delete(SignInCookie, new CookieOptions { Path = SignInPath, Secure = true, HttpOnly = true, SameSite = SameSiteMode.Strict });
+
+        if (string.IsNullOrEmpty(key) || key.Length != 64 ||
+            !_cache.TryGetValue(PendingKey(key), out PendingSignIn? pending) || pending == null)
+        {
+            TempData["LoginError"] = "Your sign-in didn't finish. Please sign in again.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        _cache.Remove(PendingKey(key));
+
+        HttpContext.Session.SetString("JwtToken", pending.Token);
+        HttpContext.Session.SetString("UserRole", pending.Roles);
+        HttpContext.Session.SetString("UserName", pending.FullName);
+        HttpContext.Session.SetString("UserId", pending.UserId);
 
         return RedirectToAction(
             "Index",

@@ -510,7 +510,9 @@ Status as of 2026-10-02 (update when an item changes):
    DTOs, 1 MB request limit), M4 Select2 self-hosted (no outside code in the CSP), L2 JWT
    algorithm pinned; M2 sign-in and refusal logging (every sign-in and lockout audited;
    `SECURITY:` API log lines for wrong/unknown codes and refused requests, alerted by
-   `hr28-monitor` at 30 in 15 minutes); M1 voter viewing cap (see Rate limits); L3 5-character codes retired. Open: L1, L4–L6.
+   `hr28-monitor` at 30 in 15 minutes); M1 voter viewing cap (see Rate limits); L3 5-character codes retired;
+   L1 new session at sign-in (`Auth/Finish`, one-time key); L6 housekeeping. Open: L4 (SSH),
+   L5 (`sa`) - server changes needing the owner's approval.
 7. Audit coverage — **partly done:** voters, influencers, encounters, pledges,
    users (create, code reset, roles, areas), constituencies, islands, settings and
    report downloads are audited. Voter, influencer and encounter edits record which

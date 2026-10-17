@@ -175,7 +175,12 @@ builder.Services
 
 // Ordinary requests are small (ASVS review M3, 2026-10-17): at most 1 MB. The four upload
 // endpoints (voter list, membership list, photo, logo) set their own larger limits.
-builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = 1024 * 1024);
+// No "Server: Kestrel" header (ASVS review L6).
+builder.WebHost.ConfigureKestrel(kestrel =>
+{
+    kestrel.Limits.MaxRequestBodySize = 1024 * 1024;
+    kestrel.AddServerHeader = false;
+});
 
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>

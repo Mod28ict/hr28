@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// No "Server: Kestrel" header (ASVS review L6, 2026-10-17).
+builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
+
 // Add services to the container.
 builder.Services.AddControllersWithViews(options =>
 {
