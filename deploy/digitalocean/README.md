@@ -34,9 +34,13 @@ publish it on 0.0.0.0).
 | `alerts/monitor.sh` + `hr28-monitor.cron` | `/usr/local/sbin/hr28-monitor`, `/etc/cron.d/` | every 5 min: API/DB, web, Nginx, SQL container, disk < 85%, backup < 26 h; SMS when a problem is seen twice in a row and when it clears; `status` to check; log `/var/log/hr28-alerts.log` |
 | `alerts/52hr28-auto-reboot` | `/etc/apt/apt.conf.d/` | security updates restart the server when needed at 00:30 UTC = 05:30 MVT |
 | `scripts/reset-code.sh` | `/usr/local/sbin/hr28-reset-code` | new authorization code from the server |
+| `scripts/secure-sql-logins.sh` | run once (step 11) | SQL logins `hr28_ops` (scripts) and `hr28_admin` (setup); disables `sa` |
+| `scripts/ssh-allow.sh` | `/usr/local/sbin/hr28-ssh-allow` | who may connect by SSH (`lock`, `add`, `remove`, `open`) |
 | `sql/cleanup-development-leftovers.sql` | run once | removes test accounts copied from development |
 
-Secrets live only in `/etc/hr28/` on the server: `sql-admin.env` (root, 600), `api.env`
+Secrets live only in `/etc/hr28/` on the server: `sql-ops.env` (root, 600: `hr28_ops`, used by
+backup, deploy, training refresh and alert look-ups), `sql-admin.env` (root, 600: `SA_USER` /
+`SA_PASSWORD`, an administrator login for setup scripts only; `sa` itself is disabled), `api.env`
 (root:hr28api, 640). The keys were generated there (2026-10-12): a **new** authorization-code
 key, so every user needs a new code (first Administrator: `reset-code`, below; everyone else:
 Users → Reset code).
@@ -68,6 +72,17 @@ Users → Reset code).
     it on in Cloudflare first, then the `ssl_verify_client` lines in `hr28.conf`;
     `Logging__LogLevel__Default=Warning` in both `.env` files. Cloudflare: see below.
     DigitalOcean daily droplet backups (01:00-05:00 MVT, 7 days); off-site database copies: not yet.
+11. SQL logins (done 2026-10-17, ASVS L5): `secure-sql-logins.sh` creates `hr28_ops`
+    (dbcreator + db_owner of HR28Db/HR28Train; `/etc/hr28/sql-ops.env`) and `hr28_admin`
+    (sysadmin; `/etc/hr28/sql-admin.env` now holds `SA_USER=hr28_admin`) with new random
+    passwords, checks them, then disables `sa` (`ALTER LOGIN sa ENABLE` as hr28_admin undoes it).
+    Install the updated `hr28-backup`, `hr28-deploy`, `hr28-train-refresh` and `sms-lib.sh`
+    with it: they use `hr28_ops`.
+12. SSH allow-list (ASVS L4): install `hr28-ssh-allow`, then **owner, in PuTTY**:
+    `hr28-ssh-allow lock <your address>` (your address plus DigitalOcean's Droplet Console;
+    the "SSH from anywhere" rule is removed). Address changed and locked out? DigitalOcean
+    website → droplet → Access → Droplet Console (or Recovery Console):
+    `hr28-ssh-allow add <new address>`. `hr28-ssh-allow open` undoes it.
 
 ## Cloudflare settings (per client zone, Pro plan)
 

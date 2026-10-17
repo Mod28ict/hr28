@@ -23,16 +23,16 @@ gunzip -c "$LATEST" > "$RESTORE_ON_HOST"
 chown 10001:0 "$RESTORE_ON_HOST"; chmod 640 "$RESTORE_ON_HOST"
 trap 'rm -f "$RESTORE_ON_HOST"' EXIT
 
-source /etc/hr28/sql-admin.env
-export SQLCMDPASSWORD="$SA_PASSWORD"
-unset SA_PASSWORD
+source /etc/hr28/sql-ops.env   # limited login hr28_ops (ASVS L5)
+export SQLCMDPASSWORD="$OPS_PASSWORD"
+unset OPS_PASSWORD
 
-files=$("$SQLCMD" -S 127.0.0.1,1433 -U sa -C -I -b -h -1 -W -Q "SET NOCOUNT ON; RESTORE FILELISTONLY FROM DISK = N'${RESTORE_IN}';" | awk '{print $1" "$3}')
+files=$("$SQLCMD" -S 127.0.0.1,1433 -U "$OPS_USER" -C -I -b -h -1 -W -Q "SET NOCOUNT ON; RESTORE FILELISTONLY FROM DISK = N'${RESTORE_IN}';" | awk '{print $1" "$3}')
 DATA_NAME=$(echo "$files" | awk '$2=="D"{print $1; exit}')
 LOG_NAME=$(echo "$files" | awk '$2=="L"{print $1; exit}')
 [ -n "$DATA_NAME" ] && [ -n "$LOG_NAME" ] || { echo "Could not read the backup's file list."; exit 1; }
 
-"$SQLCMD" -S 127.0.0.1,1433 -U sa -C -I -b -Q "
+"$SQLCMD" -S 127.0.0.1,1433 -U "$OPS_USER" -C -I -b -Q "
 IF DB_ID('HR28Train') IS NOT NULL ALTER DATABASE HR28Train SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
 RESTORE DATABASE HR28Train FROM DISK = N'${RESTORE_IN}' WITH REPLACE,
     MOVE N'${DATA_NAME}' TO N'/var/opt/mssql/data/HR28Train.mdf',
@@ -40,7 +40,7 @@ RESTORE DATABASE HR28Train FROM DISK = N'${RESTORE_IN}' WITH REPLACE,
 ALTER DATABASE HR28Train SET MULTI_USER;" >/dev/null
 
 echo "4/5 Training-only clean-up and access..."
-"$SQLCMD" -S 127.0.0.1,1433 -U sa -C -I -b -d HR28Train -i /usr/local/lib/hr28/training-cleanup.sql
+"$SQLCMD" -S 127.0.0.1,1433 -U "$OPS_USER" -C -I -b -d HR28Train -i /usr/local/lib/hr28/training-cleanup.sql
 unset SQLCMDPASSWORD
 
 echo "5/5 Starting the training site..."

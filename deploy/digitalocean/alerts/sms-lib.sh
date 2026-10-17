@@ -17,12 +17,12 @@ to_international() {
 
 admin_phones() {
     local list=""
-    if [ -f /etc/hr28/sql-admin.env ]; then
+    if [ -f /etc/hr28/sql-ops.env ]; then
         # shellcheck disable=SC1091
-        . /etc/hr28/sql-admin.env
-        list=$(SQLCMDPASSWORD="$SA_PASSWORD" /opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1,1433 -U sa -C -I -h -1 -W -l 10 -d HR28Db \
+        . /etc/hr28/sql-ops.env
+        list=$(SQLCMDPASSWORD="$OPS_PASSWORD" /opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1,1433 -U "$OPS_USER" -C -I -h -1 -W -l 10 -d HR28Db \
             -Q "SET NOCOUNT ON; SELECT DISTINCT u.MobileNumber FROM Users u JOIN UserRoles ur ON ur.UserId = u.Id JOIN Roles r ON r.Id = ur.RoleId WHERE r.Name = N'Super Administrator' AND u.IsActive = 1;" 2>/dev/null)
-        unset SA_PASSWORD
+        unset OPS_PASSWORD
     fi
     if [ -f /etc/hr28/alerts.env ]; then
         # shellcheck disable=SC1091

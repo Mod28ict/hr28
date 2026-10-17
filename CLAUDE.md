@@ -385,7 +385,10 @@ strong despite that:
 - Rate limiting on login, code verification, search and export endpoints so nobody
   can bulk-download the voter registry.
 - No stack traces, internal errors or technical identifiers shown to users.
-- Least-privilege database account for the app (no db_owner in production).
+- Least-privilege database account for the app (no db_owner in production): `hr28_app` /
+  `hr28_train` read/write only. Server scripts use `hr28_ops` (`/etc/hr28/sql-ops.env`:
+  dbcreator + db_owner of the HR28 databases); setup scripts `hr28_admin`
+  (`/etc/hr28/sql-admin.env`, `SA_USER`/`SA_PASSWORD`); `sa` is disabled (2026-10-17).
 
 ### Secrets and infrastructure
 
@@ -511,8 +514,9 @@ Status as of 2026-10-02 (update when an item changes):
    algorithm pinned; M2 sign-in and refusal logging (every sign-in and lockout audited;
    `SECURITY:` API log lines for wrong/unknown codes and refused requests, alerted by
    `hr28-monitor` at 30 in 15 minutes); M1 voter viewing cap (see Rate limits); L3 5-character codes retired;
-   L1 new session at sign-in (`Auth/Finish`, one-time key); L6 housekeeping. Open: L4 (SSH),
-   L5 (`sa`) - server changes needing the owner's approval.
+   L1 new session at sign-in (`Auth/Finish`, one-time key); L6 housekeeping; L5 SQL logins
+   (`hr28_ops` for scripts, `hr28_admin` for setup, `sa` disabled). Open: L4, the owner runs
+   `hr28-ssh-allow lock <address>` (firewall changes are the owner's to run).
 7. Audit coverage — **partly done:** voters, influencers, encounters, pledges,
    users (create, code reset, roles, areas), constituencies, islands, settings and
    report downloads are audited. Voter, influencer and encounter edits record which

@@ -22,9 +22,9 @@ SQLCMD=/opt/mssql-tools18/bin/sqlcmd
 version_of() { cat "$1/VERSION" 2>/dev/null || echo "unknown"; }
 
 run_sql() {   # run_sql <database> <file>
-    source /etc/hr28/sql-admin.env
-    SQLCMDPASSWORD="$SA_PASSWORD" "$SQLCMD" -S 127.0.0.1,1433 -U sa -C -I -b -d "$1" -i "$2"
-    unset SA_PASSWORD
+    source /etc/hr28/sql-ops.env   # limited login hr28_ops (ASVS L5)
+    SQLCMDPASSWORD="$OPS_PASSWORD" "$SQLCMD" -S 127.0.0.1,1433 -U "$OPS_USER" -C -I -b -d "$1" -i "$2"
+    unset OPS_PASSWORD
 }
 
 wait_health() {   # wait_health <port>

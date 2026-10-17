@@ -60,7 +60,7 @@ fi
 # Database login for training only (the database itself is made by hr28-train-refresh).
 source /etc/hr28/sql-admin.env
 TRAIN_DB_PASSWORD="$(grep '^ConnectionStrings__DefaultConnection=' /etc/hr28/train-api.env | sed -E 's/.*Password=([^;]*);.*/\1/')"
-SQLCMDPASSWORD="$SA_PASSWORD" "$SQLCMD" -S 127.0.0.1,1433 -U sa -C -I -b -Q "
+SQLCMDPASSWORD="$SA_PASSWORD" "$SQLCMD" -S 127.0.0.1,1433 -U "${SA_USER:-sa}" -C -I -b -Q "
 IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'hr28_train')
     CREATE LOGIN hr28_train WITH PASSWORD = '${TRAIN_DB_PASSWORD}', CHECK_POLICY = ON, CHECK_EXPIRATION = OFF;
 ELSE
