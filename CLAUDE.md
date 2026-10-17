@@ -264,7 +264,8 @@ strong despite that:
      code and sends a new one **only to the person by SMS**: administrators never see it
      (prevents misuse of someone else's credentials). If that SMS fails the new code is
      revoked too (the list shows "No code yet: use Reset code"); an inactive account gets
-     its new code in the welcome SMS when activated (`ResetCodeResultDto`, audited). Older 5-character codes still work.
+     its new code in the welcome SMS when activated (`ResetCodeResultDto`, audited). Older 5-character codes were
+     retired on 2026-10-17 (ASVS L3): only 8-character codes sign in; anyone with an old code needs Reset code.
   2. **SMS OTP** (something the user has).
   Do not add passwords or PINs without the owner's approval.
 - SMS codes (implemented): 6 digits from `RandomNumberGenerator`, expiry set by the
@@ -509,7 +510,7 @@ Status as of 2026-10-02 (update when an item changes):
    DTOs, 1 MB request limit), M4 Select2 self-hosted (no outside code in the CSP), L2 JWT
    algorithm pinned; M2 sign-in and refusal logging (every sign-in and lockout audited;
    `SECURITY:` API log lines for wrong/unknown codes and refused requests, alerted by
-   `hr28-monitor` at 30 in 15 minutes); M1 voter viewing cap (see Rate limits). Open: L1, L3–L6.
+   `hr28-monitor` at 30 in 15 minutes); M1 voter viewing cap (see Rate limits); L3 5-character codes retired. Open: L1, L4–L6.
 7. Audit coverage — **partly done:** voters, influencers, encounters, pledges,
    users (create, code reset, roles, areas), constituencies, islands, settings and
    report downloads are audited. Voter, influencer and encounter edits record which

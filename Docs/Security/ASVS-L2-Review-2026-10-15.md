@@ -20,7 +20,7 @@ small code changes.
 | M4 | Medium | Select2 is loaded from a CDN without an integrity check | **Fixed 2026-10-17** |
 | L1 | Low | Session cookie is not renewed at sign-in | Small |
 | L2 | Low | Token check does not pin the signing algorithm | **Fixed 2026-10-17** |
-| L3 | Low | Old 5-character authorization codes still accepted | Owner: Reset code |
+| L3 | Low | Old 5-character authorization codes still accepted | **Fixed 2026-10-17** |
 | L4 | Low | SSH is reachable from the whole internet (keys only) | Server, owner |
 | L5 | Low | SQL `sa` login is enabled (local only, used by scripts) | Server, owner |
 | L6 | Low | Old/legacy packages and "Server: Kestrel" header | Small |
@@ -101,7 +101,9 @@ algorithm. **Fixed (2026-10-17):** `ValidAlgorithms = [HmacSha256]` in the token
 
 New codes have 8 characters (about 10¹² combinations); older 5-character codes (about 33
 million) are still accepted. The SMS code is still required, so this is low risk.
-**Fix:** use Reset code for anyone still holding a 5-character code, then remove support.
+**Fixed (2026-10-17):** only 8-character codes sign in. Live had none left (both accounts'
+codes were issued on 15 October); six practice accounts on the training site still held old
+codes and need Reset code there. Test: `AuthorizationCodeLengthTests`.
 
 ### L4 — SSH open to the internet (V13 Configuration)
 

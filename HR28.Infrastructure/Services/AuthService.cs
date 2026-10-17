@@ -62,10 +62,15 @@ public class AuthService : IAuthService
             what, userId?.ToString() ?? "unknown",
             _httpContextAccessor?.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "unknown");
 
-    /// <summary>Finds an active user by authorization code (compared by keyed hash only).</summary>
+    /// <summary>
+    /// Finds an active user by authorization code (compared by keyed hash only). Only
+    /// 8-character codes count: the older 5-character ones were retired (ASVS review L3,
+    /// 2026-10-17); anyone still holding one gets a new code with Reset code.
+    /// </summary>
     private async Task<User?> FindActiveUserAsync(string? authorizationCode)
     {
-        if (string.IsNullOrWhiteSpace(authorizationCode))
+        if (string.IsNullOrWhiteSpace(authorizationCode) ||
+            _codeHasher.Normalize(authorizationCode).Length != AuthorizationCodeGenerator.Length)
             return null;
 
         var hash = _codeHasher.Hash(authorizationCode);
