@@ -16,11 +16,22 @@ namespace HR28.API.Controllers;
 public class VotersController : ControllerBase
 {
     private readonly IVoterService _voterService;
+    private readonly IVoterViewMeter _viewMeter;
 
-    public VotersController(IVoterService voterService)
+    public VotersController(IVoterService voterService, IVoterViewMeter viewMeter)
     {
         _voterService = voterService;
+        _viewMeter = viewMeter;
     }
+
+    /// <summary>
+    /// Voters viewed per hour and per day are capped (Settings → System, ASVS review M1):
+    /// over the limit the list, search and ID-card lookup answer 429 with a plain message.
+    /// </summary>
+    private async Task<IActionResult?> PausedAsync(Guid userId) =>
+        await _viewMeter.PausedMessageAsync(userId) is { } message
+            ? StatusCode(StatusCodes.Status429TooManyRequests, new { message })
+            : null;
 
     [HttpPost]
     [RequirePermission(PermissionCatalog.VotersAdd)]
@@ -63,6 +74,9 @@ public class VotersController : ControllerBase
             return Unauthorized();
         }
 
+        if (await PausedAsync(userId) is { } paused)
+            return paused;
+
         var result =
             await _voterService.GetVotersAsync(
                 userId,
@@ -83,6 +97,8 @@ public class VotersController : ControllerBase
                     Descending = desc
                 });
 
+        await _viewMeter.RecordAsync(userId, result.Items.Count);
+
         return Ok(result);
     }
 
@@ -99,7 +115,13 @@ public class VotersController : ControllerBase
         if (User.GetUserId() is not Guid userId)
             return Unauthorized();
 
+        if (await PausedAsync(userId) is { } paused)
+            return paused;
+
         var voter = await _voterService.GetByNationalIdAsync(userId, nationalId);
+
+        // Every lookup counts, found or not, so the registry can't be probed by ID card.
+        await _viewMeter.RecordAsync(userId, 1);
 
         return voter == null
             ? NotFound(new { message = "No voter with that ID card was found in your areas." })
@@ -148,10 +170,15 @@ await _voterService.GetVoterByIdAsync(
             return Unauthorized();
         }
 
+        if (await PausedAsync(userId) is { } paused)
+            return paused;
+
         var result =
             await _voterService.SearchVotersAsync(
                 userId,
                 searchTerm);
+
+        await _viewMeter.RecordAsync(userId, result.Count);
 
         return Ok(result);
     }

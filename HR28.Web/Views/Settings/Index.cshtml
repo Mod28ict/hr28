@@ -291,6 +291,32 @@
                     </div>
                 </div>
 
+                <div class="ui-section">
+                    <div class="ui-section-head">
+                        <span class="ui-step">3</span>
+                        <div>
+                            <div class="ui-section-title">Protect the voter list</div>
+                            <div class="ui-section-sub">Stops anyone copying the voter registry. Applies to everyone, administrators included.</div>
+                        </div>
+                    </div>
+
+                    <div class="ui-grid-2">
+                        <div class="ui-field">
+                            <label for="VoterViewsPerHour" class="ui-label">Voters a person can view per hour</label>
+                            <input id="VoterViewsPerHour" name="VoterViewsPerHour" type="number" class="ui-input" value="@s.VoterViewsPerHour" min="100" max="50000" step="100" required />
+                            <div class="ui-hint">Voter list pages, searches and ID-card lookups all count. Between 100 and 50,000.</div>
+                        </div>
+                        <div class="ui-field">
+                            <label for="VoterViewsPerDay" class="ui-label">Voters a person can view per day</label>
+                            <input id="VoterViewsPerDay" name="VoterViewsPerDay" type="number" class="ui-input" value="@s.VoterViewsPerDay" min="100" max="300000" step="100" required />
+                            <div class="ui-hint">
+                                When someone reaches a limit, viewing voters pauses for them until the next hour or the
+                                next day, and the administrators get an SMS. Raising a limit here lifts the pause at once.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="ui-form-actions" style="align-items: center;">
                     <button type="submit" class="ui-btn ui-btn-primary">
                         <partial name="_Icon" model='"check"' />

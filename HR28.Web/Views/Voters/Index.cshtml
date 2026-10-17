@@ -96,7 +96,11 @@
             <div>
                 <h1 class="ui-title">Voters</h1>
                 <p class="ui-sub">
-                    @if (noArea)
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        @:Voters in your areas
+                    }
+                    else if (noArea)
                     {
                         @:No area assigned yet
                     }

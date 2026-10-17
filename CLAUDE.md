@@ -286,7 +286,13 @@ strong despite that:
 - Rate limits (implemented): per IP 10 code requests and 20 code checks per 5 minutes;
   per account 60s between requests, 5 codes per hour, and 10 wrong codes in a row
   locks sign-in for 15 minutes. Per user: 120 searches/min, 20 report downloads/hour,
-  10 voter list uploads/hour. The web app forwards the visitor IP; the API trusts it
+  10 voter list uploads/hour. **Voters viewed per person** (owner decision 2026-10-17, ASVS
+  M1): Settings → System "Protect the voter list", default 2,000 per hour and 10,000 per
+  Maldives day, every role incl. Administrators; voter list, search and ID-card lookup
+  count each voter shown (`IVoterViewMeter`, in memory); at a limit: 429 with a plain
+  message, Audit Trail entry, `SECURITY:` log line and one SMS to the Administrators;
+  raising a limit lifts the pause. Settings keys `VoterViewsPerHour` / `VoterViewsPerDay`
+  (no migration). The web app forwards the visitor IP; the API trusts it
   only from `ReverseProxy:KnownProxies` (loopback by default; set the web app's
   outbound IPs in Azure). Per phone number: 8 SMS per hour (`PhoneLimitedSmsSender`).
 - SMS text includes a warning, e.g. "HR28 code: 482913. Never share this code.
@@ -503,7 +509,7 @@ Status as of 2026-10-02 (update when an item changes):
    DTOs, 1 MB request limit), M4 Select2 self-hosted (no outside code in the CSP), L2 JWT
    algorithm pinned; M2 sign-in and refusal logging (every sign-in and lockout audited;
    `SECURITY:` API log lines for wrong/unknown codes and refused requests, alerted by
-   `hr28-monitor` at 30 in 15 minutes). Open: M1 bulk voter reading cap, L1, L3–L6.
+   `hr28-monitor` at 30 in 15 minutes); M1 voter viewing cap (see Rate limits). Open: L1, L3–L6.
 7. Audit coverage — **partly done:** voters, influencers, encounters, pledges,
    users (create, code reset, roles, areas), constituencies, islands, settings and
    report downloads are audited. Voter, influencer and encounter edits record which

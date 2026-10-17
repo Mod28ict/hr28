@@ -14,7 +14,7 @@ small code changes.
 
 | # | Severity | Finding | Effort |
 |---|----------|---------|--------|
-| M1 | Medium | One user can page through the whole voter registry in about 25 minutes | Owner decision + small change |
+| M1 | Medium | One user can page through the whole voter registry in about 25 minutes | **Fixed 2026-10-17** |
 | M2 | Medium | Ordinary sign-ins, wrong codes, lockouts and refused requests are not recorded | **Fixed 2026-10-17** |
 | M3 | Medium | No server-side length limits on many text fields | **Fixed 2026-10-17** |
 | M4 | Medium | Select2 is loaded from a CDN without an integrity check | **Fixed 2026-10-17** |
@@ -38,7 +38,14 @@ alert.
 **Fix:** a per-user cap on voter rows read per hour and per day through the list, search
 and ID lookup (for example 2,000 per hour and 10,000 per day, set in Settings → System),
 with a plain message when reached, an audit entry, and an SMS to the Administrators.
-*Needs the owner to choose the limits so normal field work is never blocked.*
+**Fixed (2026-10-17, owner's choice):** limits in Settings → System, "Protect the voter
+list" (default 2,000 voters per hour and 10,000 per day, Maldives time; 100–50,000 and
+100–300,000; daily not below hourly; audited). They apply to every role, Administrators
+included. The voter list, search and ID-card lookup count every voter shown (every lookup
+counts, found or not). At a limit: a plain message ("…paused until 11:00" / "until
+tomorrow"), an Audit Trail entry, a `SECURITY:` log line and one SMS to the Administrators;
+raising a limit lifts the pause at once. Opening a record the person already has is not
+affected. Tests: `VoterViewLimitTests`.
 
 ### M2 — Authentication and access-denied events not fully logged (V16 Security logging)
 

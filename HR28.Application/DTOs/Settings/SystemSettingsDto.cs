@@ -27,6 +27,15 @@ public class SystemSettingsDto
     /// <summary>"Remember me on this device" lasts this many days; 0 turns it off.</summary>
     public int RememberDeviceDays { get; set; }
 
+    /// <summary>
+    /// Voters one person may view per clock hour / per day (voter list, search, ID-card lookup)
+    /// before viewing pauses (ASVS review M1). Always filled when read; when saving, empty keeps
+    /// the current value.
+    /// </summary>
+    public int? VoterViewsPerHour { get; set; }
+
+    public int? VoterViewsPerDay { get; set; }
+
     public DateTime? UpdatedAt { get; set; }
 
     public string? UpdatedByName { get; set; }

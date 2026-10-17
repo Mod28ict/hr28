@@ -55,6 +55,10 @@ public class SystemSettingsService : ISystemSettingsService
     public const int DefaultOtpExpiryMinutes = 5;
     public const int DefaultOtpMaxAttempts = 5;
     public const int DefaultRememberDeviceDays = 30;
+    public const string VoterViewsPerHourKey = "VoterViewsPerHour";
+    public const string VoterViewsPerDayKey = "VoterViewsPerDay";
+    public const int DefaultVoterViewsPerHour = 2000;
+    public const int DefaultVoterViewsPerDay = 10000;
 
     private readonly HR28DbContext _dbContext;
     private readonly IAuditService _auditService;
@@ -104,6 +108,8 @@ public class SystemSettingsService : ISystemSettingsService
             OtpExpiryMinutes = Number(OtpExpiryMinutesKey, DefaultOtpExpiryMinutes),
             OtpMaxAttempts = Number(OtpMaxAttemptsKey, DefaultOtpMaxAttempts),
             RememberDeviceDays = Number(RememberDeviceDaysKey, DefaultRememberDeviceDays),
+            VoterViewsPerHour = Number(VoterViewsPerHourKey, DefaultVoterViewsPerHour),
+            VoterViewsPerDay = Number(VoterViewsPerDayKey, DefaultVoterViewsPerDay),
             ShortName = stored.FirstOrDefault(x => x.Key == ShortNameKey)?.Value ?? string.Empty,
             Tagline = stored.FirstOrDefault(x => x.Key == TaglineKey)?.Value ?? string.Empty,
             ThemeAccent = Text(ThemeAccentKey, "blue"),
@@ -138,12 +144,23 @@ public class SystemSettingsService : ISystemSettingsService
         if (settings.RememberDeviceDays is < 0 or > 90)
             throw new BusinessRuleException("Remember devices for must be between 0 (off) and 90 days.");
 
+        var current = await GetAsync();
+        var perHour = settings.VoterViewsPerHour ?? current.VoterViewsPerHour!.Value;
+        var perDay = settings.VoterViewsPerDay ?? current.VoterViewsPerDay!.Value;
+
+        if (perHour is < 100 or > 50000)
+            throw new BusinessRuleException("Voters a person can view per hour must be between 100 and 50,000.");
+
+        if (perDay is < 100 or > 300000)
+            throw new BusinessRuleException("Voters a person can view per day must be between 100 and 300,000.");
+
+        if (perDay < perHour)
+            throw new BusinessRuleException("The daily limit can't be lower than the hourly limit.");
+
         var accent = string.IsNullOrWhiteSpace(settings.ThemeAccent) ? "blue" : settings.ThemeAccent.Trim().ToLowerInvariant();
 
         if (!ThemeAccents.Contains(accent))
             throw new BusinessRuleException("Please choose a colour theme: Classic blue or Golden.");
-
-        var current = await GetAsync();
 
         // Each changed value is saved and audited with its old and new value.
         await SaveIfChangedAsync(CampaignNameKey, "Campaign name",
@@ -166,6 +183,12 @@ public class SystemSettingsService : ISystemSettingsService
 
         await SaveIfChangedAsync(RememberDeviceDaysKey, "Remember devices for (days)",
             current.RememberDeviceDays.ToString(), settings.RememberDeviceDays.ToString(), userId);
+
+        await SaveIfChangedAsync(VoterViewsPerHourKey, "Voters a person can view per hour",
+            current.VoterViewsPerHour!.Value.ToString(), perHour.ToString(), userId);
+
+        await SaveIfChangedAsync(VoterViewsPerDayKey, "Voters a person can view per day",
+            current.VoterViewsPerDay!.Value.ToString(), perDay.ToString(), userId);
 
         return await GetAsync();
     }

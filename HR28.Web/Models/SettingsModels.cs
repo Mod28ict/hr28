@@ -30,6 +30,14 @@ public class SystemSettingsDto
     [Display(Name = "Remember devices for (days)")]
     public int RememberDeviceDays { get; set; }
 
+    [Range(100, 50000, ErrorMessage = "Voters a person can view per hour must be between 100 and 50,000.")]
+    [Display(Name = "Voters a person can view per hour")]
+    public int VoterViewsPerHour { get; set; } = 2000;
+
+    [Range(100, 300000, ErrorMessage = "Voters a person can view per day must be between 100 and 300,000.")]
+    [Display(Name = "Voters a person can view per day")]
+    public int VoterViewsPerDay { get; set; } = 10000;
+
     public DateTime? UpdatedAt { get; set; }
 
     public string? UpdatedByName { get; set; }

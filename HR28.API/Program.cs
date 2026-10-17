@@ -69,6 +69,7 @@ builder.Services.AddScoped<IAccessScopeService, AccessScopeService>();
 builder.Services.AddScoped<IAuditTrailService, AuditTrailService>();
 builder.Services.AddScoped<ISystemSettingsService, SystemSettingsService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IVoterViewMeter, VoterViewMeter>();
 
 // SMS: Development writes to the log (never sent). The server sends through Dhiraagu Bulk SMS
 // when its login is set (/etc/hr28/sms.env), with a per phone number limit; without it,
