@@ -137,6 +137,9 @@ builder.Services
                     new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(jwtKey)),
 
+                // Only the algorithm our tokens are signed with (ASVS review L2, 2026-10-17).
+                ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
+
                 ClockSkew = TimeSpan.Zero
             };
 
@@ -169,7 +172,30 @@ builder.Services
 
 
 
-builder.Services.AddControllers();
+// Ordinary requests are small (ASVS review M3, 2026-10-17): at most 1 MB. The four upload
+// endpoints (voter list, membership list, photo, logo) set their own larger limits.
+builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = 1024 * 1024);
+
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // A failed field check (too long, missing) answers like every other refusal:
+        // { "message": "Full name can be at most 150 characters." }, shown as is on the form.
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var first = context.ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .FirstOrDefault(m => !string.IsNullOrWhiteSpace(m));
+
+            return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(new
+            {
+                message = first is { Length: > 0 } && !first.Contains("JSON", StringComparison.OrdinalIgnoreCase) && !first.Contains("$.")
+                    ? first
+                    : "Some of the details are not valid. Please check the form and try again."
+            });
+        };
+    });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

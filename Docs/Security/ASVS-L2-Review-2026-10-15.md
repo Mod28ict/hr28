@@ -16,10 +16,10 @@ small code changes.
 |---|----------|---------|--------|
 | M1 | Medium | One user can page through the whole voter registry in about 25 minutes | Owner decision + small change |
 | M2 | Medium | Ordinary sign-ins, wrong codes, lockouts and refused requests are not recorded | Small |
-| M3 | Medium | No server-side length limits on many text fields | Small |
-| M4 | Medium | Select2 is loaded from a CDN without an integrity check | Small |
+| M3 | Medium | No server-side length limits on many text fields | **Fixed 2026-10-17** |
+| M4 | Medium | Select2 is loaded from a CDN without an integrity check | **Fixed 2026-10-17** |
 | L1 | Low | Session cookie is not renewed at sign-in | Small |
-| L2 | Low | Token check does not pin the signing algorithm | One line |
+| L2 | Low | Token check does not pin the signing algorithm | **Fixed 2026-10-17** |
 | L3 | Low | Old 5-character authorization codes still accepted | Owner: Reset code |
 | L4 | Low | SSH is reachable from the whole internet (keys only) | Server, owner |
 | L5 | Low | SQL `sa` login is enabled (local only, used by scripts) | Server, owner |
@@ -58,9 +58,11 @@ name/address/remarks, influencer fields, user fields and constituency/island nam
 the database columns are `nvarchar(max)` and the API accepts request bodies up to about
 30 MB. A user with an edit right could store very large text, slowing lists and reports.
 
-**Fix:** `[MaxLength]`/`[Required]` on the input DTOs (names 150, address 250, remarks
-1,000, phone 20, National ID 20) and a 1 MB limit on ordinary JSON requests (uploads keep
-their own limits).
+**Fixed (2026-10-17):** `[MaxLength]` on every input DTO (names 150, address 250, remarks
+1,000, phone and National ID 20, email 254, pledge title 200 / description 2,000, encounter
+notes 1,000), answered as `{ "message": "Full name can be at most 150 characters." }` and
+shown on the form; ordinary requests limited to 1 MB (the four uploads keep their own
+limits). Tests: `InputLimitTests`.
 
 ### M4 — Third-party script without integrity check (V3 Web frontend)
 
@@ -68,8 +70,10 @@ their own limits).
 `integrity` attribute, and the Content-Security-Policy trusts that host. If the CDN copy
 were tampered with, the code would run on every page with the user's session.
 
-**Fix:** copy Select2 into `wwwroot/lib/select2` (like jQuery and Bootstrap) and remove
-jsDelivr from the policy. This also stops the CDN learning who uses the site.
+**Fixed (2026-10-17):** Select2 4.1.0-rc.0 is served from `wwwroot/lib/select2` (taken
+from the npm registry, checksum matched npm's published SHA-512) and jsDelivr is gone from
+the policy: no outside website may supply code or styles (test in
+`ContentSecurityPolicyTests`).
 
 ### L1 — Session not renewed at sign-in (V7 Session management)
 
@@ -81,7 +85,7 @@ the session cookie when the SMS code is accepted.
 ### L2 — Signing algorithm not pinned (V9 Self-contained tokens)
 
 The API accepts tokens signed with its secret key but does not list the allowed
-algorithm. **Fix:** `ValidAlgorithms = [HmacSha256]` in the token check.
+algorithm. **Fixed (2026-10-17):** `ValidAlgorithms = [HmacSha256]` in the token check.
 
 ### L3 — Older 5-character authorization codes still work (V6 Authentication)
 

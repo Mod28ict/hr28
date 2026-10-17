@@ -11,8 +11,8 @@ namespace HR28.Web.Middleware;
 /// the views render. Inline event handlers (onclick=…) are not allowed at all; site.js
 /// handles data-autosubmit, data-href and similar attributes instead. style="…" attributes
 /// (spacing, sizes) stay allowed through style-src-attr: they can't run code. Older
-/// browsers without CSP level 3 fall back to style-src. External code: this site plus the
-/// jsDelivr CDN used for Select2.
+/// browsers without CSP level 3 fall back to style-src. No outside code (2026-10-17, ASVS
+/// review M4): every library, Select2 included, is served from this site's wwwroot/lib.
 /// </summary>
 public class SecurityHeadersMiddleware
 {
@@ -28,10 +28,10 @@ public class SecurityHeadersMiddleware
 
     public static string Policy(string nonce) =>
         "default-src 'self'; " +
-        $"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net; " +
+        $"script-src 'self' 'nonce-{nonce}'; " +
         "script-src-attr 'none'; " +
-        $"style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
-        $"style-src-elem 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net; " +
+        $"style-src 'self' 'unsafe-inline'; " +
+        $"style-src-elem 'self' 'nonce-{nonce}'; " +
         "style-src-attr 'unsafe-inline'; " +
         "img-src 'self' data:; " +
         "font-src 'self' data:; " +

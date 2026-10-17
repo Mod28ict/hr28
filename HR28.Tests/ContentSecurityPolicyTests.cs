@@ -33,4 +33,13 @@ public class ContentSecurityPolicyTests
         Assert.Equal("object-src 'none'", Directive(policy, "object-src"));
         Assert.Equal("frame-ancestors 'none'", Directive(policy, "frame-ancestors"));
     }
+
+    [Fact]
+    public void No_outside_website_may_supply_code_or_styles()
+    {
+        // ASVS review M4 (2026-10-17): every library is served from this site.
+        var policy = SecurityHeadersMiddleware.Policy("abc123");
+
+        Assert.DoesNotContain("http", policy);
+    }
 }

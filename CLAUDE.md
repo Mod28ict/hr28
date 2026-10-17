@@ -370,6 +370,11 @@ strong despite that:
   `tr data-href` (+ `data-no-row-click` on parts that must not open the row),
   `img data-remove-on-error`, `data-print`, `data-history-back`. `style="…"` attributes
   remain allowed (`style-src-attr 'unsafe-inline'`: no code). No eval/new Function.
+  **No outside code or styles** (2026-10-17): every library lives in `wwwroot/lib`
+  (Select2 included); never add a CDN link.
+- **Input limits** (2026-10-17): every API input DTO carries `[MaxLength]` with a plain
+  message; failed checks answer `{ "message": … }` (API `Program.cs`); ordinary requests
+  are capped at 1 MB, uploads set their own `[RequestSizeLimit]`.
 - Rate limiting on login, code verification, search and export endpoints so nobody
   can bulk-download the voter registry.
 - No stack traces, internal errors or technical identifiers shown to users.
@@ -494,8 +499,9 @@ Status as of 2026-10-02 (update when an item changes):
    session timeouts and admin sign-out, step-up codes and sign-in alerts (2026-10-15).
    Still to do: passkeys (deferred).
 6. OWASP ASVS L2 review — **done (2026-10-15, ASVS 5.0):** `Docs/Security/ASVS-L2-Review-2026-10-15.md`.
-   No high findings; open: M1 bulk voter reading cap, M2 sign-in/refusal logging,
-   M3 input length limits, M4 self-host Select2, and lows L1–L6.
+   No high findings. Fixed 2026-10-17: M3 input length limits (`[MaxLength]` on input
+   DTOs, 1 MB request limit), M4 Select2 self-hosted (no outside code in the CSP), L2 JWT
+   algorithm pinned. Open: M1 bulk voter reading cap, M2 sign-in/refusal logging, L1, L3–L6.
 7. Audit coverage — **partly done:** voters, influencers, encounters, pledges,
    users (create, code reset, roles, areas), constituencies, islands, settings and
    report downloads are audited. Voter, influencer and encounter edits record which
